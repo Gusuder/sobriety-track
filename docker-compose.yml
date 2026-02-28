@@ -1,0 +1,39 @@
+﻿services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sobriety_track
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sobriety_track"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    image: nginx:alpine
+    volumes:
+      - ./apps/web:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+
+  api:
+    build:
+      context: ./apps/api
+    environment:
+      PORT: 4000
+      JWT_SECRET: change-me-super-secret
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/sobriety_track
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

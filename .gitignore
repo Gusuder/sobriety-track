@@ -1,0 +1,4 @@
+﻿node_modules/
+apps/api/dist/
+.env
+.DS_Store

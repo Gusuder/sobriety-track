@@ -1,0 +1,254 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sobriety Track</title>
+    <style>
+      body { font-family: Inter, Arial, sans-serif; background:#f6f3ed; margin:0; color:#2d2a26; }
+      .wrap { max-width: 860px; margin: 24px auto; padding: 0 16px; }
+      .card { background:#fff; border-radius:16px; padding:16px; margin-bottom:14px; box-shadow:0 6px 18px rgba(0,0,0,.08); }
+      h1 { margin:0 0 10px; font-size: 30px; }
+      h3 { margin: 0 0 8px; }
+      input, select, textarea, button { width:100%; padding:10px; margin-top:8px; border-radius:10px; border:1px solid #d8d3c7; box-sizing:border-box; }
+      button { background:#6f8b74; color:#fff; border:none; cursor:pointer; font-weight:600; }
+      button:hover { opacity:.95; }
+      .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+      .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+      .muted { color:#6f6a63; font-size:14px; margin-top:0; }
+      pre { background:#1e1e1e; color:#d8ffd8; padding:10px; border-radius:10px; overflow:auto; font-size:12px; min-height:120px; }
+      .pill { display:inline-block; background:#ece7dc; color:#5f584e; border-radius:999px; padding:6px 10px; font-size:12px; margin-right:6px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Sobriety Track (MVP)</h1>
+      <p class="muted">Extended web UI for testing auth, onboarding, password reset, reasons and entries.</p>
+
+      <div class="card">
+        <h3>0) Health</h3>
+        <button onclick="healthCheck()">Check API health</button>
+      </div>
+
+      <div class="card">
+        <h3>1) Registration</h3>
+        <input id="regLogin" placeholder="login" value="demo_user" />
+        <input id="regEmail" placeholder="email" value="demo@example.com" />
+        <input id="regPassword" type="password" placeholder="password" value="strongPass123" />
+        <button onclick="registerUser()">Register</button>
+      </div>
+
+      <div class="card">
+        <h3>2) Login</h3>
+        <input id="login" placeholder="login" value="demo_user" />
+        <input id="password" type="password" placeholder="password" value="strongPass123" />
+        <button onclick="loginUser()">Login</button>
+      </div>
+
+      <div class="card">
+        <h3>3) Forgot / Reset password</h3>
+        <input id="forgotEmail" placeholder="email" value="demo@example.com" />
+        <button onclick="forgotPassword()">Create reset token (dev mode)</button>
+        <div class="row">
+          <input id="resetToken" placeholder="reset token" />
+          <input id="newPassword" type="password" placeholder="new password" value="newStrongPass456" />
+        </div>
+        <button onclick="resetPassword()">Reset password</button>
+      </div>
+
+      <div class="card">
+        <h3>4) Onboarding</h3>
+        <div class="row3">
+          <select id="startMode" onchange="toggleSoberDate()">
+            <option value="now">start now</option>
+            <option value="already_sober">already sober</option>
+          </select>
+          <input id="soberStartDate" type="date" disabled />
+          <input id="goalDays" type="number" min="1" max="3650" value="30" />
+        </div>
+        <div style="margin-top:10px">
+          <button onclick="saveOnboarding()">Save onboarding</button>
+          <button onclick="getOnboarding()" style="margin-top:8px">Get onboarding</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>5) Reasons</h3>
+        <button onclick="loadReasons()">Load drink reasons</button>
+        <div id="reasonsPills" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <h3>6) Daily entry</h3>
+        <div class="row">
+          <input id="entryDate" type="date" />
+          <select id="mood">
+            <option value="awful">awful</option>
+            <option value="bad">bad</option>
+            <option value="neutral">neutral</option>
+            <option value="good" selected>good</option>
+            <option value="great">great</option>
+          </select>
+        </div>
+        <div class="row">
+          <input id="stress" type="number" min="1" max="10" value="3" placeholder="stress 1-10" />
+          <input id="craving" type="number" min="1" max="10" value="4" placeholder="craving 1-10" />
+        </div>
+        <select id="drank">
+          <option value="false" selected>Did not drink</option>
+          <option value="true">Drank</option>
+        </select>
+        <textarea id="summary" placeholder="How was your day">Calm day without alcohol</textarea>
+        <input id="comment" placeholder="Comment" value="All good" />
+        <input id="reasonCodes" placeholder="reason codes csv, e.g. stress,boredom" value="stress,boredom" />
+        <button onclick="createEntry()">Save entry</button>
+      </div>
+
+      <div class="card">
+        <h3>7) Get entries</h3>
+        <div class="row">
+          <input id="from" type="date" />
+          <input id="to" type="date" />
+        </div>
+        <button onclick="listEntries()">Show entries</button>
+      </div>
+
+      <div class="card">
+        <h3>API response</h3>
+        <pre id="out">Ready...</pre>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = 'http://localhost:4000';
+      const API = `${API_BASE}/api`;
+      let token = localStorage.getItem('token') || '';
+      const out = document.getElementById('out');
+      const today = new Date().toISOString().slice(0,10);
+      document.getElementById('entryDate').value = today;
+      document.getElementById('from').value = today.slice(0,8) + '01';
+      document.getElementById('to').value = today;
+      document.getElementById('soberStartDate').value = today;
+
+      const print = (data) => out.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+
+      async function req(path, options = {}) {
+        const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+        if (token) headers.Authorization = `Bearer ${token}`;
+        const res = await fetch(API + path, { ...options, headers });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw data;
+        return data;
+      }
+
+      async function healthCheck() {
+        try {
+          const res = await fetch(`${API_BASE}/health`);
+          const data = await res.json();
+          print(data);
+        } catch (e) { print(e); }
+      }
+
+      async function registerUser() {
+        try {
+          const payload = {
+            login: regLogin.value,
+            email: regEmail.value,
+            password: regPassword.value
+          };
+          print(await req('/auth/register', { method:'POST', body: JSON.stringify(payload) }));
+        } catch (e) { print(e); }
+      }
+
+      async function loginUser() {
+        try {
+          const payload = { login: login.value, password: password.value };
+          const data = await req('/auth/login', { method:'POST', body: JSON.stringify(payload) });
+          token = data.accessToken;
+          localStorage.setItem('token', token);
+          print({ ok: true, token });
+        } catch (e) { print(e); }
+      }
+
+      async function forgotPassword() {
+        try {
+          const payload = { email: forgotEmail.value };
+          const data = await req('/auth/forgot-password', { method:'POST', body: JSON.stringify(payload) });
+          if (data.resetToken) {
+            resetToken.value = data.resetToken;
+          }
+          print(data);
+        } catch (e) { print(e); }
+      }
+
+      async function resetPassword() {
+        try {
+          const payload = { token: resetToken.value, newPassword: newPassword.value };
+          print(await req('/auth/reset-password', { method:'POST', body: JSON.stringify(payload) }));
+        } catch (e) { print(e); }
+      }
+
+      function toggleSoberDate() {
+        soberStartDate.disabled = startMode.value !== 'already_sober';
+      }
+
+      async function saveOnboarding() {
+        try {
+          const payload = {
+            startMode: startMode.value,
+            goalDays: Number(goalDays.value)
+          };
+          if (startMode.value === 'already_sober') {
+            payload.soberStartDate = soberStartDate.value;
+          }
+          print(await req('/onboarding', { method:'POST', body: JSON.stringify(payload) }));
+        } catch (e) { print(e); }
+      }
+
+      async function getOnboarding() {
+        try {
+          print(await req('/onboarding'));
+        } catch (e) { print(e); }
+      }
+
+      async function loadReasons() {
+        try {
+          const data = await req('/entries/reasons');
+          reasonsPills.innerHTML = (data.reasons || []).map((r) => `<span class="pill">${r.code}: ${r.title}</span>`).join('');
+          print(data);
+        } catch (e) { print(e); }
+      }
+
+      async function createEntry() {
+        try {
+          const reasonCodes = reasonCodesInput();
+          const payload = {
+            entryDate: entryDate.value,
+            drank: drank.value === 'true',
+            mood: mood.value,
+            stressLevel: Number(stress.value),
+            cravingLevel: Number(craving.value),
+            daySummary: summary.value,
+            comment: comment.value,
+            reasonCodes
+          };
+          print(await req('/entries', { method:'POST', body: JSON.stringify(payload) }));
+        } catch (e) { print(e); }
+      }
+
+      function reasonCodesInput() {
+        return reasonCodes.value
+          .split(',')
+          .map((x) => x.trim())
+          .filter(Boolean);
+      }
+
+      async function listEntries() {
+        try {
+          print(await req(`/entries?from=${from.value}&to=${to.value}`));
+        } catch (e) { print(e); }
+      }
+    </script>
+  </body>
+</html>
+
