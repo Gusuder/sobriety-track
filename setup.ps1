@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
 # Ensure readable UTF-8 output in Windows terminals
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -32,6 +32,7 @@ New-Item -ItemType Directory -Force -Path "apps/api/src/types" | Out-Null
 New-Item -ItemType Directory -Force -Path "apps/api/src/utils" | Out-Null
 New-Item -ItemType Directory -Force -Path "docs" | Out-Null
 New-Item -ItemType Directory -Force -Path "apps/web" | Out-Null
+New-Item -ItemType Directory -Force -Path "scripts" | Out-Null
 
 Write-Step "Writing backend MVP files"
 @'
@@ -84,7 +85,7 @@ volumes:
 '@ | Set-Content -Path "docker-compose.yml" -Encoding UTF8
 
 @'
-.PHONY: up down reset logs
+.PHONY: up down reset logs smoke
 
 up:
 	docker compose up --build
@@ -97,6 +98,9 @@ reset:
 
 logs:
 	docker compose logs -f api postgres
+
+smoke:
+	powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
 '@ | Set-Content -Path "Makefile" -Encoding UTF8
 
 @'
@@ -107,53 +111,42 @@ MVP now includes:
 - Minimal Web UI for manual testing
 
 ## Run
-```bash
 docker compose up --build
-```
 
-## Как проверить MVP локально
-
-1. Скопировать переменные окружения API:
-   ```bash
-   cp apps/api/.env.example apps/api/.env
-   ```
-2. Запустить проект:
-   ```bash
-   docker compose up --build
-   ```
-3. Дождаться готовности сервисов и проверить health endpoint:
-   ```bash
-   curl http://localhost:4000/health
-   ```
-   Ожидаемый ответ: `{"status":"ok"}`.
-4. Открыть UI для ручной проверки: `http://localhost:8080`.
-5. Пройти базовый сценарий в UI:
+## Local MVP Verification
+1. Copy API environment variables: cp apps/api/.env.example apps/api/.env
+2. Start the project: docker compose up --build
+3. Wait for services and check health endpoint: curl http://localhost:4000/health
+   Expected response: {"status":"ok"}.
+4. Open UI for manual checks: http://localhost:8080
+5. Complete base scenario in UI:
    - Register
    - Login
    - Save/Get onboarding
    - Create/Load goals
-   - Create entry и List entries
-6. Остановить окружение после проверки:
-   ```bash
-   docker compose down -v
-   ```
+   - Create entry and List entries
+6. Stop environment after checks: docker compose down -v
 
 ## URLs
 - Web UI: http://localhost:8080
 - API health: http://localhost:4000/health
 
+## Smoke E2E
+Run after docker compose up --build:
+powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
+
 ## API endpoints
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/forgot-password` (returns reset token in MVP dev mode)
-- `POST /api/auth/reset-password`
-- `GET /api/entries/reasons`
-- `POST /api/entries`
-- `GET /api/entries?from=YYYY-MM-DD&to=YYYY-MM-DD`
-- `POST /api/onboarding`
-- `GET /api/onboarding`
-- `POST /api/goals`
-- `GET /api/goals`
+- POST /api/auth/register
+- POST /api/auth/login
+- POST /api/auth/forgot-password (returns reset token in MVP dev mode)
+- POST /api/auth/reset-password
+- GET /api/entries/reasons
+- POST /api/entries
+- GET /api/entries?from=YYYY-MM-DD&to=YYYY-MM-DD
+- POST /api/onboarding
+- GET /api/onboarding
+- POST /api/goals
+- GET /api/goals
 
 ## What to test in Web UI
 1. Register
@@ -984,7 +977,7 @@ declare module 'fastify' {
 
       <div class="card">
         <h3>5) Goals / Streak</h3>
-        <p class="muted">После логина нажмите <b>Load goals/progress</b>. Если целей ещё нет, сначала создайте Goal.</p>
+        <p class="muted">РџРѕСЃР»Рµ Р»РѕРіРёРЅР° РЅР°Р¶РјРёС‚Рµ <b>Load goals/progress</b>. Р•СЃР»Рё С†РµР»РµР№ РµС‰С‘ РЅРµС‚, СЃРЅР°С‡Р°Р»Р° СЃРѕР·РґР°Р№С‚Рµ Goal.</p>
         <div class="row">
           <input id="targetDays" type="number" min="1" max="3650" value="30" placeholder="target days" />
           <input id="streakView" type="text" value="streak: unknown" readonly />
@@ -1450,6 +1443,105 @@ test('migration includes required phase-1 tables', async () => {
 });
 
 '@ | Set-Content -Path "apps/api/src/db/migrate.test.ts" -Encoding UTF8
+
+@'
+param(
+  [string]$ApiBase = "http://localhost:4000",
+  [string]$WebBase = "http://localhost:8080"
+)
+
+$ErrorActionPreference = "Stop"
+
+$api = "$ApiBase/api"
+$stamp = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+$login = "smoke_$stamp"
+$email = "$login@example.com"
+$password = "StrongPass123!"
+$today = (Get-Date).ToString("yyyy-MM-dd")
+$from = (Get-Date -Day 1).ToString("yyyy-MM-dd")
+
+function Step($text) {
+  Write-Host "== $text" -ForegroundColor Cyan
+}
+
+Step "Health"
+$health = Invoke-RestMethod -Method GET -Uri "$ApiBase/health"
+if ($health.status -ne "ok") {
+  throw "Health check failed"
+}
+
+Step "Auth register/login"
+$registerBody = @{ login = $login; email = $email; password = $password } | ConvertTo-Json
+[void](Invoke-RestMethod -Method POST -Uri "$api/auth/register" -ContentType "application/json" -Body $registerBody)
+
+$loginBody = @{ login = $login; password = $password } | ConvertTo-Json
+$loginRes = Invoke-RestMethod -Method POST -Uri "$api/auth/login" -ContentType "application/json" -Body $loginBody
+$token = $loginRes.accessToken
+if (-not $token) {
+  throw "Login failed: no access token"
+}
+$headers = @{ Authorization = "Bearer $token" }
+
+Step "Onboarding"
+$onboardingBody = @{ startMode = "now"; goalDays = 30 } | ConvertTo-Json
+$onboardingSave = Invoke-RestMethod -Method POST -Uri "$api/onboarding" -Headers $headers -ContentType "application/json" -Body $onboardingBody
+if (-not $onboardingSave.profile) {
+  throw "Onboarding save failed"
+}
+[void](Invoke-RestMethod -Method GET -Uri "$api/onboarding" -Headers $headers)
+
+Step "Goals/progress"
+$goals = Invoke-RestMethod -Method GET -Uri "$api/goals" -Headers $headers
+if (-not $goals.activeGoal) {
+  throw "Expected active goal after onboarding"
+}
+
+$newGoalBody = @{ targetDays = 45 } | ConvertTo-Json
+$newGoal = Invoke-RestMethod -Method POST -Uri "$api/goals" -Headers $headers -ContentType "application/json" -Body $newGoalBody
+if ($newGoal.goal.target_days -ne 45) {
+  throw "Goal create failed"
+}
+
+$goalsAfter = Invoke-RestMethod -Method GET -Uri "$api/goals" -Headers $headers
+if (-not $goalsAfter.progress) {
+  throw "Goal progress was not returned"
+}
+
+Step "Reasons + entries"
+$reasons = Invoke-RestMethod -Method GET -Uri "$api/entries/reasons" -Headers $headers
+if (@($reasons.reasons).Count -lt 1) {
+  throw "Reasons list is empty"
+}
+
+$entryBody = @{
+  entryDate = $today
+  drank = $false
+  mood = "good"
+  stressLevel = 3
+  cravingLevel = 4
+  daySummary = "Smoke E2E entry"
+  comment = "ok"
+  reasonCodes = @("stress", "boredom")
+} | ConvertTo-Json
+
+[void](Invoke-RestMethod -Method POST -Uri "$api/entries" -Headers $headers -ContentType "application/json" -Body $entryBody)
+$entries = Invoke-RestMethod -Method GET -Uri "$api/entries?from=$from&to=$today" -Headers $headers
+if (@($entries.entries).Count -lt 1) {
+  throw "Entries list is empty"
+}
+
+Step "Web smoke"
+$html = (Invoke-WebRequest -UseBasicParsing -Uri $WebBase).Content
+if ($html -notlike "*5) Goals / Streak*") {
+  throw "Web UI does not contain goals block"
+}
+if ($html -notlike "*loadGoals()*") {
+  throw "Web UI does not contain loadGoals() call"
+}
+
+Step "Done"
+Write-Host "Smoke E2E passed" -ForegroundColor Green
+'@ | Set-Content -Path "scripts/smoke-e2e.ps1" -Encoding UTF8
 
 Write-Step "Verifying generated files"
 $composePath = Join-Path $PSScriptRoot "docker-compose.yml"

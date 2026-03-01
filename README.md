@@ -40,6 +40,13 @@ docker compose up --build
 - Web UI: http://localhost:8080
 - API health: http://localhost:4000/health
 
+## Smoke E2E
+Запуск после `docker compose up --build`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
+```
+
 ## API endpoints
 - `POST /api/auth/register`
 - `POST /api/auth/login`
