@@ -1,0 +1,12 @@
+saber2281337.duckdns.org {
+  encode zstd gzip
+
+  @api path /api* /health
+  handle @api {
+    reverse_proxy api:4000
+  }
+
+  handle {
+    reverse_proxy web:80
+  }
+}

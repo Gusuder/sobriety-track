@@ -1,4 +1,17 @@
 ﻿services:
+  reverse-proxy:
+    image: caddy:2-alpine
+    depends_on:
+      - web
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
   postgres:
     image: postgres:16-alpine
     environment:
@@ -16,24 +29,23 @@
       retries: 10
 
   web:
-    image: nginx:alpine
-    volumes:
-      - ./apps/web:/usr/share/nginx/html:ro
-    ports:
-      - "8080:80"
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
 
   api:
     build:
       context: ./apps/api
+      dockerfile: Dockerfile
     environment:
       PORT: 4000
       JWT_SECRET: change-me-super-secret
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/sobriety_track
-    ports:
-      - "4000:4000"
     depends_on:
       postgres:
         condition: service_healthy
 
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:

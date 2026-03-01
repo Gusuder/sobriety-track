@@ -9,6 +9,9 @@ MVP now includes:
 docker compose up --build
 ```
 
+Приложение будет доступно через reverse-proxy:
+- https://saber2281337.duckdns.org
+
 ## Как проверить MVP локально
 
 1. Скопировать переменные окружения API:
@@ -19,12 +22,12 @@ docker compose up --build
    ```bash
    docker compose up --build
    ```
-3. Дождаться готовности сервисов и проверить health endpoint:
+3. Дождаться готовности сервисов и проверить health endpoint через домен:
    ```bash
-   curl http://localhost:4000/health
+   curl https://saber2281337.duckdns.org/health
    ```
    Ожидаемый ответ: `{"status":"ok"}`.
-4. Открыть UI для ручной проверки: `http://localhost:8080`.
+4. Открыть UI для ручной проверки: `https://saber2281337.duckdns.org`.
 5. Пройти базовый сценарий в UI:
    - Register
    - Login
@@ -37,8 +40,8 @@ docker compose up --build
    ```
 
 ## URLs
-- Web UI: http://localhost:8080
-- API health: http://localhost:4000/health
+- Web UI: https://saber2281337.duckdns.org
+- API health: https://saber2281337.duckdns.org/health
 
 ## Smoke E2E
 Запуск после `docker compose up --build`:
@@ -68,3 +71,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
 5. Create daily entry
 6. List entries by period
 
+## Build and Security
+- All services run from Docker images without bind-mounting source code
+- API runs as non-root user (node) from compiled dist/
+- Web serves static HTML from nginx image
+- .dockerignore excludes source code and dev dependencies from build context
+- HTTPS termination and routing are handled by Caddy reverse-proxy for saber2281337.duckdns.org

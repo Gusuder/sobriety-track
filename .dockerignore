@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.DS_Store
+.git
+.gitignore
+README.md
+Makefile
+setup.ps1
+.github/
+apps/web/
+apps/api/src/
+apps/api/test/
+apps/api/.env.example
+apps/api/tsconfig.json
+apps/api/package-lock.json
