@@ -1,4 +1,4 @@
-param(
+﻿param(
   [string]$ApiBase = "http://localhost:4000",
   [string]$WebBase = "http://localhost:8080"
 )
@@ -85,7 +85,7 @@ if (@($entries.entries).Count -lt 1) {
 
 Step "Web smoke"
 $html = (Invoke-WebRequest -UseBasicParsing -Uri $WebBase).Content
-if ($html -notlike "*5) Goals / Streak*") {
+if ($html -notlike "*id=""targetDays""*") {
   throw "Web UI does not contain goals block"
 }
 if ($html -notlike "*loadGoals()*") {

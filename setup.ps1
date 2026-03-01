@@ -183,7 +183,7 @@ docker compose up --build
 5. Complete base scenario in UI:
    - Register
    - Login
-   - Save/Get onboarding
+   - Сохранить/получить онбординг
    - Create/Load goals
    - Create entry and List entries
 6. Stop environment after checks: docker compose down -v
@@ -212,7 +212,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
 ## What to test in Web UI
 1. Register
 2. Login (token saved in localStorage)
-3. Save/Get onboarding
+3. Сохранить/получить онбординг
 4. Create goal and load progress
 5. Create daily entry
 6. List entries by period
@@ -963,7 +963,7 @@ declare module 'fastify' {
 
 @'
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -987,110 +987,110 @@ declare module 'fastify' {
   <body>
     <div class="wrap">
       <h1>Sobriety Track (MVP)</h1>
-      <p class="muted">Extended web UI for testing auth, onboarding, goals/progress, password reset, reasons and entries.</p>
+      <p class="muted">Русский интерфейс для проверки авторизации, онбординга, целей/прогресса, сброса пароля, причин и записей.</p>
 
       <div class="card">
-        <h3>0) Health</h3>
-        <button onclick="healthCheck()">Check API health</button>
+        <h3>0) Проверка API</h3>
+        <button onclick="healthCheck()">Проверить статус API</button>
       </div>
 
       <div class="card">
-        <h3>1) Registration</h3>
-        <input id="regLogin" placeholder="login" value="demo_user" />
+        <h3>1) Регистрация</h3>
+        <input id="regLogin" placeholder="логин" value="demo_user" />
         <input id="regEmail" placeholder="email" value="demo@example.com" />
-        <input id="regPassword" type="password" placeholder="password" value="strongPass123" />
-        <button onclick="registerUser()">Register</button>
+        <input id="regPassword" type="password" placeholder="пароль" value="strongPass123" />
+        <button onclick="registerUser()">Зарегистрироваться</button>
       </div>
 
       <div class="card">
-        <h3>2) Login</h3>
-        <input id="login" placeholder="login" value="demo_user" />
-        <input id="password" type="password" placeholder="password" value="strongPass123" />
-        <button onclick="loginUser()">Login</button>
+        <h3>2) Вход</h3>
+        <input id="login" placeholder="логин" value="demo_user" />
+        <input id="password" type="password" placeholder="пароль" value="strongPass123" />
+        <button onclick="loginUser()">Войти</button>
       </div>
 
       <div class="card">
-        <h3>3) Forgot / Reset password</h3>
+        <h3>3) Восстановление / Сброс пароля</h3>
         <input id="forgotEmail" placeholder="email" value="demo@example.com" />
-        <button onclick="forgotPassword()">Create reset token (dev mode)</button>
+        <button onclick="forgotPassword()">Создать токен сброса (dev)</button>
         <div class="row">
-          <input id="resetToken" placeholder="reset token" />
-          <input id="newPassword" type="password" placeholder="new password" value="newStrongPass456" />
+          <input id="resetToken" placeholder="токен сброса" />
+          <input id="newPassword" type="password" placeholder="новый пароль" value="newStrongPass456" />
         </div>
-        <button onclick="resetPassword()">Reset password</button>
+        <button onclick="resetPassword()">Сбросить пароль</button>
       </div>
 
       <div class="card">
-        <h3>4) Onboarding</h3>
+        <h3>4) Онбординг</h3>
         <div class="row3">
           <select id="startMode" onchange="toggleSoberDate()">
-            <option value="now">start now</option>
-            <option value="already_sober">already sober</option>
+            <option value="now">начать сейчас</option>
+            <option value="already_sober">уже не пью</option>
           </select>
           <input id="soberStartDate" type="date" disabled />
           <input id="goalDays" type="number" min="1" max="3650" value="30" />
         </div>
         <div style="margin-top:10px">
-          <button onclick="saveOnboarding()">Save onboarding</button>
-          <button onclick="getOnboarding()" style="margin-top:8px">Get onboarding</button>
+          <button onclick="saveOnboarding()">Сохранить онбординг</button>
+          <button onclick="getOnboarding()" style="margin-top:8px">Получить онбординг</button>
         </div>
       </div>
 
       <div class="card">
-        <h3>5) Goals / Streak</h3>
-        <p class="muted">РџРѕСЃР»Рµ Р»РѕРіРёРЅР° РЅР°Р¶РјРёС‚Рµ <b>Load goals/progress</b>. Р•СЃР»Рё С†РµР»РµР№ РµС‰С‘ РЅРµС‚, СЃРЅР°С‡Р°Р»Р° СЃРѕР·РґР°Р№С‚Рµ Goal.</p>
+        <h3>5) Цели / Серия</h3>
+        <p class="muted">РџРѕСЃР»Рµ Р»РѕРіРёРЅР° РЅР°Р¶РјРёС‚Рµ <b>Загрузить цели/прогресс</b>. Р•СЃР»Рё С†РµР»РµР№ РµС‰С‘ РЅРµС‚, СЃРЅР°С‡Р°Р»Р° СЃРѕР·РґР°Р№С‚Рµ Goal.</p>
         <div class="row">
-          <input id="targetDays" type="number" min="1" max="3650" value="30" placeholder="target days" />
-          <input id="streakView" type="text" value="streak: unknown" readonly />
+          <input id="targetDays" type="number" min="1" max="3650" value="30" placeholder="дней в цели" />
+          <input id="streakView" type="text" value="серия: неизвестно" readonly />
         </div>
-        <button onclick="createGoal()">Create goal</button>
-        <button onclick="loadGoals()" style="margin-top:8px">Load goals/progress</button>
+        <button onclick="createGoal()">Создать цель</button>
+        <button onclick="loadGoals()" style="margin-top:8px">Загрузить цели/прогресс</button>
       </div>
 
       <div class="card">
-        <h3>6) Reasons</h3>
-        <button onclick="loadReasons()">Load drink reasons</button>
+        <h3>6) Причины</h3>
+        <button onclick="loadReasons()">Загрузить причины</button>
         <div id="reasonsPills" style="margin-top:10px"></div>
       </div>
 
       <div class="card">
-        <h3>7) Daily entry</h3>
+        <h3>7) Ежедневная запись</h3>
         <div class="row">
           <input id="entryDate" type="date" />
           <select id="mood">
-            <option value="awful">awful</option>
-            <option value="bad">bad</option>
-            <option value="neutral">neutral</option>
-            <option value="good" selected>good</option>
-            <option value="great">great</option>
+            <option value="awful">ужасно</option>
+            <option value="bad">плохо</option>
+            <option value="neutral">нормально</option>
+            <option value="good" selected>хорошо</option>
+            <option value="great">отлично</option>
           </select>
         </div>
         <div class="row">
-          <input id="stress" type="number" min="1" max="10" value="3" placeholder="stress 1-10" />
-          <input id="craving" type="number" min="1" max="10" value="4" placeholder="craving 1-10" />
+          <input id="stress" type="number" min="1" max="10" value="3" placeholder="стресс 1-10" />
+          <input id="craving" type="number" min="1" max="10" value="4" placeholder="тяга 1-10" />
         </div>
         <select id="drank">
-          <option value="false" selected>Did not drink</option>
-          <option value="true">Drank</option>
+          <option value="false" selected>Не пил</option>
+          <option value="true">Пил</option>
         </select>
-        <textarea id="summary" placeholder="How was your day">Calm day without alcohol</textarea>
-        <input id="comment" placeholder="Comment" value="All good" />
-        <input id="reasonCodes" placeholder="reason codes csv, e.g. stress,boredom" value="stress,boredom" />
-        <button onclick="createEntry()">Save entry</button>
+        <textarea id="summary" placeholder="Как прошёл день">Спокойный день без алкоголя</textarea>
+        <input id="comment" placeholder="Комментарий" value="Всё хорошо" />
+        <input id="reasonCodes" placeholder="коды причин через запятую, например stress,boredom" value="stress,boredom" />
+        <button onclick="createEntry()">Сохранить запись</button>
       </div>
 
       <div class="card">
-        <h3>8) Get entries</h3>
+        <h3>8) Получить записи</h3>
         <div class="row">
           <input id="from" type="date" />
           <input id="to" type="date" />
         </div>
-        <button onclick="listEntries()">Show entries</button>
+        <button onclick="listEntries()">Показать записи</button>
       </div>
 
       <div class="card">
-        <h3>API response</h3>
-        <pre id="out">Ready...</pre>
+        <h3>Ответ API</h3>
+        <pre id="out">Готово...</pre>
       </div>
     </div>
 
@@ -1197,7 +1197,7 @@ declare module 'fastify' {
         try {
           const rawTarget = Number(targetDays.value);
           if (!Number.isFinite(rawTarget) || rawTarget < 1) {
-            throw new Error('targetDays must be a positive number');
+            throw new Error('targetDays должен быть положительным числом');
           }
 
           const payload = { targetDays: rawTarget };
@@ -1212,7 +1212,7 @@ declare module 'fastify' {
           const progress = data?.progress;
 
           if (!data?.activeGoal) {
-            streakView.value = 'no active goal yet';
+            streakView.value = 'активной цели пока нет';
           } else if (!progress) {
             streakView.value = `goal: ${data.activeGoal.target_days}d | streak: 0d`;
           } else {
@@ -1226,7 +1226,7 @@ declare module 'fastify' {
           print(data);
         } catch (e) {
           if (e?.error === 'Unauthorized') {
-            streakView.value = 'login required';
+            streakView.value = 'требуется вход';
           }
           print(e);
         }
@@ -1593,7 +1593,7 @@ if (@($entries.entries).Count -lt 1) {
 
 Step "Web smoke"
 $html = (Invoke-WebRequest -UseBasicParsing -Uri $WebBase).Content
-if ($html -notlike "*5) Goals / Streak*") {
+if ($html -notlike "*id=""targetDays""*") {
   throw "Web UI does not contain goals block"
 }
 if ($html -notlike "*loadGoals()*") {
@@ -1615,3 +1615,5 @@ Write-Step "Done"
 Write-Host "Files created/updated. Now run:" -ForegroundColor Green
 Write-Host "  docker compose -f .\docker-compose.yml up --build" -ForegroundColor Yellow
 Write-Host "Then check: http://localhost:4000/health" -ForegroundColor Yellow
+
+
