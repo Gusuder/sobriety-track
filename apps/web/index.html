@@ -716,11 +716,11 @@
         </section>
 
         <section class="card">
-          <div class="quick-head">
+          <div id="quickHeader" class="quick-head">
             <h3>Быстрый чек-ин</h3>
             <span class="quick-badge">~20 секунд</span>
           </div>
-          <p class="muted">Минимальная отметка дня для удержания фокуса и трека прогресса.</p>
+          <p id="quickIntro" class="muted">Минимальная отметка дня для удержания фокуса и трека прогресса.</p>
           <div id="quickCheckinPanel" class="quick-grid">
             <div class="row">
               <div class="field" style="margin-top:0;">
@@ -1721,13 +1721,17 @@
 
       function toggleAdvancedEntry(forceOpen) {
         const quickPanel = document.getElementById("quickCheckinPanel");
+        const quickHeader = document.getElementById("quickHeader");
+        const quickIntro = document.getElementById("quickIntro");
         const panel = document.getElementById("advancedEntryPanel");
         const btn = document.getElementById("advancedToggleBtn");
-        if (!quickPanel || !panel || !btn) return;
+        if (!quickPanel || !quickHeader || !quickIntro || !panel || !btn) return;
 
         const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.classList.contains("hidden");
         panel.classList.toggle("hidden", !shouldOpen);
         quickPanel.classList.toggle("hidden", shouldOpen);
+        quickHeader.classList.toggle("hidden", shouldOpen);
+        quickIntro.classList.toggle("hidden", shouldOpen);
         btn.textContent = shouldOpen ? "Открыть быстрый чек-ин" : "Открыть расширенную запись";
 
         if (shouldOpen) {
