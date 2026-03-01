@@ -257,6 +257,12 @@
         background: var(--card-2);
         padding: 8px;
       }
+      .reason-tag-wrap.disabled {
+        opacity: 0.55;
+      }
+      .reason-tag-wrap.disabled .reason-tag {
+        pointer-events: none;
+      }
 
       pre {
         margin: 0;
@@ -475,18 +481,18 @@
             </div>
             <div class="field">
               <label for="drank">Алкоголь</label>
-              <select id="drank">
+              <select id="drank" onchange="syncDrankDependentFields()">
                 <option value="false" selected>Не пил</option>
                 <option value="true">Пил</option>
               </select>
             </div>
             <div class="field">
               <label for="summary">Кратко о дне</label>
-              <textarea id="summary" placeholder="Как прошёл день">Спокойный день без алкоголя</textarea>
+              <textarea id="summary" placeholder="Спокойный день без алкоголя"></textarea>
             </div>
             <div class="field">
               <label for="comment">Комментарий</label>
-              <input id="comment" placeholder="Комментарий" value="Всё хорошо" />
+              <input id="comment" placeholder="Всё хорошо" />
             </div>
             <div class="field">
               <label>Причины (выберите)</label>
@@ -974,6 +980,7 @@
       }
 
       function toggleReasonTag(code) {
+        if (drank.value !== "true") return;
         const el = document.querySelector(`.reason-tag[data-code="${code}"]`);
         if (!el) return;
         el.classList.toggle("active");
@@ -987,20 +994,32 @@
 
       async function createEntry() {
         try {
+          const selectedDrank = drank.value === "true";
           const payload = {
             entryDate: entryDate.value,
-            drank: drank.value === "true",
+            drank: selectedDrank,
             mood: mood.value,
             stressLevel: Number(stress.value),
             cravingLevel: Number(craving.value),
             daySummary: summary.value,
             comment: comment.value,
-            reasonCodes: selectedReasonCodes()
+            reasonCodes: selectedDrank ? selectedReasonCodes() : []
           };
           print(await req("/entries", { method: "POST", body: JSON.stringify(payload) }));
           await loadGoals();
         } catch (e) {
           print(e);
+        }
+      }
+
+      function syncDrankDependentFields() {
+        const canSelectReasons = drank.value === "true";
+        const wrap = document.querySelector(".reason-tag-wrap");
+        if (!wrap) return;
+
+        wrap.classList.toggle("disabled", !canSelectReasons);
+        if (!canSelectReasons) {
+          document.querySelectorAll(".reason-tag.active").forEach((el) => el.classList.remove("active"));
         }
       }
 
@@ -1017,6 +1036,7 @@
       } else {
         showAuth();
       }
+      syncDrankDependentFields();
     </script>
   </body>
 </html>
