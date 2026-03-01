@@ -23,6 +23,13 @@
       }
 
       * { box-sizing: border-box; }
+      *::before, *::after { box-sizing: border-box; }
+
+      html, body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
 
       body {
         margin: 0;
@@ -44,6 +51,7 @@
 
       .auth-card {
         width: min(460px, 100%);
+        max-width: 100%;
         background: linear-gradient(140deg, var(--card) 0%, #eef8f5 100%);
         border: 1px solid var(--line);
         border-radius: 24px;
@@ -172,6 +180,7 @@
       }
 
       .page {
+        width: 100%;
         max-width: 1200px;
         margin: 0 auto;
         padding: 24px 18px 40px;
@@ -179,6 +188,7 @@
       }
 
       .topbar {
+        width: 100%;
         background:
           linear-gradient(145deg, #f6fffb 0%, #e3f4ef 100%);
         border: 1px solid var(--line);
@@ -223,6 +233,7 @@
       }
       .progress-widget {
         min-width: 260px;
+        max-width: 100%;
         border: 1px solid #b9d9d0;
         border-radius: 16px;
         background: #f4fffb;
@@ -276,6 +287,7 @@
       .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
       .card {
+        width: 100%;
         background: linear-gradient(165deg, var(--card), #f2fbf8);
         border: 1px solid var(--line);
         border-radius: 18px;
@@ -555,6 +567,7 @@
         overflow: auto;
       }
       .focus-panel {
+        width: 100%;
         max-width: 1180px;
         margin: 0 auto;
         border: 1px solid var(--line);
@@ -581,6 +594,7 @@
       pre {
         margin: 0;
         min-height: 200px;
+        max-width: 100%;
         border-radius: 12px;
         padding: 12px;
         background: #172424;
@@ -601,6 +615,8 @@
         .tabs { grid-template-columns: 1fr; }
         .page { padding: 14px 12px 24px; }
         .topbar { padding: 14px; border-radius: 14px; }
+        .progress-widget { min-width: 0; width: 100%; }
+        .insight-row { grid-template-columns: 1fr; }
         .card { padding: 13px; border-radius: 14px; }
         input, select, textarea, button { font-size: 16px; }
         .stack { gap: 10px; }
