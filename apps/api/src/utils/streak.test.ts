@@ -66,7 +66,7 @@ test('profile streak counts elapsed days for already_sober mode', () => {
     fixedNow
   );
 
-  assert.equal(value, 9);
+  assert.equal(value, 10);
 });
 
 test('profile streak supports ISO timestamp in started_at', () => {
@@ -76,7 +76,7 @@ test('profile streak supports ISO timestamp in started_at', () => {
     fixedNow
   );
 
-  assert.equal(value, 9);
+  assert.equal(value, 10);
 });
 
 test('profile streak resets after drank=true entry', () => {
@@ -88,7 +88,7 @@ test('profile streak resets after drank=true entry', () => {
     fixedNow
   );
 
-  assert.equal(value, 1);
+  assert.equal(value, 2);
 });
 
 test('now mode still relies on daily entries', () => {

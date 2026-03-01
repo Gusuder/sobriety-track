@@ -104,5 +104,5 @@ export function calcStreakWithProfile(entries: StreakEntry[], profile: StreakPro
     return 0;
   }
 
-  return diffDays(streakStart, todayKey);
+  return diffDays(streakStart, todayKey) + 1;
 }

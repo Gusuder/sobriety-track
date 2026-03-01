@@ -259,7 +259,7 @@ test('POST /api/onboarding rejects goal equal to current streak', async () => {
 
   assert.equal(res.statusCode, 400);
   const body = res.json();
-  assert.equal(body.currentStreak, 10);
+  assert.equal(body.currentStreak, 11);
 
   await app.close();
   (pool as any).connect = originalConnect;
