@@ -442,6 +442,10 @@
         margin-top: 12px;
         display: grid;
         gap: 10px;
+        max-height: 640px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 4px;
       }
       .analytics-grid {
         display: grid;
@@ -484,9 +488,12 @@
         display: flex;
         gap: 6px;
         overflow-x: auto;
+        overflow-y: hidden;
+        max-width: 100%;
         padding-bottom: 4px;
       }
       .day-pill {
+        flex: 0 0 66px;
         min-width: 66px;
         border-radius: 10px;
         border: 1px solid #bddad3;
@@ -593,7 +600,8 @@
 
       pre {
         margin: 0;
-        min-height: 200px;
+        min-height: 220px;
+        max-height: 320px;
         max-width: 100%;
         border-radius: 12px;
         padding: 12px;
@@ -1974,11 +1982,13 @@
           `;
         }).join("");
 
-        const xLabels = sorted.filter((_, i) => i === 0 || i === sorted.length - 1 || i % Math.ceil(sorted.length / 4) === 0)
-          .map((e, i) => {
-            const idx = sorted.indexOf(e);
+        const labelStep = Math.max(1, Math.ceil(sorted.length / 14));
+        const xLabels = sorted
+          .map((e, idx) => {
+            if (idx !== 0 && idx !== sorted.length - 1 && idx % labelStep !== 0) return "";
             return `<text x="${xAt(idx)}" y="${H - 10}" text-anchor="middle" fill="#5f7472" font-size="11">${formatShortDate(normalizeDateOnly(e.entry_date))}</text>`;
-          }).join("");
+          })
+          .join("");
 
         chart.innerHTML = `
           <rect x="0" y="0" width="${W}" height="${H}" fill="#f9fffd"/>
