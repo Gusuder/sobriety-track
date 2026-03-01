@@ -647,11 +647,12 @@
             <h4>Дыхательные техники</h4>
             <div class="breath-box">
               <select id="breathTechnique" onchange="setBreathTechnique()">
-                <option value="box">Ритм 6-4-6-2</option>
+                <option value="nhs">NHS спокойное дыхание (5-5)</option>
+                <option value="box">Box breathing (4-4-4-4)</option>
                 <option value="478">4-7-8</option>
-                <option value="calm">Мягкое 4-2-6-2</option>
+                <option value="sigh">Cyclic/physiological sigh (3-1-6)</option>
               </select>
-              <p class="muted">Количество минут: от 1 до 15. Рекомендуемо: 2-3 минуты.</p>
+              <p id="breathHint" class="muted">NHS: вдох 5с, выдох 5с, 5+ минут.</p>
               <div class="row">
                 <input id="breathMinutes" type="number" min="1" max="15" value="2" />
                 <button class="btn secondary" type="button" onclick="startBreathing()">Старт</button>
@@ -1063,29 +1064,40 @@
 
       function setBreathTechnique() {
         const value = breathTechnique.value;
+        const hintEl = document.getElementById("breathHint");
+        if (value === "nhs") {
+          breathProgram = [
+            { label: "Вдох", seconds: 5, scale: 1.14 },
+            { label: "Выдох", seconds: 5, scale: 0.86 }
+          ];
+          hintEl.textContent = "NHS: вдох 5с, выдох 5с, повторяйте минимум 5 минут.";
+          return;
+        }
         if (value === "478") {
           breathProgram = [
             { label: "Вдох", seconds: 4, scale: 1.15 },
             { label: "Задержка", seconds: 7, scale: 1.15 },
             { label: "Выдох", seconds: 8, scale: 0.84 }
           ];
+          hintEl.textContent = "4-7-8: вдох 4с, задержка 7с, выдох 8с.";
           return;
         }
-        if (value === "calm") {
+        if (value === "sigh") {
           breathProgram = [
-            { label: "Вдох", seconds: 4, scale: 1.1 },
-            { label: "Задержка", seconds: 2, scale: 1.1 },
-            { label: "Выдох", seconds: 6, scale: 0.9 },
-            { label: "Пауза", seconds: 2, scale: 0.9 }
+            { label: "Вдох", seconds: 3, scale: 1.08 },
+            { label: "Довдох", seconds: 1, scale: 1.16 },
+            { label: "Длинный выдох", seconds: 6, scale: 0.84 }
           ];
+          hintEl.textContent = "Cyclic sighing: два вдоха через нос, длинный выдох через рот.";
           return;
         }
         breathProgram = [
-          { label: "Вдох", seconds: 6, scale: 1.18 },
-          { label: "Задержка", seconds: 4, scale: 1.18 },
-          { label: "Выдох", seconds: 6, scale: 0.84 },
-          { label: "Пауза", seconds: 2, scale: 0.84 }
+          { label: "Вдох", seconds: 4, scale: 1.12 },
+          { label: "Задержка", seconds: 4, scale: 1.12 },
+          { label: "Выдох", seconds: 4, scale: 0.88 },
+          { label: "Пауза", seconds: 4, scale: 0.88 }
         ];
+        hintEl.textContent = "Box breathing: 4с вдох, 4с задержка, 4с выдох, 4с пауза.";
       }
 
       function applyBreathPhase() {
