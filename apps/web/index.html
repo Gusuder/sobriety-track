@@ -336,6 +336,80 @@
         display: grid;
         gap: 6px;
       }
+      .analytics-wrap {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+      .analytics-grid {
+        display: grid;
+        gap: 10px;
+      }
+      .analytics-card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff7ec;
+        padding: 10px;
+      }
+      .analytics-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .legend {
+        display: inline-flex;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .legend b {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        margin-right: 4px;
+      }
+      .chart-svg {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        background: #fffdf9;
+        border: 1px solid #ecd8c0;
+      }
+      .calendar-ribbon {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .day-pill {
+        min-width: 66px;
+        border-radius: 10px;
+        border: 1px solid #dec2a3;
+        padding: 6px;
+        text-align: center;
+        font-size: 12px;
+        line-height: 1.25;
+      }
+      .day-pill.drank {
+        background: #ffe4de;
+        color: #8f3f2f;
+      }
+      .day-pill.sober {
+        background: #e8f6ec;
+        color: #2d6a3d;
+      }
+      .day-pill.empty {
+        background: #f7efe2;
+        color: #8c7864;
+      }
+      .day-pill .m {
+        display: block;
+        font-weight: 700;
+        margin-top: 2px;
+      }
       .focus-shell {
         position: fixed;
         inset: 0;
@@ -627,6 +701,28 @@
             </div>
           </div>
           <button class="btn secondary" onclick="listEntries()">Показать записи</button>
+          <div id="entriesAnalytics" class="analytics-wrap hidden">
+            <div class="analytics-grid">
+              <div class="analytics-card">
+                <div class="analytics-head">
+                  <strong>Линейный график зависимости</strong>
+                  <span class="legend">
+                    <span><b style="background:#b06a3e"></b>Настроение</span>
+                    <span><b style="background:#c24d43"></b>Пил</span>
+                    <span><b style="background:#4d8a60"></b>Не пил</span>
+                  </span>
+                </div>
+                <svg id="entriesLineChart" class="chart-svg" viewBox="0 0 760 240" preserveAspectRatio="none"></svg>
+              </div>
+              <div class="analytics-card">
+                <div class="analytics-head">
+                  <strong>Календарная лента периода</strong>
+                  <span class="muted">цвет дня + настроение</span>
+                </div>
+                <div id="entriesCalendarRibbon" class="calendar-ribbon"></div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section class="card">
@@ -1439,6 +1535,135 @@
         }
       }
 
+      const moodToScore = {
+        awful: 1,
+        bad: 2,
+        neutral: 3,
+        good: 4,
+        great: 5
+      };
+
+      const moodToLabelRu = {
+        awful: "ужасно",
+        bad: "плохо",
+        neutral: "нормально",
+        good: "хорошо",
+        great: "отлично"
+      };
+
+      function normalizeDateOnly(value) {
+        if (!value) return "";
+        return String(value).slice(0, 10);
+      }
+
+      function formatShortDate(dateOnly) {
+        const [y, m, d] = dateOnly.split("-");
+        return `${d}.${m}`;
+      }
+
+      function enumerateDates(fromDateOnly, toDateOnly) {
+        const outDates = [];
+        const start = new Date(`${fromDateOnly}T00:00:00.000Z`);
+        const end = new Date(`${toDateOnly}T00:00:00.000Z`);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return outDates;
+        for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+          outDates.push(d.toISOString().slice(0, 10));
+        }
+        return outDates;
+      }
+
+      function renderEntriesLineChart(entries) {
+        const chart = document.getElementById("entriesLineChart");
+        if (!chart) return;
+        if (!entries.length) {
+          chart.innerHTML = `<text x="24" y="30" fill="#7a6857" font-size="14">Нет данных за период</text>`;
+          return;
+        }
+
+        const sorted = [...entries].sort((a, b) => normalizeDateOnly(a.entry_date).localeCompare(normalizeDateOnly(b.entry_date)));
+        const W = 760;
+        const H = 240;
+        const L = 40;
+        const R = 20;
+        const T = 20;
+        const B = 34;
+        const plotW = W - L - R;
+        const plotH = H - T - B;
+        const maxIdx = Math.max(1, sorted.length - 1);
+        const xAt = (i) => L + (i / maxIdx) * plotW;
+        const yMood = (score) => T + ((5 - score) / 4) * plotH;
+
+        const points = sorted.map((e, i) => {
+          const score = moodToScore[e.mood] ?? 3;
+          return `${xAt(i)},${yMood(score)}`;
+        }).join(" ");
+
+        const grid = [1, 2, 3, 4, 5].map((m) => {
+          const y = yMood(m);
+          return `
+            <line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#efdfcc" stroke-width="1" />
+            <text x="${L - 8}" y="${y + 4}" text-anchor="end" fill="#8d7a67" font-size="11">${m}</text>
+          `;
+        }).join("");
+
+        const marks = sorted.map((e, i) => {
+          const x = xAt(i);
+          const y = yMood(moodToScore[e.mood] ?? 3);
+          const stateColor = e.drank ? "#c24d43" : "#4d8a60";
+          const stateY1 = H - B + 2;
+          const stateY2 = H - B - 10;
+          return `
+            <line x1="${x}" y1="${stateY1}" x2="${x}" y2="${stateY2}" stroke="${stateColor}" stroke-width="3" />
+            <circle cx="${x}" cy="${y}" r="4.6" fill="${stateColor}" />
+          `;
+        }).join("");
+
+        const xLabels = sorted.filter((_, i) => i === 0 || i === sorted.length - 1 || i % Math.ceil(sorted.length / 4) === 0)
+          .map((e, i) => {
+            const idx = sorted.indexOf(e);
+            return `<text x="${xAt(idx)}" y="${H - 10}" text-anchor="middle" fill="#8d7a67" font-size="11">${formatShortDate(normalizeDateOnly(e.entry_date))}</text>`;
+          }).join("");
+
+        chart.innerHTML = `
+          <rect x="0" y="0" width="${W}" height="${H}" fill="#fffdf9"/>
+          ${grid}
+          <polyline points="${points}" fill="none" stroke="#b06a3e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+          ${marks}
+          ${xLabels}
+        `;
+      }
+
+      function renderEntriesCalendarRibbon(entries, fromDateOnly, toDateOnly) {
+        const ribbon = document.getElementById("entriesCalendarRibbon");
+        if (!ribbon) return;
+        const byDate = new Map(entries.map((e) => [normalizeDateOnly(e.entry_date), e]));
+        const dates = enumerateDates(fromDateOnly, toDateOnly).slice(-90);
+
+        if (!dates.length) {
+          ribbon.innerHTML = `<span class="muted">Пустой диапазон дат.</span>`;
+          return;
+        }
+
+        ribbon.innerHTML = dates.map((d) => {
+          const item = byDate.get(d);
+          if (!item) {
+            return `<div class="day-pill empty" title="${d}: записи нет"><div>${formatShortDate(d)}</div><span class="m">—</span></div>`;
+          }
+          const cls = item.drank ? "drank" : "sober";
+          const moodLabel = moodToLabelRu[item.mood] ?? item.mood ?? "-";
+          const drankLabel = item.drank ? "пил" : "не пил";
+          return `<div class="day-pill ${cls}" title="${d}: ${drankLabel}, настроение: ${moodLabel}"><div>${formatShortDate(d)}</div><span class="m">${moodLabel}</span></div>`;
+        }).join("");
+      }
+
+      function renderEntriesAnalytics(entries, fromDateOnly, toDateOnly) {
+        const wrap = document.getElementById("entriesAnalytics");
+        if (!wrap) return;
+        wrap.classList.remove("hidden");
+        renderEntriesLineChart(entries);
+        renderEntriesCalendarRibbon(entries, fromDateOnly, toDateOnly);
+      }
+
       function openCrisisFocus() {
         const shell = document.getElementById("crisisFocusShell");
         if (!shell) return;
@@ -1455,7 +1680,9 @@
 
       async function listEntries() {
         try {
-          print(await req(`/entries?from=${from.value}&to=${to.value}`));
+          const data = await req(`/entries?from=${from.value}&to=${to.value}`);
+          print(data);
+          renderEntriesAnalytics(data.entries || [], from.value, to.value);
         } catch (e) {
           print(e);
         }
