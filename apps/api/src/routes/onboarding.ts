@@ -61,6 +61,16 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
           [userId, payload.goalDays]
         );
         goal = goalResult.rows[0];
+      } else {
+        const activeGoalId = activeGoalResult.rows[0].id;
+        const goalResult = await client.query(
+          `UPDATE goals
+           SET target_days = $2, updated_at = NOW()
+           WHERE id = $1
+           RETURNING id, target_days, start_date, is_active, completed_at, created_at, updated_at`,
+          [activeGoalId, payload.goalDays]
+        );
+        goal = goalResult.rows[0];
       }
 
       await client.query('COMMIT');

@@ -88,6 +88,54 @@ test('POST /api/onboarding creates profile and active goal when missing', async 
   (pool as any).connect = originalConnect;
 });
 
+test('POST /api/onboarding updates active goal target when it already exists', async () => {
+  const originalConnect = pool.connect;
+  const calls: Array<{ sql: string; params: unknown[] | undefined }> = [];
+
+  const client: DbClientMock = {
+    async query(sql, params) {
+      calls.push({ sql, params });
+
+      if (sql === 'BEGIN' || sql === 'COMMIT') {
+        return { rows: [], rowCount: 0 };
+      }
+
+      if (sql.includes('INSERT INTO user_profiles')) {
+        return { rows: [{ user_id: 1, current_goal_days: 365 }], rowCount: 1 };
+      }
+
+      if (sql.includes('FROM goals') && sql.includes('is_active = TRUE')) {
+        return { rows: [{ id: 77 }], rowCount: 1 };
+      }
+
+      if (sql.includes('UPDATE goals')) {
+        return { rows: [{ id: 77, target_days: 365, is_active: true }], rowCount: 1 };
+      }
+
+      return { rows: [], rowCount: 0 };
+    },
+    release() {}
+  };
+
+  (pool as any).connect = async () => client;
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/onboarding',
+    payload: { startMode: 'already_sober', soberStartDate: '2026-02-01', goalDays: 365 }
+  });
+
+  assert.equal(res.statusCode, 200);
+  const body = res.json();
+  assert.equal(body.profile.current_goal_days, 365);
+  assert.equal(body.goal.target_days, 365);
+  assert.ok(calls.some((c) => c.sql.includes('UPDATE goals')));
+
+  await app.close();
+  (pool as any).connect = originalConnect;
+});
+
 test('GET /api/onboarding returns profile', async () => {
   const originalQuery = pool.query;
   (pool as any).query = async () => ({
