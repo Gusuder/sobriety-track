@@ -7,6 +7,7 @@ import { authRoutes } from './routes/auth.js';
 import { entriesRoutes } from './routes/entries.js';
 import { goalsRoutes } from './routes/goals.js';
 import { onboardingRoutes } from './routes/onboarding.js';
+import { profileRoutes } from './routes/profile.js';
 
 const app = Fastify({ logger: true });
 
@@ -26,6 +27,7 @@ app.register(authRoutes, { prefix: '/api' });
 app.register(entriesRoutes, { prefix: '/api' });
 app.register(goalsRoutes, { prefix: '/api' });
 app.register(onboardingRoutes, { prefix: '/api' });
+app.register(profileRoutes, { prefix: '/api' });
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

@@ -7,6 +7,7 @@ import { hashPassword, verifyPassword } from '../utils/hash.js';
 const registerSchema = z.object({
   login: z.string().min(3).max(100),
   email: z.string().email(),
+  displayName: z.string().min(2).max(120),
   password: z.string().min(8)
 });
 
@@ -33,15 +34,15 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.flatten() });
     }
 
-    const { login, email, password } = parsed.data;
+    const { login, email, displayName, password } = parsed.data;
     const passwordHash = await hashPassword(password);
 
     try {
       const result = await pool.query(
-        `INSERT INTO users (login, email, password_hash)
-         VALUES ($1, $2, $3)
-         RETURNING id, login, email, created_at`,
-        [login, email, passwordHash]
+        `INSERT INTO users (login, email, display_name, password_hash)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, login, email, display_name, created_at`,
+        [login, email, displayName, passwordHash]
       );
 
       return reply.status(201).send({ user: result.rows[0] });

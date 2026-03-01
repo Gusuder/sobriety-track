@@ -641,6 +641,50 @@
       .goal-modal .muted {
         line-height: 1.45;
       }
+      .profile-modal {
+        width: min(820px, 100%);
+        max-height: 88vh;
+        overflow: auto;
+      }
+      .profile-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .profile-kpi {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #f7fffc;
+        padding: 10px;
+      }
+      .profile-kpi b {
+        display: block;
+        margin-top: 4px;
+        font-size: 22px;
+      }
+      .achievements-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .achievement-item {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px;
+        background: #f6fffb;
+      }
+      .achievement-item.locked {
+        opacity: 0.68;
+        filter: grayscale(0.2);
+      }
+      .achievement-title {
+        font-weight: 700;
+      }
+      .achievement-desc {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 13px;
+      }
 
       pre {
         margin: 0;
@@ -669,6 +713,7 @@
         .topbar { padding: 14px; border-radius: 14px; }
         .progress-widget { min-width: 0; width: 100%; }
         .insight-row { grid-template-columns: 1fr; }
+        .profile-kpis, .achievements-grid { grid-template-columns: 1fr 1fr; }
         .card { padding: 13px; border-radius: 14px; }
         input, select, textarea, button { font-size: 16px; }
         .stack { gap: 10px; }
@@ -707,6 +752,10 @@
         </div>
 
         <form id="registerForm" class="hidden" onsubmit="event.preventDefault(); registerUser()">
+          <div class="field">
+            <label for="regDisplayName">Имя</label>
+            <input id="regDisplayName" placeholder="Как к вам обращаться" autocomplete="name" />
+          </div>
           <div class="field">
             <label for="regLogin">Логин</label>
             <input id="regLogin" placeholder="Например demo_user" autocomplete="username" />
@@ -816,6 +865,7 @@
             </div>
             <div id="metricNote" class="progress-note">Начните с первой записи, чтобы увидеть прогресс.</div>
           </div>
+          <button class="btn secondary" onclick="openProfileModal()">Личный кабинет</button>
           <button class="btn secondary" onclick="logoutUser()">Выйти</button>
         </div>
       </header>
@@ -1081,6 +1131,26 @@
       </div>
     </section>
 
+    <section id="profileShell" class="goal-modal-shell hidden">
+      <div class="goal-modal profile-modal">
+        <div class="focus-head" style="margin-bottom:0;">
+          <h3>Личный кабинет</h3>
+          <button class="btn secondary" type="button" onclick="closeProfileModal()">Закрыть</button>
+        </div>
+        <div id="profileMainInfo" class="muted">Загрузка профиля...</div>
+        <div class="profile-kpis">
+          <div class="profile-kpi"><span class="muted">Текущая серия</span><b id="profileCurrentStreak">—</b></div>
+          <div class="profile-kpi"><span class="muted">Максимальная серия</span><b id="profileMaxStreak">—</b></div>
+          <div class="profile-kpi"><span class="muted">Трезвых дней</span><b id="profileSoberDays">—</b></div>
+          <div class="profile-kpi"><span class="muted">Всего записей</span><b id="profileTotalEntries">—</b></div>
+        </div>
+        <div>
+          <h3 style="font-size:18px; margin: 0 0 8px;">Достижения</h3>
+          <div id="profileAchievements" class="achievements-grid"></div>
+        </div>
+      </div>
+    </section>
+
     <script>
       const API_BASE = "http://localhost:4000";
       const API = `${API_BASE}/api`;
@@ -1132,6 +1202,7 @@
         stopOnboardingAutoRefresh();
         resetProgressState("Требуется вход в аккаунт.");
         closeGoalAchievedModal();
+        closeProfileModal();
         document.getElementById("authShell").classList.remove("hidden");
         document.getElementById("onboardingShell").classList.add("hidden");
         document.getElementById("appShell").classList.add("hidden");
@@ -1392,7 +1463,12 @@
       async function registerUser() {
         clearAuthMessages();
         try {
+          if (!regDisplayName.value.trim()) {
+            showAuthError("Введите имя для личного кабинета.");
+            return;
+          }
           const payload = {
+            displayName: regDisplayName.value.trim(),
             login: regLogin.value.trim(),
             email: regEmail.value.trim(),
             password: regPassword.value
@@ -2293,6 +2369,64 @@
         }
       }
 
+      function closeProfileModal() {
+        const shell = document.getElementById("profileShell");
+        if (!shell) return;
+        shell.classList.add("hidden");
+      }
+
+      async function openProfileModal() {
+        const shell = document.getElementById("profileShell");
+        if (!shell) return;
+        shell.classList.remove("hidden");
+        await loadProfileData();
+      }
+
+      function renderAchievements(items) {
+        const box = document.getElementById("profileAchievements");
+        if (!box) return;
+        if (!Array.isArray(items) || items.length === 0) {
+          box.innerHTML = `<div class="muted">Достижения пока недоступны.</div>`;
+          return;
+        }
+
+        box.innerHTML = items
+          .map((a) => {
+            const locked = a.unlocked ? "" : "locked";
+            const mark = a.unlocked ? "Открыто" : "В процессе";
+            return `
+              <div class="achievement-item ${locked}">
+                <div class="achievement-title">${a.title} · ${mark}</div>
+                <div class="achievement-desc">${a.description}</div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      async function loadProfileData() {
+        try {
+          const data = await req("/profile");
+          const p = data?.profile || {};
+          const main = document.getElementById("profileMainInfo");
+          if (main) {
+            const goal = p.activeGoalDays ? `${p.activeGoalDays} дн.` : "не задана";
+            main.textContent = `${p.displayName ?? p.login ?? "Пользователь"} · ${p.email ?? ""} · Активная цель: ${goal}`;
+          }
+
+          document.getElementById("profileCurrentStreak").textContent = `${p.currentStreak ?? 0}`;
+          document.getElementById("profileMaxStreak").textContent = `${p.maxStreak ?? 0}`;
+          document.getElementById("profileSoberDays").textContent = `${p.soberDays ?? 0}`;
+          document.getElementById("profileTotalEntries").textContent = `${p.totalEntries ?? 0}`;
+          renderAchievements(data?.achievements || []);
+          print(data);
+        } catch (e) {
+          print(e);
+          const main = document.getElementById("profileMainInfo");
+          if (main) main.textContent = "Не удалось загрузить личный кабинет.";
+        }
+      }
+
       if (token) {
         startOnboardingFlow(false);
       } else {
@@ -2302,6 +2436,7 @@
         if (e.key === "Escape") {
           closeCrisisFocus();
           closeGoalAchievedModal();
+          closeProfileModal();
         }
       });
       from.addEventListener("change", refreshEntriesIfOpen);
