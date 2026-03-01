@@ -85,8 +85,8 @@ if (@($entries.entries).Count -lt 1) {
 
 Step "Web smoke"
 $html = (Invoke-WebRequest -UseBasicParsing -Uri $WebBase).Content
-if ($html -notlike "*id=""targetDays""*") {
-  throw "Web UI does not contain goals block"
+if ($html -notlike "*id=""goalDaysWizard""*") {
+  throw "Web UI does not contain onboarding goal step"
 }
 if ($html -notlike "*loadGoals()*") {
   throw "Web UI does not contain loadGoals() call"

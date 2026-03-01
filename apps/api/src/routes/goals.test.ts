@@ -93,8 +93,15 @@ test('GET /api/goals returns active goal with progress', async () => {
       };
     }
 
+    if (queryCount === 2) {
+      return {
+        rows: [{ entry_date: today, drank: false }],
+        rowCount: 1
+      };
+    }
+
     return {
-      rows: [{ entry_date: today, drank: false }],
+      rows: [{ started_at: today, started_with_existing_streak: false }],
       rowCount: 1
     };
   };

@@ -239,6 +239,17 @@
         .two-col, .row, .row3 { grid-template-columns: 1fr; }
         .topbar { display: block; }
       }
+
+      @media (max-width: 640px) {
+        .auth-shell { padding: 14px; }
+        .auth-card { padding: 16px; border-radius: 18px; }
+        .tabs { grid-template-columns: 1fr; }
+        .page { padding: 14px 12px 24px; }
+        .topbar { padding: 14px; border-radius: 14px; }
+        .card { padding: 13px; border-radius: 14px; }
+        input, select, textarea, button { font-size: 16px; }
+        .stack { gap: 10px; }
+      }
     </style>
   </head>
   <body>
@@ -335,15 +346,8 @@
           </div>
 
           <div id="soberPeriodWrap" class="field hidden">
-            <label for="soberPeriodDays">Сколько уже не пьёте?</label>
-            <select id="soberPeriodDays">
-              <option value="7">1 неделя</option>
-              <option value="14">2 недели</option>
-              <option value="30" selected>1 месяц</option>
-              <option value="90">3 месяца</option>
-              <option value="180">6 месяцев</option>
-              <option value="365">1 год</option>
-            </select>
+            <label for="soberStartDateWizard">Дата начала трезвости</label>
+            <input id="soberStartDateWizard" type="date" />
           </div>
 
           <div class="stack">
@@ -391,21 +395,6 @@
           <div class="row" style="margin-top: 8px;">
             <button class="btn secondary" onclick="startOnboardingFlow(true)">Изменить старт и цель</button>
             <button class="btn secondary" onclick="loadOnboardingSummary()">Обновить профиль</button>
-          </div>
-        </section>
-
-        <section class="card">
-          <h3>Цели и серия</h3>
-          <p class="muted">Создайте цель и загрузите прогресс.</p>
-          <div class="row" style="margin-top: 10px;">
-            <div class="field" style="margin-top:0;">
-              <label for="targetDays">Новая цель (дней)</label>
-              <input id="targetDays" type="number" min="1" max="3650" value="30" placeholder="например 45" />
-            </div>
-          </div>
-          <div class="row" style="margin-top:8px;">
-            <button class="btn" onclick="createGoal()">Создать цель</button>
-            <button class="btn secondary" onclick="loadGoals()">Загрузить цели/прогресс</button>
           </div>
         </section>
 
@@ -523,6 +512,8 @@
       document.getElementById("entryDate").value = today;
       document.getElementById("from").value = today.slice(0, 8) + "01";
       document.getElementById("to").value = today;
+      document.getElementById("soberStartDateWizard").value = today;
+      document.getElementById("soberStartDateWizard").max = today;
 
       const print = (data) => out.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
 
@@ -614,12 +605,6 @@
 
       function clearOnboardingError() {
         document.getElementById("onboardingError").classList.add("hidden");
-      }
-
-      function buildSoberStartDateFromDays(daysBack) {
-        const d = new Date();
-        d.setUTCDate(d.getUTCDate() - daysBack);
-        return d.toISOString().slice(0, 10);
       }
 
       async function startOnboardingFlow(force = false) {
@@ -796,7 +781,15 @@
             goalDays
           };
           if (selectedStartMode === "already_sober") {
-            payload.soberStartDate = buildSoberStartDateFromDays(Number(soberPeriodDays.value));
+            if (!soberStartDateWizard.value) {
+              showOnboardingError("Выберите дату начала трезвости в календаре.");
+              return;
+            }
+            if (soberStartDateWizard.value > today) {
+              showOnboardingError("Дата начала трезвости не может быть в будущем.");
+              return;
+            }
+            payload.soberStartDate = soberStartDateWizard.value;
           }
 
           const data = await req("/onboarding", { method: "POST", body: JSON.stringify(payload) });
@@ -806,21 +799,6 @@
           await loadGoals();
         } catch (e) {
           showOnboardingError("Не удалось сохранить стартовый профиль.");
-          print(e);
-        }
-      }
-
-      async function createGoal() {
-        try {
-          const rawTarget = Number(targetDays.value);
-          if (!Number.isFinite(rawTarget) || rawTarget < 1) {
-            throw new Error("targetDays должен быть положительным числом");
-          }
-
-          const payload = { targetDays: rawTarget };
-          print(await req("/goals", { method: "POST", body: JSON.stringify(payload) }));
-          await loadGoals();
-        } catch (e) {
           print(e);
         }
       }
@@ -881,6 +859,7 @@
             reasonCodes: reasonCodesInput()
           };
           print(await req("/entries", { method: "POST", body: JSON.stringify(payload) }));
+          await loadGoals();
         } catch (e) {
           print(e);
         }

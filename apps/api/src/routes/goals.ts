@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { pool } from '../db/pool.js';
 import { buildGoalProgress } from '../utils/goal-progress.js';
-import { calcCurrentStreak, type StreakEntry } from '../utils/streak.js';
+import { calcStreakWithProfile, type StreakEntry, type StreakProfile } from '../utils/streak.js';
 import { mapDbError } from '../utils/db-errors.js';
 
 const createGoalSchema = z.object({
@@ -73,7 +73,15 @@ export const goalsRoutes: FastifyPluginAsync = async (app) => {
       [userId]
     );
 
-    const streakDays = calcCurrentStreak(entriesResult.rows);
+    const profileResult = await pool.query<StreakProfile>(
+      `SELECT started_at::text, started_with_existing_streak
+       FROM user_profiles
+       WHERE user_id = $1
+       LIMIT 1`,
+      [userId]
+    );
+    const profile = profileResult.rows[0] ?? null;
+    const streakDays = calcStreakWithProfile(entriesResult.rows, profile);
 
     let progress = null;
     if (activeGoal) {
@@ -83,4 +91,5 @@ export const goalsRoutes: FastifyPluginAsync = async (app) => {
     return reply.send({ goals: goalsResult.rows, activeGoal: activeGoal ?? null, progress });
   });
 };
+
 

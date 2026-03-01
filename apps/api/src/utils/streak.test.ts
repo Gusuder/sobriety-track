@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calcCurrentStreak, type StreakEntry } from './streak.js';
+import { calcCurrentStreak, calcStreakWithProfile, type StreakEntry } from './streak.js';
 
 const fixedNow = new Date('2026-03-01T10:00:00.000Z');
 
@@ -57,4 +57,36 @@ test('counts consecutive sober days when today is sober', () => {
   );
 
   assert.equal(value, 3);
+});
+
+test('profile streak counts elapsed days for already_sober mode', () => {
+  const value = calcStreakWithProfile(
+    entries([]),
+    { started_at: '2026-02-20', started_with_existing_streak: true },
+    fixedNow
+  );
+
+  assert.equal(value, 9);
+});
+
+test('profile streak resets after drank=true entry', () => {
+  const value = calcStreakWithProfile(
+    entries([
+      ['2026-02-27', true]
+    ]),
+    { started_at: '2026-02-20', started_with_existing_streak: true },
+    fixedNow
+  );
+
+  assert.equal(value, 1);
+});
+
+test('now mode still relies on daily entries', () => {
+  const value = calcStreakWithProfile(
+    entries([]),
+    { started_at: '2026-02-20', started_with_existing_streak: false },
+    fixedNow
+  );
+
+  assert.equal(value, 0);
 });
