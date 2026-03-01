@@ -27,7 +27,15 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
 
     const userId = request.user.userId;
     const payload = parsed.data;
-    const startedAt = payload.startMode === 'already_sober' ? payload.soberStartDate : new Date().toISOString().slice(0, 10);
+    let startedAt: string;
+    if (payload.startMode === 'already_sober') {
+      if (!payload.soberStartDate) {
+        return reply.status(400).send({ error: 'soberStartDate is required for already_sober' });
+      }
+      startedAt = payload.soberStartDate;
+    } else {
+      startedAt = new Date().toISOString().slice(0, 10);
+    }
     const profileForCheck: StreakProfile = {
       started_at: startedAt,
       started_with_existing_streak: payload.startMode === 'already_sober'
