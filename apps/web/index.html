@@ -640,12 +640,24 @@
       }
 
       function refreshGoalConstraints() {
-        const minGoal = Math.max(1, currentStreakDays + 1);
+        let minGoal = 1;
+        if (selectedStartMode === "already_sober" && soberStartDateWizard.value) {
+          const elapsed = daysBetweenDateOnly(soberStartDateWizard.value, today);
+          minGoal = Math.max(1, elapsed + 1);
+        } else if (selectedStartMode === "already_sober") {
+          minGoal = Math.max(1, currentStreakDays + 1);
+        } else {
+          minGoal = 1;
+        }
         goalDaysWizard.min = String(minGoal);
         if (Number(goalDaysWizard.value) < minGoal) {
           goalDaysWizard.value = String(minGoal);
         }
-        goalConstraintHint.textContent = `Цель должна быть больше текущей серии: минимум ${minGoal} дн.`;
+        if (selectedStartMode === "already_sober") {
+          goalConstraintHint.textContent = `Цель должна быть больше текущей серии: минимум ${minGoal} дн.`;
+        } else {
+          goalConstraintHint.textContent = "Для режима «бросаю сегодня» цель может начинаться с 1 дня.";
+        }
       }
 
       async function syncCurrentStreakForConstraints() {
