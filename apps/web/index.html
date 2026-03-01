@@ -495,9 +495,12 @@
           </div>
           <div class="stack">
             <button class="btn" type="submit">Войти</button>
-            <button class="btn secondary" type="button" onclick="toggleReset(true)">Забыли пароль?</button>
           </div>
         </form>
+
+        <div id="forgotHintWrap" class="hidden" style="margin-top: 10px;">
+          <button class="btn secondary" type="button" onclick="toggleReset(true)">Забыли пароль?</button>
+        </div>
 
         <form id="registerForm" class="hidden" onsubmit="event.preventDefault(); registerUser()">
           <div class="field">
@@ -794,6 +797,7 @@
       const API = `${API_BASE}/api`;
       let token = localStorage.getItem("token") || "";
       let currentStreakDays = 0;
+      let failedLoginAttempts = 0;
       let onboardingRefreshTimer = null;
       let breathInterval = null;
       let breathSecondsLeft = 120;
@@ -869,17 +873,26 @@
           registerTab.classList.add("active");
           loginForm.classList.add("hidden");
           registerForm.classList.remove("hidden");
+          document.getElementById("forgotHintWrap").classList.add("hidden");
+          toggleReset(false);
         } else {
           registerTab.classList.remove("active");
           loginTab.classList.add("active");
           registerForm.classList.add("hidden");
           loginForm.classList.remove("hidden");
+          updateForgotHintVisibility();
         }
       }
 
       function clearAuthMessages() {
         document.getElementById("authError").classList.add("hidden");
         document.getElementById("authInfo").classList.add("hidden");
+      }
+
+      function updateForgotHintVisibility() {
+        const hint = document.getElementById("forgotHintWrap");
+        if (!hint) return;
+        hint.classList.toggle("hidden", failedLoginAttempts < 3);
       }
 
       function showAuthError(text) {
@@ -1077,16 +1090,20 @@
           const data = await req("/auth/login", { method: "POST", body: JSON.stringify(payload) });
           token = data.accessToken;
           localStorage.setItem("token", token);
+          failedLoginAttempts = 0;
+          updateForgotHintVisibility();
           toggleReset(false);
           print({ ok: true });
           await startOnboardingFlow(false);
         } catch (e) {
           if (e?.__status === 401 || e?.error === "Unauthorized") {
+            failedLoginAttempts += 1;
+            updateForgotHintVisibility();
             showAuthError("Неверный логин или пароль. Можете попробовать сбросить пароль.");
             if (login.value.includes("@") && !forgotEmail.value) {
               forgotEmail.value = login.value;
             }
-            toggleReset(true);
+            toggleReset(false);
           } else {
             showAuthError("Ошибка входа. Попробуйте ещё раз.");
           }
