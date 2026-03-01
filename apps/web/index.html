@@ -223,23 +223,35 @@
         font-size: 12px;
         border: 1px solid #ead1b4;
       }
-      .reason-options {
+      .reason-tags {
         margin-top: 8px;
-        display: grid;
-        gap: 6px;
-      }
-      .reason-option {
         display: flex;
-        align-items: center;
+        flex-wrap: wrap;
         gap: 8px;
-        padding: 6px 8px;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        background: var(--card-2);
       }
-      .reason-option input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
+      .reason-tag {
+        border: 1px solid var(--line);
+        background: #efe6da;
+        color: #6b513d;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: transform .1s ease, background .15s ease, color .15s ease, border-color .15s ease;
+      }
+      .reason-tag:hover {
+        transform: translateY(-1px);
+      }
+      .reason-tag.active {
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        color: #fff;
+        border-color: transparent;
+      }
+      .reason-tag-wrap {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--card-2);
+        padding: 8px;
       }
 
       pre {
@@ -481,7 +493,9 @@
             </div>
             <div class="field">
               <label>Причины (выберите)</label>
-              <div id="reasonOptions" class="reason-options muted">Нажмите «Обновить причины» или подождите автозагрузку.</div>
+              <div class="reason-tag-wrap">
+                <div id="reasonOptions" class="reason-tags muted">Нажмите «Обновить причины» или подождите автозагрузку.</div>
+              </div>
             </div>
             <button class="btn" onclick="createEntry()">Сохранить запись</button>
           </section>
@@ -945,7 +959,7 @@
       async function loadReasons(silent = false) {
         try {
           const data = await req("/entries/reasons");
-          const selectedCodes = new Set(Array.from(document.querySelectorAll(".reason-checkbox:checked")).map((el) => el.value));
+          const selectedCodes = new Set(Array.from(document.querySelectorAll(".reason-tag.active")).map((el) => el.dataset.code));
           const pillsEl = document.getElementById("reasonsPills");
           const optionsEl = document.getElementById("reasonOptions");
           pillsEl.innerHTML = (data.reasons || [])
@@ -954,8 +968,8 @@
           optionsEl.innerHTML = (data.reasons || [])
             .map((r) => {
               const title = reasonTitleRu[r.code] ?? r.title;
-              const checked = selectedCodes.has(r.code) ? "checked" : "";
-              return `<label class="reason-option"><input class="reason-checkbox" type="checkbox" value="${r.code}" ${checked} />${title}</label>`;
+              const checked = selectedCodes.has(r.code) ? "active" : "";
+              return `<button type="button" class="reason-tag ${checked}" data-code="${r.code}" onclick="toggleReasonTag('${r.code}')">${title}</button>`;
             })
             .join("");
           if (!silent) {
@@ -966,8 +980,16 @@
         }
       }
 
+      function toggleReasonTag(code) {
+        const el = document.querySelector(`.reason-tag[data-code="${code}"]`);
+        if (!el) return;
+        el.classList.toggle("active");
+      }
+
       function selectedReasonCodes() {
-        return Array.from(document.querySelectorAll(".reason-checkbox:checked")).map((el) => el.value);
+        return Array.from(document.querySelectorAll(".reason-tag.active"))
+          .map((el) => el.dataset.code)
+          .filter(Boolean);
       }
 
       async function createEntry() {
