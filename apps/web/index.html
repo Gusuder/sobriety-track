@@ -194,6 +194,11 @@
         overflow: hidden;
       }
 
+      .topbar > * {
+        position: relative;
+        z-index: 1;
+      }
+
       .topbar::after {
         content: "";
         position: absolute;
@@ -204,6 +209,7 @@
         border-radius: 999px;
         background: radial-gradient(circle, rgba(168, 230, 213, 0.65), rgba(168, 230, 213, 0));
         pointer-events: none;
+        z-index: 0;
       }
 
       .topbar h2 {
@@ -219,7 +225,7 @@
         min-width: 260px;
         border: 1px solid #b9d9d0;
         border-radius: 16px;
-        background: linear-gradient(155deg, #f8fffd 0%, #dbf1ea 100%);
+        background: #f4fffb;
         padding: 10px 12px;
         display: grid;
         gap: 8px;
@@ -234,7 +240,7 @@
       .progress-metrics span {
         border: 1px solid #b9d9d0;
         border-radius: 10px;
-        background: rgba(247, 255, 252, 0.92);
+        background: #fbfffe;
         padding: 6px 6px 5px;
         text-align: center;
       }
