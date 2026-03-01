@@ -30,6 +30,11 @@ export const entriesRoutes: FastifyPluginAsync = async (app) => {
 
     const userId = request.user.userId;
     const p = parsed.data;
+    const todayResult = await pool.query<{ today: string }>('SELECT CURRENT_DATE::text AS today');
+    const today = todayResult.rows[0]?.today ?? new Date().toISOString().slice(0, 10);
+    if (p.entryDate > today) {
+      return reply.status(400).send({ error: 'entryDate cannot be in the future' });
+    }
 
     const client = await pool.connect();
     try {

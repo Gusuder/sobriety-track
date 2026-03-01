@@ -67,7 +67,14 @@ test('POST /api/entries validates payload', async () => {
 
 test('POST /api/entries creates entry and deduplicates reason codes', async () => {
   const originalConnect = pool.connect;
+  const originalQuery = pool.query;
   const queryCalls: Array<{ sql: string; params: unknown[] | undefined }> = [];
+  (pool as any).query = async (sql: string) => {
+    if (sql.includes('CURRENT_DATE::text AS today')) {
+      return { rows: [{ today: '2026-03-01' }], rowCount: 1 };
+    }
+    return { rows: [], rowCount: 0 };
+  };
 
   const client: DbClientMock = {
     async query(sql, params) {
@@ -120,11 +127,19 @@ test('POST /api/entries creates entry and deduplicates reason codes', async () =
 
   await app.close();
   (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
 });
 
 test('POST /api/entries updates existing day entry via upsert', async () => {
   const originalConnect = pool.connect;
+  const originalQuery = pool.query;
   const queryCalls: Array<{ sql: string; params: unknown[] | undefined }> = [];
+  (pool as any).query = async (sql: string) => {
+    if (sql.includes('CURRENT_DATE::text AS today')) {
+      return { rows: [{ today: '2026-03-01' }], rowCount: 1 };
+    }
+    return { rows: [], rowCount: 0 };
+  };
 
   const client: DbClientMock = {
     async query(sql, params) {
@@ -171,6 +186,43 @@ test('POST /api/entries updates existing day entry via upsert', async () => {
 
   await app.close();
   (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
+});
+
+test('POST /api/entries rejects future entryDate', async () => {
+  const originalConnect = pool.connect;
+  const originalQuery = pool.query;
+  (pool as any).connect = async () => {
+    throw new Error('connect should not be called for future date');
+  };
+  (pool as any).query = async (sql: string) => {
+    if (sql.includes('CURRENT_DATE::text AS today')) {
+      return { rows: [{ today: '2026-03-01' }], rowCount: 1 };
+    }
+    return { rows: [], rowCount: 0 };
+  };
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/entries',
+    payload: {
+      entryDate: '2026-03-02',
+      drank: false,
+      mood: 'good',
+      stressLevel: 3,
+      cravingLevel: 4,
+      daySummary: 'future'
+    }
+  });
+
+  assert.equal(res.statusCode, 400);
+  const body = res.json();
+  assert.equal(body.error, 'entryDate cannot be in the future');
+
+  await app.close();
+  (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
 });
 
 test('GET /api/entries validates query', async () => {

@@ -27,14 +27,19 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
 
     const userId = request.user.userId;
     const payload = parsed.data;
+    const todayResult = await pool.query<{ today: string }>('SELECT CURRENT_DATE::text AS today');
+    const today = todayResult.rows[0]?.today ?? new Date().toISOString().slice(0, 10);
     let startedAt: string;
     if (payload.startMode === 'already_sober') {
       if (!payload.soberStartDate) {
         return reply.status(400).send({ error: 'soberStartDate is required for already_sober' });
       }
+      if (payload.soberStartDate > today) {
+        return reply.status(400).send({ error: 'soberStartDate cannot be in the future' });
+      }
       startedAt = payload.soberStartDate;
     } else {
-      startedAt = new Date().toISOString().slice(0, 10);
+      startedAt = today;
     }
     const profileForCheck: StreakProfile = {
       started_at: startedAt,

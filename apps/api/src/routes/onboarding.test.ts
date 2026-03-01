@@ -266,6 +266,35 @@ test('POST /api/onboarding rejects goal equal to current streak', async () => {
   (pool as any).query = originalQuery;
 });
 
+test('POST /api/onboarding rejects future soberStartDate', async () => {
+  const originalConnect = pool.connect;
+  const originalQuery = pool.query;
+  (pool as any).connect = async () => {
+    throw new Error('connect should not be called for future soberStartDate');
+  };
+  (pool as any).query = async (sql: string) => {
+    if (sql.includes('CURRENT_DATE::text AS today')) {
+      return { rows: [{ today: '2026-03-01' }], rowCount: 1 };
+    }
+    return { rows: [], rowCount: 0 };
+  };
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/onboarding',
+    payload: { startMode: 'already_sober', soberStartDate: '2026-03-02', goalDays: 30 }
+  });
+
+  assert.equal(res.statusCode, 400);
+  const body = res.json();
+  assert.equal(body.error, 'soberStartDate cannot be in the future');
+
+  await app.close();
+  (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
+});
+
 test('GET /api/onboarding returns profile', async () => {
   const originalQuery = pool.query;
   (pool as any).query = async () => ({
