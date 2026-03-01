@@ -396,7 +396,6 @@
           <p id="onboardingSummary" class="muted">Профиль старта будет показан после сохранения.</p>
           <div class="row" style="margin-top: 8px;">
             <button class="btn secondary" onclick="startOnboardingFlow(true)">Изменить старт и цель</button>
-            <button class="btn secondary" onclick="loadOnboardingSummary()">Обновить профиль</button>
           </div>
         </section>
 
@@ -497,6 +496,7 @@
       const API = `${API_BASE}/api`;
       let token = localStorage.getItem("token") || "";
       let currentStreakDays = 0;
+      let onboardingRefreshTimer = null;
       const out = document.getElementById("out");
       const protectedPaths = ["/goals", "/entries", "/onboarding"];
       const reasonTitleRu = {
@@ -522,6 +522,7 @@
       const print = (data) => out.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
 
       function showAuth(errorText = "") {
+        stopOnboardingAutoRefresh();
         document.getElementById("authShell").classList.remove("hidden");
         document.getElementById("onboardingShell").classList.add("hidden");
         document.getElementById("appShell").classList.add("hidden");
@@ -534,6 +535,7 @@
         document.getElementById("authShell").classList.add("hidden");
         document.getElementById("onboardingShell").classList.add("hidden");
         document.getElementById("appShell").classList.remove("hidden");
+        startOnboardingAutoRefresh();
       }
 
       function showOnboardingStep(step) {
@@ -542,6 +544,7 @@
       }
 
       function showOnboardingShell() {
+        stopOnboardingAutoRefresh();
         document.getElementById("authShell").classList.add("hidden");
         document.getElementById("appShell").classList.add("hidden");
         document.getElementById("onboardingShell").classList.remove("hidden");
@@ -829,10 +832,24 @@
           const goal = profile.current_goal_days ?? "-";
           const mode = profile.started_with_existing_streak ? "уже не пил ранее" : "старт сегодня";
           summary.textContent = `Режим: ${mode}. Старт: ${startedAt}. Цель: ${goal} дн.`;
-          print(data);
         } catch (e) {
           print(e);
         }
+      }
+
+      function stopOnboardingAutoRefresh() {
+        if (onboardingRefreshTimer) {
+          clearInterval(onboardingRefreshTimer);
+          onboardingRefreshTimer = null;
+        }
+      }
+
+      function startOnboardingAutoRefresh() {
+        stopOnboardingAutoRefresh();
+        onboardingRefreshTimer = setInterval(() => {
+          if (document.hidden) return;
+          loadOnboardingSummary();
+        }, 30000);
       }
 
       async function finishOnboardingWizard() {
