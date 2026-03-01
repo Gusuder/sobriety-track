@@ -195,6 +195,46 @@
         margin: 6px 0 0;
         color: var(--muted);
       }
+      .progress-widget {
+        min-width: 260px;
+        border: 1px solid #e4c9ab;
+        border-radius: 14px;
+        background: linear-gradient(160deg, #fffaf2 0%, #f8e8d3 100%);
+        padding: 10px 12px;
+        display: grid;
+        gap: 8px;
+      }
+      .progress-metrics {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 12px;
+        color: #78583f;
+      }
+      .progress-metrics strong {
+        display: block;
+        font-size: 18px;
+        line-height: 1;
+        color: #4c3526;
+        margin-top: 2px;
+      }
+      .progress-bar {
+        height: 10px;
+        border-radius: 999px;
+        background: #eedbc3;
+        overflow: hidden;
+      }
+      .progress-fill {
+        width: 0%;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #d28952, #b35f2f);
+        transition: width .35s ease;
+      }
+      .progress-note {
+        font-size: 12px;
+        color: #745f4b;
+      }
 
       .layout { display: grid; gap: 14px; }
       .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
@@ -601,7 +641,17 @@
           <p>Личный кабинет: онбординг, цели, дневник и история записей.</p>
         </div>
         <div style="display:grid; gap:8px; min-width: 210px;">
-          <input id="streakView" type="text" value="серия: неизвестно" readonly />
+          <div class="progress-widget">
+            <div class="progress-metrics">
+              <span>Серия<strong id="metricStreak">—</strong></span>
+              <span>Цель<strong id="metricTarget">—</strong></span>
+              <span>Прогресс<strong id="metricPercent">0%</strong></span>
+            </div>
+            <div class="progress-bar">
+              <div id="metricProgressFill" class="progress-fill"></div>
+            </div>
+            <div id="metricNote" class="progress-note">Начните с первой записи, чтобы увидеть прогресс.</div>
+          </div>
           <button class="btn secondary" onclick="logoutUser()">Выйти</button>
         </div>
       </header>
@@ -889,6 +939,32 @@
         document.getElementById("authInfo").classList.add("hidden");
       }
 
+      function updateProgressWidget(streak = null, target = null, percent = 0, note = "") {
+        const streakEl = document.getElementById("metricStreak");
+        const targetEl = document.getElementById("metricTarget");
+        const percentEl = document.getElementById("metricPercent");
+        const fillEl = document.getElementById("metricProgressFill");
+        const noteEl = document.getElementById("metricNote");
+
+        const safeStreak = Number.isFinite(Number(streak)) ? Number(streak) : null;
+        const safeTarget = Number.isFinite(Number(target)) ? Number(target) : null;
+        const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+
+        streakEl.textContent = safeStreak === null ? "—" : `${safeStreak}д`;
+        targetEl.textContent = safeTarget === null ? "—" : `${safeTarget}д`;
+        percentEl.textContent = `${safePercent}%`;
+        fillEl.style.width = `${safePercent}%`;
+
+        if (note) {
+          noteEl.textContent = note;
+        } else if (safeTarget !== null && safeStreak !== null) {
+          const left = Math.max(0, safeTarget - safeStreak);
+          noteEl.textContent = left === 0 ? "Цель достигнута. Отличная работа!" : `До цели осталось ${left} дн.`;
+        } else {
+          noteEl.textContent = "Заполните стартовый профиль, чтобы видеть мотивацию.";
+        }
+      }
+
       function updateForgotHintVisibility() {
         const hint = document.getElementById("forgotHintWrap");
         if (!hint) return;
@@ -1023,7 +1099,7 @@
       function invalidateSession(message) {
         token = "";
         localStorage.removeItem("token");
-        document.getElementById("streakView").value = "требуется вход";
+        updateProgressWidget(null, null, 0, "Требуется вход в аккаунт.");
         showAuth(message || "");
       }
 
@@ -1464,21 +1540,22 @@
         try {
           const data = await req("/goals");
           const progress = data?.progress;
-          const streakField = document.getElementById("streakView");
 
           if (!data?.activeGoal) {
             currentStreakDays = 0;
-            streakField.value = "активной цели пока нет";
+            updateProgressWidget(null, null, 0, "Создайте или обновите цель в стартовом профиле.");
           } else if (!progress) {
             currentStreakDays = 0;
-            streakField.value = `цель: ${data.activeGoal.target_days}д | серия: 0д`;
+            const target = Number(data.activeGoal.target_days ?? 0);
+            updateProgressWidget(0, target, 0, "Добавьте первую запись дня, чтобы запустить прогресс.");
           } else {
             const streak = progress.streakDays ?? 0;
             currentStreakDays = Math.max(0, Number(streak));
             const target = progress.targetDays ?? data.activeGoal.target_days ?? "-";
             const percent = progress.percent ?? 0;
             const remaining = progress.remainingDays ?? Math.max(0, Number(target) - streak);
-            streakField.value = `серия: ${streak}д | цель: ${target}д | ${percent}% | осталось: ${remaining}д`;
+            const note = remaining === 0 ? "Цель достигнута. Можно выбрать новую, более амбициозную!" : `До цели осталось ${remaining} дн. Держитесь курса.`;
+            updateProgressWidget(streak, target, percent, note);
           }
 
           refreshGoalConstraints();
