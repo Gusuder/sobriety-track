@@ -450,6 +450,50 @@
         font-weight: 700;
         margin-top: 2px;
       }
+      .quick-grid {
+        display: grid;
+        gap: 10px;
+      }
+      .quick-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .quick-badge {
+        border: 1px solid #dcc1a4;
+        background: #fff2df;
+        color: #744d33;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+      }
+      .insights-grid {
+        display: grid;
+        gap: 8px;
+      }
+      .insight-row {
+        display: grid;
+        grid-template-columns: 140px 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+      .insight-track {
+        height: 8px;
+        border-radius: 999px;
+        background: #efdfcd;
+        overflow: hidden;
+      }
+      .insight-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #d08a56, #b05f30);
+      }
+      .insight-note {
+        font-size: 13px;
+        color: #6f5c4c;
+      }
       .focus-shell {
         position: fixed;
         inset: 0;
@@ -672,6 +716,58 @@
         </section>
 
         <section class="card">
+          <div class="quick-head">
+            <h3>Быстрый чек-ин</h3>
+            <span class="quick-badge">~20 секунд</span>
+          </div>
+          <p class="muted">Минимальная отметка дня для удержания фокуса и трека прогресса.</p>
+          <div class="quick-grid">
+            <div class="row">
+              <div class="field" style="margin-top:0;">
+                <label for="quickDate">Дата</label>
+                <input id="quickDate" type="date" />
+              </div>
+              <div class="field" style="margin-top:0;">
+                <label for="quickDrank">Алкоголь</label>
+                <select id="quickDrank" onchange="syncQuickDrankDependentFields()">
+                  <option value="false" selected>Не пил</option>
+                  <option value="true">Пил</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field" style="margin-top:0;">
+                <label for="quickMood">Настроение</label>
+                <select id="quickMood">
+                  <option value="awful">ужасно</option>
+                  <option value="bad">плохо</option>
+                  <option value="neutral">нормально</option>
+                  <option value="good" selected>хорошо</option>
+                  <option value="great">отлично</option>
+                </select>
+              </div>
+              <div class="field" style="margin-top:0;">
+                <label for="quickCraving">Тяга</label>
+                <select id="quickCraving">
+                  <option value="1">Нет тяги</option>
+                  <option value="3" selected>Слабая</option>
+                  <option value="5">Умеренная</option>
+                  <option value="8">Сильная</option>
+                  <option value="10">Очень сильная</option>
+                </select>
+              </div>
+            </div>
+            <div class="field" style="margin-top:0;">
+              <label>Причины (только если пил)</label>
+              <div class="reason-tag-wrap" id="quickReasonWrap">
+                <div id="quickReasonOptions" class="reason-tags muted">Причины загружаются автоматически…</div>
+              </div>
+            </div>
+            <button class="btn" type="button" onclick="quickCheckIn()">Быстро сохранить</button>
+          </div>
+        </section>
+
+        <section class="card">
             <h3>Ежедневная запись</h3>
             <div class="row">
               <div class="field" style="margin-top:0;">
@@ -774,6 +870,13 @@
                 </div>
                 <div id="entriesCalendarRibbon" class="calendar-ribbon"></div>
               </div>
+              <div class="analytics-card">
+                <div class="analytics-head">
+                  <strong>Аналитика триггеров</strong>
+                  <span class="muted">где выше риск в выбранном периоде</span>
+                </div>
+                <div id="triggerInsights" class="insights-grid"></div>
+              </div>
             </div>
           </div>
         </section>
@@ -873,6 +976,7 @@
 
       const today = new Date().toISOString().slice(0, 10);
       document.getElementById("entryDate").value = today;
+      document.getElementById("quickDate").value = today;
       document.getElementById("from").value = today.slice(0, 8) + "01";
       document.getElementById("to").value = today;
       document.getElementById("soberStartDateWizard").value = today;
@@ -1569,7 +1673,9 @@
         try {
           const data = await req("/entries/reasons");
           const selectedCodes = new Set(Array.from(document.querySelectorAll(".reason-tag.active")).map((el) => el.dataset.code));
+          const selectedQuickCodes = new Set(Array.from(document.querySelectorAll(".quick-reason-tag.active")).map((el) => el.dataset.code));
           const optionsEl = document.getElementById("reasonOptions");
+          const quickOptionsEl = document.getElementById("quickReasonOptions");
           optionsEl.innerHTML = (data.reasons || [])
             .map((r) => {
               const title = reasonTitleRu[r.code] ?? r.title;
@@ -1577,6 +1683,14 @@
               return `<button type="button" class="reason-tag ${checked}" data-code="${r.code}" onclick="toggleReasonTag('${r.code}')">${title}</button>`;
             })
             .join("");
+          quickOptionsEl.innerHTML = (data.reasons || [])
+            .map((r) => {
+              const title = reasonTitleRu[r.code] ?? r.title;
+              const checked = selectedQuickCodes.has(r.code) ? "active" : "";
+              return `<button type="button" class="reason-tag quick-reason-tag ${checked}" data-code="${r.code}" onclick="toggleQuickReasonTag('${r.code}')">${title}</button>`;
+            })
+            .join("");
+          syncQuickDrankDependentFields();
           if (!silent) {
             print(data);
           }
@@ -1596,6 +1710,47 @@
         return Array.from(document.querySelectorAll(".reason-tag.active"))
           .map((el) => el.dataset.code)
           .filter(Boolean);
+      }
+
+      function toggleQuickReasonTag(code) {
+        if (quickDrank.value !== "true") return;
+        const el = document.querySelector(`.quick-reason-tag[data-code="${code}"]`);
+        if (!el) return;
+        el.classList.toggle("active");
+      }
+
+      function selectedQuickReasonCodes() {
+        return Array.from(document.querySelectorAll(".quick-reason-tag.active"))
+          .map((el) => el.dataset.code)
+          .filter(Boolean);
+      }
+
+      async function quickCheckIn() {
+        try {
+          const selectedDrank = quickDrank.value === "true";
+          const craving = Number(quickCraving.value);
+          const stress = Math.max(1, Math.min(10, selectedDrank ? craving + 1 : craving));
+          const payload = {
+            entryDate: quickDate.value,
+            drank: selectedDrank,
+            mood: quickMood.value,
+            stressLevel: stress,
+            cravingLevel: craving,
+            daySummary: selectedDrank ? "Быстрый чек-ин: был алкоголь." : "Быстрый чек-ин: день без алкоголя.",
+            comment: "Быстрый режим",
+            reasonCodes: selectedDrank ? selectedQuickReasonCodes() : []
+          };
+          print(await req("/entries", { method: "POST", body: JSON.stringify(payload) }));
+          entryDate.value = quickDate.value;
+          mood.value = quickMood.value;
+          drank.value = quickDrank.value;
+          craving.value = quickCraving.value;
+          stress.value = String(stress);
+          syncDrankDependentFields();
+          await loadGoals();
+        } catch (e) {
+          print(e);
+        }
       }
 
       async function createEntry() {
@@ -1626,6 +1781,16 @@
         wrap.classList.toggle("disabled", !canSelectReasons);
         if (!canSelectReasons) {
           document.querySelectorAll(".reason-tag.active").forEach((el) => el.classList.remove("active"));
+        }
+      }
+
+      function syncQuickDrankDependentFields() {
+        const canSelectReasons = quickDrank.value === "true";
+        const wrap = document.getElementById("quickReasonWrap");
+        if (!wrap) return;
+        wrap.classList.toggle("disabled", !canSelectReasons);
+        if (!canSelectReasons) {
+          document.querySelectorAll(".quick-reason-tag.active").forEach((el) => el.classList.remove("active"));
         }
       }
 
@@ -1756,6 +1921,66 @@
         wrap.classList.remove("hidden");
         renderEntriesLineChart(entries);
         renderEntriesCalendarRibbon(entries, fromDateOnly, toDateOnly);
+        renderTriggerInsights(entries);
+      }
+
+      function renderTriggerInsights(entries) {
+        const el = document.getElementById("triggerInsights");
+        if (!el) return;
+        if (!entries.length) {
+          el.innerHTML = `<div class="insight-note">Нет данных для аналитики за выбранный период.</div>`;
+          return;
+        }
+
+        const drankEntries = entries.filter((e) => e.drank);
+        const total = entries.length;
+        const drankPct = Math.round((drankEntries.length / total) * 100);
+
+        const reasonCounts = {};
+        drankEntries.forEach((e) => {
+          (e.reason_codes || []).forEach((code) => {
+            reasonCounts[code] = (reasonCounts[code] || 0) + 1;
+          });
+        });
+        const topReasons = Object.entries(reasonCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3);
+
+        const moodStats = {};
+        entries.forEach((e) => {
+          const key = e.mood || "neutral";
+          if (!moodStats[key]) moodStats[key] = { total: 0, drank: 0 };
+          moodStats[key].total += 1;
+          if (e.drank) moodStats[key].drank += 1;
+        });
+        const moodRows = Object.entries(moodStats)
+          .map(([moodKey, stat]) => ({
+            moodKey,
+            pct: Math.round((stat.drank / Math.max(1, stat.total)) * 100)
+          }))
+          .sort((a, b) => b.pct - a.pct);
+
+        const reasonsHtml = topReasons.length
+          ? topReasons.map(([code, count]) => `<span class="pill">${reasonTitleRu[code] ?? code}: ${count}</span>`).join("")
+          : `<span class="insight-note">Пока нет зафиксированных причин в днях с алкоголем.</span>`;
+
+        const moodHtml = moodRows
+          .map((row) => `
+            <div class="insight-row">
+              <span>${moodToLabelRu[row.moodKey] ?? row.moodKey}</span>
+              <div class="insight-track"><div class="insight-fill" style="width:${row.pct}%"></div></div>
+              <span>${row.pct}%</span>
+            </div>
+          `)
+          .join("");
+
+        el.innerHTML = `
+          <div class="insight-note">Дней с алкоголем: <strong>${drankEntries.length} из ${total}</strong> (${drankPct}%).</div>
+          <div class="insight-note">Топ причин в днях с алкоголем:</div>
+          <div>${reasonsHtml}</div>
+          <div class="insight-note" style="margin-top:4px;">Риск по настроению (доля дней с алкоголем):</div>
+          <div>${moodHtml}</div>
+        `;
       }
 
       function setEntriesToggleLabel(showing) {
@@ -1811,6 +2036,7 @@
         }
       });
       syncDrankDependentFields();
+      syncQuickDrankDependentFields();
       setBreathTechnique();
       breathTimer.textContent = formatMMSS(120);
       newMatch3Game();
