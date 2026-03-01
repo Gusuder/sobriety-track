@@ -151,6 +151,21 @@
       }
 
       .hidden { display: none !important; }
+      .choice-grid {
+        display: grid;
+        gap: 8px;
+      }
+      .choice-btn {
+        text-align: left;
+        border: 1px solid #e5c4a0;
+        background: #fff2e2;
+        color: #654430;
+      }
+      .choice-btn.active {
+        border: none;
+        color: #fff;
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      }
 
       .page {
         max-width: 1200px;
@@ -302,6 +317,55 @@
       </div>
     </section>
 
+    <section id="onboardingShell" class="auth-shell hidden">
+      <div class="auth-card">
+        <div class="brand">
+          <h1>Старт трекера</h1>
+          <p>Шаг 1 из 2: выберите текущий статус.</p>
+        </div>
+
+        <div id="onboardingStep1">
+          <div class="choice-grid">
+            <button id="startNowBtn" class="choice-btn" type="button" onclick="selectStartMode('now')">
+              Бросаю сегодня
+            </button>
+            <button id="startSoberBtn" class="choice-btn" type="button" onclick="selectStartMode('already_sober')">
+              Уже не пью некоторое время
+            </button>
+          </div>
+
+          <div id="soberPeriodWrap" class="field hidden">
+            <label for="soberPeriodDays">Сколько уже не пьёте?</label>
+            <select id="soberPeriodDays">
+              <option value="7">1 неделя</option>
+              <option value="14">2 недели</option>
+              <option value="30" selected>1 месяц</option>
+              <option value="90">3 месяца</option>
+              <option value="180">6 месяцев</option>
+              <option value="365">1 год</option>
+            </select>
+          </div>
+
+          <div class="stack">
+            <button class="btn" type="button" onclick="goToGoalStep()">Далее: выбрать цель</button>
+          </div>
+        </div>
+
+        <div id="onboardingStep2" class="hidden">
+          <p class="muted">Шаг 2 из 2: задайте цель в днях.</p>
+          <div class="field">
+            <label for="goalDaysWizard">Цель (дней)</label>
+            <input id="goalDaysWizard" type="number" min="1" max="3650" value="30" />
+          </div>
+          <div class="stack">
+            <button class="btn" type="button" onclick="finishOnboardingWizard()">Начать отсчёт</button>
+            <button class="btn secondary" type="button" onclick="showOnboardingStep(1)">Назад</button>
+          </div>
+          <div id="onboardingError" class="auth-note error hidden"></div>
+        </div>
+      </div>
+    </section>
+
     <main id="appShell" class="page hidden">
       <header class="topbar">
         <div>
@@ -322,27 +386,11 @@
         </div>
 
         <section class="card">
-          <h3>Онбординг</h3>
-          <div class="row3">
-            <div class="field" style="margin-top:0;">
-              <label for="startMode">Режим старта</label>
-              <select id="startMode" onchange="toggleSoberDate()">
-                <option value="now">начать сейчас</option>
-                <option value="already_sober">уже не пью</option>
-              </select>
-            </div>
-            <div class="field" style="margin-top:0;">
-              <label for="soberStartDate">Дата трезвости</label>
-              <input id="soberStartDate" type="date" disabled />
-            </div>
-            <div class="field" style="margin-top:0;">
-              <label for="goalDays">Цель (дней)</label>
-              <input id="goalDays" type="number" min="1" max="3650" value="30" />
-            </div>
-          </div>
+          <h3>Стартовый профиль</h3>
+          <p id="onboardingSummary" class="muted">Профиль старта будет показан после сохранения.</p>
           <div class="row" style="margin-top: 8px;">
-            <button class="btn" onclick="saveOnboarding()">Сохранить онбординг</button>
-            <button class="btn secondary" onclick="getOnboarding()">Показать текущий онбординг</button>
+            <button class="btn secondary" onclick="startOnboardingFlow(true)">Изменить старт и цель</button>
+            <button class="btn secondary" onclick="loadOnboardingSummary()">Обновить профиль</button>
           </div>
         </section>
 
@@ -388,12 +436,24 @@
             </div>
             <div class="row">
               <div class="field" style="margin-top:0;">
-                <label for="stress">Стресс (1-10)</label>
-                <input id="stress" type="number" min="1" max="10" value="3" />
+                <label for="stress">Стресс</label>
+                <select id="stress">
+                  <option value="2">Спокойно</option>
+                  <option value="4" selected>Лёгкий стресс</option>
+                  <option value="6">Средний стресс</option>
+                  <option value="8">Высокий стресс</option>
+                  <option value="10">Критический стресс</option>
+                </select>
               </div>
               <div class="field" style="margin-top:0;">
-                <label for="craving">Тяга (1-10)</label>
-                <input id="craving" type="number" min="1" max="10" value="4" />
+                <label for="craving">Тяга</label>
+                <select id="craving">
+                  <option value="1">Нет тяги</option>
+                  <option value="3" selected>Слабая тяга</option>
+                  <option value="5">Умеренная тяга</option>
+                  <option value="8">Сильная тяга</option>
+                  <option value="10">Очень сильная тяга</option>
+                </select>
               </div>
             </div>
             <div class="field">
@@ -463,12 +523,12 @@
       document.getElementById("entryDate").value = today;
       document.getElementById("from").value = today.slice(0, 8) + "01";
       document.getElementById("to").value = today;
-      document.getElementById("soberStartDate").value = today;
 
       const print = (data) => out.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
 
       function showAuth(errorText = "") {
         document.getElementById("authShell").classList.remove("hidden");
+        document.getElementById("onboardingShell").classList.add("hidden");
         document.getElementById("appShell").classList.add("hidden");
         if (errorText) {
           showAuthError(errorText);
@@ -477,7 +537,19 @@
 
       function showApp() {
         document.getElementById("authShell").classList.add("hidden");
+        document.getElementById("onboardingShell").classList.add("hidden");
         document.getElementById("appShell").classList.remove("hidden");
+      }
+
+      function showOnboardingStep(step) {
+        document.getElementById("onboardingStep1").classList.toggle("hidden", step !== 1);
+        document.getElementById("onboardingStep2").classList.toggle("hidden", step !== 2);
+      }
+
+      function showOnboardingShell() {
+        document.getElementById("authShell").classList.add("hidden");
+        document.getElementById("appShell").classList.add("hidden");
+        document.getElementById("onboardingShell").classList.remove("hidden");
       }
 
       function switchAuth(mode) {
@@ -519,6 +591,57 @@
 
       function toggleReset(show) {
         document.getElementById("resetPanel").classList.toggle("hidden", !show);
+      }
+
+      let selectedStartMode = "now";
+
+      function selectStartMode(mode) {
+        selectedStartMode = mode;
+        document.getElementById("startNowBtn").classList.toggle("active", mode === "now");
+        document.getElementById("startSoberBtn").classList.toggle("active", mode === "already_sober");
+        document.getElementById("soberPeriodWrap").classList.toggle("hidden", mode !== "already_sober");
+      }
+
+      function goToGoalStep() {
+        showOnboardingStep(2);
+      }
+
+      function showOnboardingError(text) {
+        const el = document.getElementById("onboardingError");
+        el.textContent = text;
+        el.classList.remove("hidden");
+      }
+
+      function clearOnboardingError() {
+        document.getElementById("onboardingError").classList.add("hidden");
+      }
+
+      function buildSoberStartDateFromDays(daysBack) {
+        const d = new Date();
+        d.setUTCDate(d.getUTCDate() - daysBack);
+        return d.toISOString().slice(0, 10);
+      }
+
+      async function startOnboardingFlow(force = false) {
+        if (!force) {
+          try {
+            const data = await req("/onboarding");
+            if (data?.profile) {
+              showApp();
+              await loadOnboardingSummary();
+              await loadGoals();
+              return;
+            }
+          } catch (e) {
+            if (e?.__status !== 404 && e?.error !== "Not Found") {
+              print(e);
+            }
+          }
+        }
+
+        selectStartMode("now");
+        showOnboardingStep(1);
+        showOnboardingShell();
       }
 
       function invalidateSession(message) {
@@ -592,9 +715,8 @@
           token = data.accessToken;
           localStorage.setItem("token", token);
           toggleReset(false);
-          showApp();
           print({ ok: true });
-          await loadGoals();
+          await startOnboardingFlow(false);
         } catch (e) {
           if (e?.__status === 401 || e?.error === "Unauthorized") {
             showAuthError("Неверный логин или пароль. Можете попробовать сбросить пароль.");
@@ -640,31 +762,50 @@
         }
       }
 
-      function toggleSoberDate() {
-        soberStartDate.disabled = startMode.value !== "already_sober";
-      }
-
-      async function saveOnboarding() {
+      async function loadOnboardingSummary() {
         try {
-          const payload = {
-            startMode: startMode.value,
-            goalDays: Number(goalDays.value)
-          };
-          if (startMode.value === "already_sober") {
-            payload.soberStartDate = soberStartDate.value;
+          const data = await req("/onboarding");
+          const profile = data?.profile;
+          const summary = document.getElementById("onboardingSummary");
+          if (!profile) {
+            summary.textContent = "Стартовый профиль ещё не заполнен.";
+            return;
           }
-          const data = await req("/onboarding", { method: "POST", body: JSON.stringify(payload) });
+
+          const startedAt = profile.started_at ?? "-";
+          const goal = profile.current_goal_days ?? "-";
+          const mode = profile.started_with_existing_streak ? "уже не пил ранее" : "старт сегодня";
+          summary.textContent = `Режим: ${mode}. Старт: ${startedAt}. Цель: ${goal} дн.`;
           print(data);
-          await loadGoals();
         } catch (e) {
           print(e);
         }
       }
 
-      async function getOnboarding() {
+      async function finishOnboardingWizard() {
+        clearOnboardingError();
         try {
-          print(await req("/onboarding"));
+          const goalDays = Number(goalDaysWizard.value);
+          if (!Number.isFinite(goalDays) || goalDays < 1 || goalDays > 3650) {
+            showOnboardingError("Цель должна быть числом от 1 до 3650.");
+            return;
+          }
+
+          const payload = {
+            startMode: selectedStartMode,
+            goalDays
+          };
+          if (selectedStartMode === "already_sober") {
+            payload.soberStartDate = buildSoberStartDateFromDays(Number(soberPeriodDays.value));
+          }
+
+          const data = await req("/onboarding", { method: "POST", body: JSON.stringify(payload) });
+          print(data);
+          showApp();
+          await loadOnboardingSummary();
+          await loadGoals();
         } catch (e) {
+          showOnboardingError("Не удалось сохранить стартовый профиль.");
           print(e);
         }
       }
@@ -754,8 +895,7 @@
       }
 
       if (token) {
-        showApp();
-        loadGoals();
+        startOnboardingFlow(false);
       } else {
         showAuth();
       }
