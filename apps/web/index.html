@@ -721,7 +721,7 @@
             <span class="quick-badge">~20 секунд</span>
           </div>
           <p class="muted">Минимальная отметка дня для удержания фокуса и трека прогресса.</p>
-          <div class="quick-grid">
+          <div id="quickCheckinPanel" class="quick-grid">
             <div class="row">
               <div class="field" style="margin-top:0;">
                 <label for="quickDate">Дата</label>
@@ -1720,12 +1720,14 @@
       }
 
       function toggleAdvancedEntry(forceOpen) {
+        const quickPanel = document.getElementById("quickCheckinPanel");
         const panel = document.getElementById("advancedEntryPanel");
         const btn = document.getElementById("advancedToggleBtn");
-        if (!panel || !btn) return;
+        if (!quickPanel || !panel || !btn) return;
 
         const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.classList.contains("hidden");
         panel.classList.toggle("hidden", !shouldOpen);
+        quickPanel.classList.toggle("hidden", shouldOpen);
         btn.textContent = shouldOpen ? "Вернуться к быстрому чек-ину" : "Открыть расширенную запись";
 
         if (shouldOpen) {
@@ -1736,6 +1738,8 @@
           stress.value = String(Math.max(1, Math.min(10, Number(quickCraving.value) + (quickDrank.value === "true" ? 1 : 0))));
           syncDrankDependentFields();
           window.scrollTo({ top: panel.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" });
+        } else {
+          window.scrollTo({ top: quickPanel.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" });
         }
       }
 
