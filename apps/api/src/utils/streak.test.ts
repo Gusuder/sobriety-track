@@ -100,3 +100,15 @@ test('now mode still relies on daily entries', () => {
 
   assert.equal(value, 0);
 });
+
+test('now mode ignores entries before started_at', () => {
+  const value = calcStreakWithProfile(
+    entries([
+      ['2026-02-28', false]
+    ]),
+    { started_at: '2026-03-01', started_with_existing_streak: false },
+    fixedNow
+  );
+
+  assert.equal(value, 0);
+});

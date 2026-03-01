@@ -144,6 +144,45 @@ test('POST /api/onboarding updates active goal target when it already exists', a
   (pool as any).query = originalQuery;
 });
 
+test('POST /api/onboarding allows startMode=now with goal 1 even when entries exist', async () => {
+  const originalConnect = pool.connect;
+  const originalQuery = pool.query;
+  const calls: Array<{ sql: string; params: unknown[] | undefined }> = [];
+
+  const today = new Date().toISOString().slice(0, 10);
+  (pool as any).query = async () => ({
+    rows: [{ entry_date: today, drank: false }],
+    rowCount: 1
+  });
+
+  const client: DbClientMock = {
+    async query(sql, params) {
+      calls.push({ sql, params });
+      if (sql === 'BEGIN' || sql === 'COMMIT') return { rows: [], rowCount: 0 };
+      if (sql.includes('INSERT INTO user_profiles')) return { rows: [{ user_id: 1, current_goal_days: 1 }], rowCount: 1 };
+      if (sql.includes('FROM goals') && sql.includes('is_active = TRUE')) return { rows: [], rowCount: 0 };
+      if (sql.includes('INSERT INTO goals')) return { rows: [{ id: 33, target_days: 1, is_active: true }], rowCount: 1 };
+      return { rows: [], rowCount: 0 };
+    },
+    release() {}
+  };
+  (pool as any).connect = async () => client;
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/onboarding',
+    payload: { startMode: 'now', goalDays: 1 }
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.ok(calls.some((c) => c.sql === 'COMMIT'));
+
+  await app.close();
+  (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
+});
+
 test('POST /api/onboarding rejects goal lower than current streak', async () => {
   const originalConnect = pool.connect;
   const originalQuery = pool.query;

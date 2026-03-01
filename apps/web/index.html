@@ -640,15 +640,7 @@
       }
 
       function refreshGoalConstraints() {
-        let minGoal = 1;
-        if (selectedStartMode === "already_sober" && soberStartDateWizard.value) {
-          const elapsed = daysBetweenDateOnly(soberStartDateWizard.value, today);
-          minGoal = Math.max(1, elapsed + 1);
-        } else if (selectedStartMode === "already_sober") {
-          minGoal = Math.max(1, currentStreakDays + 1);
-        } else {
-          minGoal = 1;
-        }
+        const minGoal = getWizardMinGoal();
         goalDaysWizard.min = String(minGoal);
         if (Number(goalDaysWizard.value) < minGoal) {
           goalDaysWizard.value = String(minGoal);
@@ -658,6 +650,17 @@
         } else {
           goalConstraintHint.textContent = "Для режима «бросаю сегодня» цель может начинаться с 1 дня.";
         }
+      }
+
+      function getWizardMinGoal() {
+        if (selectedStartMode === "already_sober" && soberStartDateWizard.value) {
+          const elapsed = daysBetweenDateOnly(soberStartDateWizard.value, today);
+          return Math.max(1, elapsed + 1);
+        }
+        if (selectedStartMode === "already_sober") {
+          return Math.max(1, currentStreakDays + 1);
+        }
+        return 1;
       }
 
       async function syncCurrentStreakForConstraints() {
@@ -836,7 +839,7 @@
         clearOnboardingError();
         try {
           const goalDays = Number(goalDaysWizard.value);
-          const minGoal = Math.max(1, currentStreakDays + 1);
+          const minGoal = getWizardMinGoal();
           if (!Number.isFinite(goalDays) || goalDays < minGoal || goalDays > 3650) {
             showOnboardingError(`Цель должна быть числом от ${minGoal} до 3650.`);
             return;

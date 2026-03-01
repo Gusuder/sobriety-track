@@ -74,19 +74,25 @@ export function calcCurrentStreak(entries: StreakEntry[], now = new Date()): num
 }
 
 export function calcStreakWithProfile(entries: StreakEntry[], profile: StreakProfile | null, now = new Date()): number {
-  if (!profile?.started_with_existing_streak) {
+  if (!profile) {
     return calcCurrentStreak(entries, now);
   }
 
-  const todayKey = toDateOnly(now);
   const normalizedStart = normalizeDateOnly(profile.started_at);
   if (!normalizedStart) {
     return calcCurrentStreak(entries, now);
   }
+  const todayKey = toDateOnly(now);
+  const entriesSinceStart = entries.filter((entry) => entry.entry_date >= normalizedStart && entry.entry_date <= todayKey);
+
+  if (!profile.started_with_existing_streak) {
+    return calcCurrentStreak(entriesSinceStart, now);
+  }
+
   let streakStart = normalizedStart;
 
-  for (const entry of entries) {
-    if (entry.drank && entry.entry_date >= profile.started_at && entry.entry_date <= todayKey) {
+  for (const entry of entriesSinceStart) {
+    if (entry.drank && entry.entry_date >= normalizedStart && entry.entry_date <= todayKey) {
       const nextDay = addDays(entry.entry_date, 1);
       if (nextDay > streakStart) {
         streakStart = nextDay;
