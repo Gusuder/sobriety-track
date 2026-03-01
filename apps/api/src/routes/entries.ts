@@ -35,15 +35,26 @@ export const entriesRoutes: FastifyPluginAsync = async (app) => {
     try {
       await client.query('BEGIN');
 
-      const insertResult = await client.query(
+      const upsertResult = await client.query(
         `INSERT INTO daily_entries (user_id, entry_date, drank, mood, stress_level, craving_level, day_summary, comment)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (user_id, entry_date)
+         DO UPDATE SET
+           drank = EXCLUDED.drank,
+           mood = EXCLUDED.mood,
+           stress_level = EXCLUDED.stress_level,
+           craving_level = EXCLUDED.craving_level,
+           day_summary = EXCLUDED.day_summary,
+           comment = EXCLUDED.comment,
+           updated_at = NOW()
          RETURNING *`,
         [userId, p.entryDate, p.drank, p.mood, p.stressLevel, p.cravingLevel, p.daySummary, p.comment ?? null]
       );
 
-      const entry = insertResult.rows[0] as { id: number };
+      const entry = upsertResult.rows[0] as { id: number };
       const reasonCodes = [...new Set(p.reasonCodes ?? [])];
+
+      await client.query('DELETE FROM entry_reasons WHERE entry_id = $1', [entry.id]);
 
       if (reasonCodes.length > 0) {
         await client.query(
@@ -58,10 +69,9 @@ export const entriesRoutes: FastifyPluginAsync = async (app) => {
 
       await client.query('COMMIT');
 
-      return reply.status(201).send({ entry: insertResult.rows[0], reasonCodes });
+      return reply.status(200).send({ entry: upsertResult.rows[0], reasonCodes });
     } catch (error: any) {
       await client.query('ROLLBACK');
-      if (error.code === '23505') return reply.status(409).send({ error: 'Entry for this date already exists' });
       const mapped = mapDbError(error);
       if (mapped) return reply.status(mapped.statusCode).send(mapped.body);
       request.log.error(error);

@@ -81,6 +81,10 @@ test('POST /api/entries creates entry and deduplicates reason codes', async () =
         return { rows: [{ id: 9, entry_date: '2026-03-01' }], rowCount: 1 };
       }
 
+      if (sql.includes('DELETE FROM entry_reasons')) {
+        return { rows: [], rowCount: 1 };
+      }
+
       if (sql.includes('INSERT INTO entry_reasons')) {
         return { rows: [], rowCount: 2 };
       }
@@ -108,28 +112,34 @@ test('POST /api/entries creates entry and deduplicates reason codes', async () =
     }
   });
 
-  assert.equal(res.statusCode, 201);
+  assert.equal(res.statusCode, 200);
   const body = res.json();
   assert.deepEqual(body.reasonCodes, ['stress', 'boredom']);
   assert.ok(queryCalls.some((c) => c.sql === 'COMMIT'));
+  assert.ok(queryCalls.some((c) => c.sql.includes('DELETE FROM entry_reasons')));
 
   await app.close();
   (pool as any).connect = originalConnect;
 });
 
-test('POST /api/entries returns 409 when entry already exists', async () => {
+test('POST /api/entries updates existing day entry via upsert', async () => {
   const originalConnect = pool.connect;
+  const queryCalls: Array<{ sql: string; params: unknown[] | undefined }> = [];
 
   const client: DbClientMock = {
-    async query(sql) {
-      if (sql === 'BEGIN' || sql === 'ROLLBACK') {
+    async query(sql, params) {
+      queryCalls.push({ sql, params });
+
+      if (sql === 'BEGIN' || sql === 'COMMIT') {
         return { rows: [], rowCount: 0 };
       }
 
       if (sql.includes('INSERT INTO daily_entries')) {
-        const err = new Error('duplicate') as Error & { code?: string };
-        err.code = '23505';
-        throw err;
+        return { rows: [{ id: 10, entry_date: '2026-03-01', mood: 'neutral' }], rowCount: 1 };
+      }
+
+      if (sql.includes('DELETE FROM entry_reasons')) {
+        return { rows: [], rowCount: 2 };
       }
 
       return { rows: [], rowCount: 0 };
@@ -146,16 +156,18 @@ test('POST /api/entries returns 409 when entry already exists', async () => {
     payload: {
       entryDate: '2026-03-01',
       drank: false,
-      mood: 'good',
+      mood: 'neutral',
       stressLevel: 3,
       cravingLevel: 4,
       daySummary: 'ok'
     }
   });
 
-  assert.equal(res.statusCode, 409);
+  assert.equal(res.statusCode, 200);
   const body = res.json();
-  assert.equal(body.error, 'Entry for this date already exists');
+  assert.equal(body.entry.id, 10);
+  assert.ok(queryCalls.some((c) => c.sql.includes('ON CONFLICT (user_id, entry_date)')));
+  assert.ok(queryCalls.some((c) => c.sql === 'COMMIT'));
 
   await app.close();
   (pool as any).connect = originalConnect;
