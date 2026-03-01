@@ -6,18 +6,20 @@
     <title>Трекер трезвости</title>
     <style>
       :root {
-        --bg-0: #f3e7d8;
-        --bg-1: #ead6be;
-        --card: #fff8ef;
-        --card-2: #fffdf8;
-        --text: #2d241d;
-        --muted: #7a6857;
-        --line: #e6cfb3;
-        --brand: #c26e36;
-        --brand-2: #9f5128;
+        --bg-0: #f1e2cf;
+        --bg-1: #dfc8aa;
+        --card: #fffaf3;
+        --card-2: #fffcf7;
+        --text: #2f251d;
+        --muted: #7b6856;
+        --line: #e5c9a9;
+        --brand: #c87439;
+        --brand-2: #a9572b;
+        --brand-soft: #f6dfc5;
+        --surface-strong: #f8ecd8;
         --danger: #b64141;
         --ok: #3f8750;
-        --shadow: 0 16px 36px rgba(100, 63, 34, 0.16);
+        --shadow: 0 14px 34px rgba(87, 52, 28, 0.14);
       }
 
       * { box-sizing: border-box; }
@@ -26,11 +28,11 @@
         margin: 0;
         min-height: 100vh;
         color: var(--text);
-        font-family: "Segoe UI Variable Display", "Candara", "Trebuchet MS", sans-serif;
+        font-family: "Segoe UI Variable Display", "Segoe UI", "Candara", "Trebuchet MS", sans-serif;
         background:
-          radial-gradient(circle at 8% 10%, #ffd8a9 0%, transparent 32%),
-          radial-gradient(circle at 92% 0%, #ffe8c8 0%, transparent 34%),
-          linear-gradient(145deg, var(--bg-0), var(--bg-1));
+          radial-gradient(circle at 8% 8%, #ffd9ac 0%, transparent 30%),
+          radial-gradient(circle at 96% 2%, #ffe9ca 0%, transparent 28%),
+          linear-gradient(155deg, var(--bg-0), var(--bg-1));
       }
 
       .auth-shell {
@@ -115,12 +117,14 @@
         font-weight: 700;
         color: #fff;
         background: linear-gradient(135deg, var(--brand), var(--brand-2));
-        transition: transform .12s ease, box-shadow .12s ease;
+        box-shadow: 0 6px 16px rgba(139, 82, 45, 0.23);
+        transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
       }
 
       .btn:hover {
         transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(110, 65, 38, 0.24);
+        box-shadow: 0 10px 22px rgba(110, 65, 38, 0.27);
+        filter: saturate(1.04);
       }
 
       .btn.secondary {
@@ -171,12 +175,14 @@
         max-width: 1200px;
         margin: 0 auto;
         padding: 24px 18px 40px;
+        position: relative;
       }
 
       .topbar {
-        background: linear-gradient(135deg, #fff5e8 0%, #f7ead8 100%);
+        background:
+          linear-gradient(145deg, #fff6e8 0%, #f6e6d0 100%);
         border: 1px solid var(--line);
-        border-radius: 20px;
+        border-radius: 22px;
         padding: 18px;
         box-shadow: var(--shadow);
         margin-bottom: 14px;
@@ -184,6 +190,20 @@
         gap: 14px;
         align-items: center;
         justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .topbar::after {
+        content: "";
+        position: absolute;
+        right: -60px;
+        top: -50px;
+        width: 220px;
+        height: 220px;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(255, 224, 189, 0.78), rgba(255, 224, 189, 0));
+        pointer-events: none;
       }
 
       .topbar h2 {
@@ -197,43 +217,51 @@
       }
       .progress-widget {
         min-width: 260px;
-        border: 1px solid #e4c9ab;
-        border-radius: 14px;
-        background: linear-gradient(160deg, #fffaf2 0%, #f8e8d3 100%);
+        border: 1px solid #dfbe99;
+        border-radius: 16px;
+        background: linear-gradient(155deg, #fffaf2 0%, #f2dec2 100%);
         padding: 10px 12px;
         display: grid;
         gap: 8px;
       }
       .progress-metrics {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
-        font-size: 12px;
-        color: #78583f;
+        font-size: 11px;
+        color: #77563c;
+      }
+      .progress-metrics span {
+        border: 1px solid #dfbf9d;
+        border-radius: 10px;
+        background: rgba(255, 250, 242, 0.86);
+        padding: 6px 6px 5px;
+        text-align: center;
       }
       .progress-metrics strong {
         display: block;
-        font-size: 18px;
+        font-size: 17px;
         line-height: 1;
-        color: #4c3526;
+        color: #4b3424;
         margin-top: 2px;
       }
       .progress-bar {
         height: 10px;
         border-radius: 999px;
-        background: #eedbc3;
+        background: #ecd6ba;
         overflow: hidden;
       }
       .progress-fill {
         width: 0%;
         height: 100%;
         border-radius: 999px;
-        background: linear-gradient(90deg, #d28952, #b35f2f);
+        background:
+          linear-gradient(90deg, #d89257 0%, #be6a37 70%, #a9562d 100%);
         transition: width .35s ease;
       }
       .progress-note {
         font-size: 12px;
-        color: #745f4b;
+        color: #6f5a47;
       }
 
       .layout { display: grid; gap: 14px; }
@@ -242,14 +270,29 @@
       .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
       .card {
-        background: var(--card);
+        background: linear-gradient(165deg, var(--card), #fff7ec);
         border: 1px solid var(--line);
-        border-radius: 16px;
+        border-radius: 18px;
         padding: 15px;
         box-shadow: var(--shadow);
+        position: relative;
       }
 
-      .card h3 { margin: 0 0 10px; font-size: 19px; }
+      .card::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.95), rgba(255,255,255,0));
+      }
+
+      .card h3 {
+        margin: 0 0 10px;
+        font-size: 19px;
+        letter-spacing: 0.01em;
+      }
       .muted { margin: 0; color: var(--muted); font-size: 14px; }
 
       .pill-wrap { margin-top: 10px; }
@@ -274,17 +317,18 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--line);
-        background: #efe6da;
-        color: #6b513d;
+        border: 1px solid #dfc2a2;
+        background: #f4e8d8;
+        color: #624935;
         border-radius: 999px;
         padding: 8px 12px;
         font-size: 14px;
         cursor: pointer;
-        transition: transform .1s ease, background .15s ease, color .15s ease, border-color .15s ease;
+        transition: transform .1s ease, background .15s ease, color .15s ease, border-color .15s ease, box-shadow .12s ease;
       }
       .reason-tag:hover {
         transform: translateY(-1px);
+        box-shadow: 0 5px 12px rgba(128, 83, 49, 0.14);
       }
       .reason-tag.active {
         background: linear-gradient(135deg, var(--brand), var(--brand-2));
@@ -386,10 +430,10 @@
         gap: 10px;
       }
       .analytics-card {
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: #fff7ec;
-        padding: 10px;
+        border: 1px solid #e5c8aa;
+        border-radius: 14px;
+        background: linear-gradient(160deg, #fff8ef, #fff2e1);
+        padding: 11px;
       }
       .analytics-head {
         display: flex;
@@ -462,12 +506,13 @@
         flex-wrap: wrap;
       }
       .quick-badge {
-        border: 1px solid #dcc1a4;
-        background: #fff2df;
-        color: #744d33;
+        border: 1px solid #ddbc98;
+        background: linear-gradient(120deg, #fff4e6, #f9e4ca);
+        color: #724a2f;
         border-radius: 999px;
         padding: 4px 10px;
         font-size: 12px;
+        font-weight: 700;
       }
       .insights-grid {
         display: grid;
@@ -508,7 +553,7 @@
         margin: 0 auto;
         border: 1px solid var(--line);
         border-radius: 18px;
-        background: var(--card);
+        background: linear-gradient(160deg, var(--card), #fff2de);
         box-shadow: var(--shadow);
         padding: 14px;
       }
@@ -541,6 +586,7 @@
       @media (max-width: 980px) {
         .two-col, .row, .row3, .crisis-grid { grid-template-columns: 1fr; }
         .topbar { display: block; }
+        .progress-widget { margin-top: 10px; }
       }
 
       @media (max-width: 640px) {
