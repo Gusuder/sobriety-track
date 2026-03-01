@@ -336,6 +336,38 @@
         display: grid;
         gap: 6px;
       }
+      .focus-shell {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgba(40, 25, 14, 0.5);
+        backdrop-filter: blur(2px);
+        padding: 14px;
+        overflow: auto;
+      }
+      .focus-panel {
+        max-width: 1180px;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--card);
+        box-shadow: var(--shadow);
+        padding: 14px;
+      }
+      .focus-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .focus-head h3 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .focus-lock {
+        overflow: hidden;
+      }
 
       pre {
         margin: 0;
@@ -578,53 +610,8 @@
 
         <section class="card">
           <h3>Кризисное меню</h3>
-          <p class="muted">Если стало тяжело: дыхание, переключение внимания и быстрые шаги к спокойствию.</p>
-          <div class="crisis-grid" style="margin-top: 10px;">
-            <div class="crisis-card">
-              <h4>Дыхательные техники</h4>
-              <div class="breath-box">
-                <select id="breathTechnique" onchange="setBreathTechnique()">
-                  <option value="box">Квадратное дыхание (4-4-4-4)</option>
-                  <option value="478">4-7-8</option>
-                  <option value="calm">Мягкое (3-2-4-2)</option>
-                </select>
-                <div class="row">
-                  <input id="breathMinutes" type="number" min="1" max="15" value="2" />
-                  <button class="btn secondary" type="button" onclick="startBreathing()">Старт</button>
-                </div>
-                <button class="btn secondary" type="button" onclick="stopBreathing()">Стоп</button>
-                <div class="breath-circle-wrap">
-                  <div id="breathCircle" class="breath-circle"></div>
-                </div>
-                <div class="breath-meta">
-                  <div id="breathPhase" class="breath-phase">Готово к дыханию</div>
-                  <div id="breathTimer" class="muted">02:00</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="crisis-card">
-              <h4>Мини-игра: собери 3</h4>
-              <div class="game-top">
-                <span id="gameScore" class="muted">Очки: 0</span>
-                <button class="btn secondary" type="button" onclick="newMatch3Game()">Новая игра</button>
-              </div>
-              <p id="gameStatus" class="muted" style="margin-top: 8px;">Меняйте соседние фишки, чтобы собрать 3 в ряд.</p>
-              <div id="gameGrid" class="game-grid"></div>
-            </div>
-
-            <div class="crisis-card">
-              <h4>Как быстро успокоиться</h4>
-              <ul class="tips-list">
-                <li>Сделайте 6 медленных выдохов длиннее вдоха.</li>
-                <li>Выпейте стакан воды маленькими глотками.</li>
-                <li>Назовите 5 предметов вокруг себя вслух.</li>
-                <li>Умойтесь прохладной водой и разомните плечи.</li>
-                <li>Напишите коротко: что я чувствую прямо сейчас.</li>
-                <li>Отложите решение на 15 минут и повторите дыхание.</li>
-              </ul>
-            </div>
-          </div>
+          <p class="muted">Отдельный фокус-режим с дыханием, игрой на переключение и советами.</p>
+          <button class="btn" type="button" onclick="openCrisisFocus()">Открыть фокус-режим</button>
         </section>
 
         <section class="card">
@@ -648,6 +635,62 @@
         </section>
       </div>
     </main>
+
+    <section id="crisisFocusShell" class="focus-shell hidden">
+      <div class="focus-panel">
+        <div class="focus-head">
+          <h3>Кризисный фокус-режим</h3>
+          <button class="btn secondary" type="button" onclick="closeCrisisFocus()">Вернуться назад</button>
+        </div>
+        <div class="crisis-grid">
+          <div class="crisis-card">
+            <h4>Дыхательные техники</h4>
+            <div class="breath-box">
+              <select id="breathTechnique" onchange="setBreathTechnique()">
+                <option value="box">Ритм 6-4-6-2</option>
+                <option value="478">4-7-8</option>
+                <option value="calm">Мягкое 4-2-6-2</option>
+              </select>
+              <p class="muted">Количество минут: от 1 до 15. Рекомендуемо: 2-3 минуты.</p>
+              <div class="row">
+                <input id="breathMinutes" type="number" min="1" max="15" value="2" />
+                <button class="btn secondary" type="button" onclick="startBreathing()">Старт</button>
+              </div>
+              <button class="btn secondary" type="button" onclick="stopBreathing()">Стоп</button>
+              <div class="breath-circle-wrap">
+                <div id="breathCircle" class="breath-circle"></div>
+              </div>
+              <div class="breath-meta">
+                <div id="breathPhase" class="breath-phase">Готово к дыханию</div>
+                <div id="breathTimer" class="muted">02:00</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="crisis-card">
+            <h4>Мини-игра: собери 3</h4>
+            <div class="game-top">
+              <span id="gameScore" class="muted">Очки: 0</span>
+              <button class="btn secondary" type="button" onclick="newMatch3Game()">Новая игра</button>
+            </div>
+            <p id="gameStatus" class="muted" style="margin-top: 8px;">Меняйте соседние фишки, чтобы собрать 3 в ряд.</p>
+            <div id="gameGrid" class="game-grid"></div>
+          </div>
+
+          <div class="crisis-card">
+            <h4>Как быстро успокоиться</h4>
+            <ul class="tips-list">
+              <li>Сделайте 6 медленных выдохов длиннее вдоха.</li>
+              <li>Выпейте стакан воды маленькими глотками.</li>
+              <li>Назовите 5 предметов вокруг себя вслух.</li>
+              <li>Умойтесь прохладной водой и разомните плечи.</li>
+              <li>Напишите коротко: что я чувствую прямо сейчас.</li>
+              <li>Отложите решение на 15 минут и повторите дыхание.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <script>
       const API_BASE = "http://localhost:4000";
@@ -1024,32 +1067,33 @@
           breathProgram = [
             { label: "Вдох", seconds: 4, scale: 1.15 },
             { label: "Задержка", seconds: 7, scale: 1.15 },
-            { label: "Выдох", seconds: 8, scale: 0.86 }
+            { label: "Выдох", seconds: 8, scale: 0.84 }
           ];
           return;
         }
         if (value === "calm") {
           breathProgram = [
-            { label: "Вдох", seconds: 3, scale: 1.1 },
+            { label: "Вдох", seconds: 4, scale: 1.1 },
             { label: "Задержка", seconds: 2, scale: 1.1 },
-            { label: "Выдох", seconds: 4, scale: 0.9 },
+            { label: "Выдох", seconds: 6, scale: 0.9 },
             { label: "Пауза", seconds: 2, scale: 0.9 }
           ];
           return;
         }
         breathProgram = [
-          { label: "Вдох", seconds: 4, scale: 1.12 },
-          { label: "Задержка", seconds: 4, scale: 1.12 },
-          { label: "Выдох", seconds: 4, scale: 0.88 },
-          { label: "Пауза", seconds: 4, scale: 0.88 }
+          { label: "Вдох", seconds: 6, scale: 1.18 },
+          { label: "Задержка", seconds: 4, scale: 1.18 },
+          { label: "Выдох", seconds: 6, scale: 0.84 },
+          { label: "Пауза", seconds: 2, scale: 0.84 }
         ];
       }
 
-      function updateBreathUi() {
+      function applyBreathPhase() {
         if (!breathProgram.length) {
           setBreathTechnique();
         }
         const phase = breathProgram[breathPhaseIndex];
+        breathCircle.style.transition = `transform ${phase.seconds}s linear`;
         breathCircle.style.transform = `scale(${phase.scale})`;
         breathPhase.textContent = `${phase.label}: ${breathPhaseSeconds}с`;
         breathTimer.textContent = formatMMSS(breathSecondsLeft);
@@ -1062,7 +1106,9 @@
         breathSecondsLeft = Math.max(60, Math.min(900, Number.isFinite(minutes) ? minutes * 60 : 120));
         breathPhaseIndex = 0;
         breathPhaseSeconds = breathProgram[0].seconds;
-        updateBreathUi();
+        breathCircle.style.transition = "transform .2s ease";
+        breathCircle.style.transform = "scale(0.84)";
+        applyBreathPhase();
 
         breathInterval = setInterval(() => {
           breathSecondsLeft -= 1;
@@ -1074,8 +1120,11 @@
           if (breathPhaseSeconds <= 0) {
             breathPhaseIndex = (breathPhaseIndex + 1) % breathProgram.length;
             breathPhaseSeconds = breathProgram[breathPhaseIndex].seconds;
+            applyBreathPhase();
+          } else {
+            breathPhase.textContent = `${breathProgram[breathPhaseIndex].label}: ${breathPhaseSeconds}с`;
+            breathTimer.textContent = formatMMSS(breathSecondsLeft);
           }
-          updateBreathUi();
         }, 1000);
       }
 
@@ -1084,6 +1133,7 @@
           clearInterval(breathInterval);
           breathInterval = null;
         }
+        breathCircle.style.transition = "transform .2s ease";
         breathCircle.style.transform = "scale(1)";
         breathPhase.textContent = finished ? "Цикл завершён" : "Готово к дыханию";
         breathTimer.textContent = formatMMSS(breathSecondsLeft);
@@ -1111,7 +1161,7 @@
             row
               .map((cell, c) => {
                 const isSel = gameSelected && gameSelected.r === r && gameSelected.c === c ? "sel" : "";
-                return `<button type="button" class="game-cell ${isSel}" onclick="onGameCellClick(${r},${c})">${cell}</button>`;
+                return `<button type="button" class="game-cell ${isSel}" data-r="${r}" data-c="${c}" onclick="onGameCellClick(${r},${c})">${cell}</button>`;
               })
               .join("")
           )
@@ -1186,7 +1236,22 @@
         gameScore.textContent = `Очки: ${gameScoreValue}`;
       }
 
-      function onGameCellClick(r, c) {
+      async function animateGameSwap(a, b) {
+        const aEl = gameGrid.querySelector(`.game-cell[data-r="${a.r}"][data-c="${a.c}"]`);
+        const bEl = gameGrid.querySelector(`.game-cell[data-r="${b.r}"][data-c="${b.c}"]`);
+        if (!aEl || !bEl) return;
+        const ar = aEl.getBoundingClientRect();
+        const br = bEl.getBoundingClientRect();
+        const dx = br.left - ar.left;
+        const dy = br.top - ar.top;
+        const opts = { duration: 160, easing: "ease-in-out" };
+        await Promise.all([
+          aEl.animate([{ transform: "translate(0,0)" }, { transform: `translate(${dx}px,${dy}px)` }], opts).finished,
+          bEl.animate([{ transform: "translate(0,0)" }, { transform: `translate(${-dx}px,${-dy}px)` }], opts).finished
+        ]).catch(() => {});
+      }
+
+      async function onGameCellClick(r, c) {
         const cur = { r, c };
         if (!gameSelected) {
           gameSelected = cur;
@@ -1203,9 +1268,11 @@
           renderMatch3();
           return;
         }
+        await animateGameSwap(gameSelected, cur);
         swapCells(gameSelected, cur);
         const matched = findMatches();
         if (!matched.size) {
+          await animateGameSwap(cur, gameSelected);
           swapCells(gameSelected, cur);
           gameStatus.textContent = "Совпадений нет. Попробуйте другой ход.";
         } else {
@@ -1360,6 +1427,20 @@
         }
       }
 
+      function openCrisisFocus() {
+        const shell = document.getElementById("crisisFocusShell");
+        if (!shell) return;
+        shell.classList.remove("hidden");
+        document.body.classList.add("focus-lock");
+      }
+
+      function closeCrisisFocus() {
+        const shell = document.getElementById("crisisFocusShell");
+        if (!shell) return;
+        shell.classList.add("hidden");
+        document.body.classList.remove("focus-lock");
+      }
+
       async function listEntries() {
         try {
           print(await req(`/entries?from=${from.value}&to=${to.value}`));
@@ -1373,6 +1454,11 @@
       } else {
         showAuth();
       }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeCrisisFocus();
+        }
+      });
       syncDrankDependentFields();
       setBreathTechnique();
       breathTimer.textContent = formatMMSS(120);
