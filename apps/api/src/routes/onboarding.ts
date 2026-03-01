@@ -1,6 +1,7 @@
 ﻿import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { pool } from '../db/pool.js';
+import { mapDbError } from '../utils/db-errors.js';
 
 const onboardingSchema = z
   .object({
@@ -66,6 +67,8 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
       return reply.send({ profile: profileResult.rows[0], goal });
     } catch (err) {
       await client.query('ROLLBACK');
+      const mapped = mapDbError(err);
+      if (mapped) return reply.status(mapped.statusCode).send(mapped.body);
       request.log.error(err);
       return reply.status(500).send({ error: 'Internal server error' });
     } finally {
@@ -85,4 +88,5 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
     return reply.send({ profile: result.rows[0] ?? null });
   });
 };
+
 

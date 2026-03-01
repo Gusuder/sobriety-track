@@ -1,6 +1,7 @@
 ﻿import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { pool } from '../db/pool.js';
+import { mapDbError } from '../utils/db-errors.js';
 
 const createEntrySchema = z.object({
   entryDate: z.string().date(),
@@ -61,6 +62,8 @@ export const entriesRoutes: FastifyPluginAsync = async (app) => {
     } catch (error: any) {
       await client.query('ROLLBACK');
       if (error.code === '23505') return reply.status(409).send({ error: 'Entry for this date already exists' });
+      const mapped = mapDbError(error);
+      if (mapped) return reply.status(mapped.statusCode).send(mapped.body);
       request.log.error(error);
       return reply.status(500).send({ error: 'Internal server error' });
     } finally {
@@ -102,4 +105,5 @@ export const entriesRoutes: FastifyPluginAsync = async (app) => {
     return reply.send({ entries: result.rows });
   });
 };
+
 

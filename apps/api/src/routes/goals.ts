@@ -1,8 +1,9 @@
-import type { FastifyPluginAsync } from 'fastify';
+﻿import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { pool } from '../db/pool.js';
 import { buildGoalProgress } from '../utils/goal-progress.js';
 import { calcCurrentStreak, type StreakEntry } from '../utils/streak.js';
+import { mapDbError } from '../utils/db-errors.js';
 
 const createGoalSchema = z.object({
   targetDays: z.number().int().min(1).max(3650)
@@ -42,6 +43,8 @@ export const goalsRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(201).send({ goal: goalResult.rows[0] });
     } catch (error) {
       await client.query('ROLLBACK');
+      const mapped = mapDbError(error);
+      if (mapped) return reply.status(mapped.statusCode).send(mapped.body);
       request.log.error(error);
       return reply.status(500).send({ error: 'Internal server error' });
     } finally {
@@ -80,3 +83,4 @@ export const goalsRoutes: FastifyPluginAsync = async (app) => {
     return reply.send({ goals: goalsResult.rows, activeGoal: activeGoal ?? null, progress });
   });
 };
+

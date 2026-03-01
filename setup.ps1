@@ -638,6 +638,8 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { pool } from '../db/pool.js';
+import { mapDbError } from '../utils/db-errors.js';
+import { mapDbError } from '../utils/db-errors.js';
 
 const createEntrySchema = z.object({
   entryDate: z.string().date(),
@@ -698,6 +700,8 @@ export const entriesRoutes: FastifyPluginAsync = async (app) => {
     } catch (error: any) {
       await client.query('ROLLBACK');
       if (error.code === '23505') return reply.status(409).send({ error: 'Entry for this date already exists' });
+      const mapped = mapDbError(error);
+      if (mapped) return reply.status(mapped.statusCode).send(mapped.body);
       request.log.error(error);
       return reply.status(500).send({ error: 'Internal server error' });
     } finally {
@@ -815,11 +819,39 @@ export function buildGoalProgress(targetDays: number, streakDays: number): GoalP
 '@ | Set-Content -Path "apps/api/src/utils/goal-progress.ts" -Encoding UTF8
 
 @'
+type PgLikeError = {
+  code?: string;
+  constraint?: string;
+  table?: string;
+};
+
+export type ApiMappedError = {
+  statusCode: number;
+  body: { error: string };
+};
+
+export function mapDbError(err: unknown): ApiMappedError | null {
+  const dbErr = err as PgLikeError | undefined;
+  if (!dbErr?.code) {
+    return null;
+  }
+
+  // Foreign key to users failed: token user does not exist in current DB.
+  if (dbErr.code === '23503' && dbErr.constraint?.includes('user_id_fkey')) {
+    return { statusCode: 401, body: { error: 'Unauthorized' } };
+  }
+
+  return null;
+}
+'@ | Set-Content -Path "apps/api/src/utils/db-errors.ts" -Encoding UTF8
+
+@'
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { pool } from '../db/pool.js';
 import { buildGoalProgress } from '../utils/goal-progress.js';
 import { calcCurrentStreak, type StreakEntry } from '../utils/streak.js';
+import { mapDbError } from '../utils/db-errors.js';
 
 const createGoalSchema = z.object({
   targetDays: z.number().int().min(1).max(3650)
@@ -859,6 +891,8 @@ export const goalsRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(201).send({ goal: goalResult.rows[0] });
     } catch (error) {
       await client.query('ROLLBACK');
+      const mapped = mapDbError(error);
+      if (mapped) return reply.status(mapped.statusCode).send(mapped.body);
       request.log.error(error);
       return reply.status(500).send({ error: 'Internal server error' });
     } finally {
@@ -1402,6 +1436,8 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
       return reply.send({ profile: profileResult.rows[0], goal });
     } catch (err) {
       await client.query('ROLLBACK');
+      const mapped = mapDbError(err);
+      if (mapped) return reply.status(mapped.statusCode).send(mapped.body);
       request.log.error(err);
       return reply.status(500).send({ error: 'Internal server error' });
     } finally {
@@ -1645,6 +1681,34 @@ test('hashPassword creates non-plain hash and verifyPassword validates it', asyn
 });
 
 '@ | Set-Content -Path "apps/api/src/utils/hash.test.ts" -Encoding UTF8
+
+@'
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mapDbError } from './db-errors.js';
+
+test('maps user FK violations to 401 Unauthorized', () => {
+  const mapped = mapDbError({
+    code: '23503',
+    constraint: 'goals_user_id_fkey'
+  });
+
+  assert.deepEqual(mapped, {
+    statusCode: 401,
+    body: { error: 'Unauthorized' }
+  });
+});
+
+test('returns null for unknown database errors', () => {
+  const mapped = mapDbError({
+    code: '22001',
+    constraint: 'some_other_constraint'
+  });
+
+  assert.equal(mapped, null);
+});
+
+'@ | Set-Content -Path "apps/api/src/utils/db-errors.test.ts" -Encoding UTF8
 
 @'
 import test from 'node:test';
