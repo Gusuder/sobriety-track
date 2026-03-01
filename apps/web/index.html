@@ -764,11 +764,10 @@
               </div>
             </div>
             <button class="btn" type="button" onclick="quickCheckIn()">Быстро сохранить</button>
+            <button id="advancedToggleBtn" class="btn secondary" type="button" onclick="toggleAdvancedEntry()">Открыть расширенную запись</button>
           </div>
-        </section>
-
-        <section class="card">
-            <h3>Ежедневная запись</h3>
+          <div id="advancedEntryPanel" class="hidden" style="margin-top:12px; border-top:1px solid var(--line); padding-top:12px;">
+            <h3 style="margin:0 0 8px;">Расширенная запись</h3>
             <div class="row">
               <div class="field" style="margin-top:0;">
                 <label for="entryDate">Дата</label>
@@ -828,7 +827,8 @@
                 <div id="reasonOptions" class="reason-tags muted">Причины загружаются автоматически…</div>
               </div>
             </div>
-            <button class="btn" onclick="createEntry()">Сохранить запись</button>
+            <button class="btn" type="button" onclick="createEntry()">Сохранить расширенную запись</button>
+          </div>
         </section>
 
         <section class="card">
@@ -1719,6 +1719,26 @@
         el.classList.toggle("active");
       }
 
+      function toggleAdvancedEntry(forceOpen) {
+        const panel = document.getElementById("advancedEntryPanel");
+        const btn = document.getElementById("advancedToggleBtn");
+        if (!panel || !btn) return;
+
+        const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : panel.classList.contains("hidden");
+        panel.classList.toggle("hidden", !shouldOpen);
+        btn.textContent = shouldOpen ? "Вернуться к быстрому чек-ину" : "Открыть расширенную запись";
+
+        if (shouldOpen) {
+          entryDate.value = quickDate.value;
+          mood.value = quickMood.value;
+          drank.value = quickDrank.value;
+          craving.value = quickCraving.value;
+          stress.value = String(Math.max(1, Math.min(10, Number(quickCraving.value) + (quickDrank.value === "true" ? 1 : 0))));
+          syncDrankDependentFields();
+          window.scrollTo({ top: panel.getBoundingClientRect().top + window.scrollY - 80, behavior: "smooth" });
+        }
+      }
+
       function selectedQuickReasonCodes() {
         return Array.from(document.querySelectorAll(".quick-reason-tag.active"))
           .map((el) => el.dataset.code)
@@ -1747,6 +1767,7 @@
           craving.value = quickCraving.value;
           stress.value = String(stress);
           syncDrankDependentFields();
+          toggleAdvancedEntry(false);
           await loadGoals();
         } catch (e) {
           print(e);
