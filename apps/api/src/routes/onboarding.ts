@@ -49,9 +49,9 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
       [userId]
     );
     const currentStreak = calcStreakWithProfile(entriesResult.rows, profileForCheck);
-    if (payload.goalDays < currentStreak) {
+    if (payload.goalDays <= currentStreak) {
       return reply.status(400).send({
-        error: `Goal cannot be less than current streak (${currentStreak})`,
+        error: `Goal must be greater than current streak (${currentStreak})`,
         currentStreak
       });
     }

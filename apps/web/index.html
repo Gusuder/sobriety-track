@@ -361,7 +361,7 @@
           <div class="field">
             <label for="goalDaysWizard">Цель (дней)</label>
             <input id="goalDaysWizard" type="number" min="1" max="3650" value="30" />
-            <p id="goalConstraintHint" class="muted" style="margin-top:6px;">Цель должна быть не меньше текущей серии.</p>
+            <p id="goalConstraintHint" class="muted" style="margin-top:6px;">Цель должна быть больше текущей серии.</p>
           </div>
           <div class="stack">
             <button class="btn" type="button" onclick="finishOnboardingWizard()">Начать отсчёт</button>
@@ -640,12 +640,12 @@
       }
 
       function refreshGoalConstraints() {
-        const minGoal = Math.max(1, currentStreakDays);
+        const minGoal = Math.max(1, currentStreakDays + 1);
         goalDaysWizard.min = String(minGoal);
         if (Number(goalDaysWizard.value) < minGoal) {
           goalDaysWizard.value = String(minGoal);
         }
-        goalConstraintHint.textContent = `Цель должна быть не меньше текущей серии: ${minGoal} дн.`;
+        goalConstraintHint.textContent = `Цель должна быть больше текущей серии: минимум ${minGoal} дн.`;
       }
 
       async function syncCurrentStreakForConstraints() {
@@ -824,7 +824,7 @@
         clearOnboardingError();
         try {
           const goalDays = Number(goalDaysWizard.value);
-          const minGoal = Math.max(1, currentStreakDays);
+          const minGoal = Math.max(1, currentStreakDays + 1);
           if (!Number.isFinite(goalDays) || goalDays < minGoal || goalDays > 3650) {
             showOnboardingError(`Цель должна быть числом от ${minGoal} до 3650.`);
             return;
@@ -855,7 +855,7 @@
           if (e?.currentStreak !== undefined) {
             currentStreakDays = Math.max(0, Number(e.currentStreak));
             refreshGoalConstraints();
-            showOnboardingError(`Цель не может быть меньше текущей серии: ${currentStreakDays} дн.`);
+            showOnboardingError(`Цель должна быть больше текущей серии: минимум ${currentStreakDays + 1} дн.`);
           } else {
             showOnboardingError("Не удалось сохранить стартовый профиль.");
           }

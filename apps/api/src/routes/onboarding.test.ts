@@ -174,6 +174,35 @@ test('POST /api/onboarding rejects goal lower than current streak', async () => 
   (pool as any).query = originalQuery;
 });
 
+test('POST /api/onboarding rejects goal equal to current streak', async () => {
+  const originalConnect = pool.connect;
+  const originalQuery = pool.query;
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setUTCDate(startDate.getUTCDate() - 10);
+  const startedAt = startDate.toISOString().slice(0, 10);
+
+  (pool as any).connect = async () => {
+    throw new Error('connect should not be called when goal is invalid');
+  };
+  (pool as any).query = async () => ({ rows: [], rowCount: 0 });
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/onboarding',
+    payload: { startMode: 'already_sober', soberStartDate: startedAt, goalDays: 10 }
+  });
+
+  assert.equal(res.statusCode, 400);
+  const body = res.json();
+  assert.equal(body.currentStreak, 10);
+
+  await app.close();
+  (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
+});
+
 test('GET /api/onboarding returns profile', async () => {
   const originalQuery = pool.query;
   (pool as any).query = async () => ({
