@@ -12,6 +12,7 @@ test('migration includes required phase-1 tables', async () => {
   assert.match(src, /CREATE TABLE IF NOT EXISTS users/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS daily_entries/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS user_profiles/i);
+  assert.match(src, /CREATE TABLE IF NOT EXISTS goals/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS password_reset_tokens/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS drink_reasons/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS entry_reasons/i);

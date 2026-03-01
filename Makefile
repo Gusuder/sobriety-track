@@ -1,4 +1,4 @@
-﻿.PHONY: up down reset logs
+﻿.PHONY: up down reset logs smoke
 
 up:
 	docker compose up --build
@@ -11,3 +11,6 @@ reset:
 
 logs:
 	docker compose logs -f api postgres
+
+smoke:
+	powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1

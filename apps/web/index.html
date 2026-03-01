@@ -1,9 +1,9 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sobriety Track</title>
+    <title>Трекер трезвости</title>
     <style>
       body { font-family: Inter, Arial, sans-serif; background:#f6f3ed; margin:0; color:#2d2a26; }
       .wrap { max-width: 860px; margin: 24px auto; padding: 0 16px; }
@@ -22,100 +22,111 @@
   </head>
   <body>
     <div class="wrap">
-      <h1>Sobriety Track (MVP)</h1>
-      <p class="muted">Extended web UI for testing auth, onboarding, password reset, reasons and entries.</p>
+      <h1>Трекер трезвости (MVP)</h1>
+      <p class="muted">Русский интерфейс для проверки авторизации, онбординга, целей/прогресса, сброса пароля, причин и записей.</p>
 
       <div class="card">
-        <h3>0) Health</h3>
-        <button onclick="healthCheck()">Check API health</button>
+        <h3>0) Проверка API</h3>
+        <button onclick="healthCheck()">Проверить статус API</button>
       </div>
 
       <div class="card">
-        <h3>1) Registration</h3>
-        <input id="regLogin" placeholder="login" value="demo_user" />
+        <h3>1) Регистрация</h3>
+        <input id="regLogin" placeholder="логин" value="demo_user" />
         <input id="regEmail" placeholder="email" value="demo@example.com" />
-        <input id="regPassword" type="password" placeholder="password" value="strongPass123" />
-        <button onclick="registerUser()">Register</button>
+        <input id="regPassword" type="password" placeholder="пароль" value="strongPass123" />
+        <button onclick="registerUser()">Зарегистрироваться</button>
       </div>
 
       <div class="card">
-        <h3>2) Login</h3>
-        <input id="login" placeholder="login" value="demo_user" />
-        <input id="password" type="password" placeholder="password" value="strongPass123" />
-        <button onclick="loginUser()">Login</button>
+        <h3>2) Вход</h3>
+        <input id="login" placeholder="логин" value="demo_user" />
+        <input id="password" type="password" placeholder="пароль" value="strongPass123" />
+        <button onclick="loginUser()">Войти</button>
       </div>
 
       <div class="card">
-        <h3>3) Forgot / Reset password</h3>
+        <h3>3) Восстановление / Сброс пароля</h3>
         <input id="forgotEmail" placeholder="email" value="demo@example.com" />
-        <button onclick="forgotPassword()">Create reset token (dev mode)</button>
+        <button onclick="forgotPassword()">Создать токен сброса (dev)</button>
         <div class="row">
-          <input id="resetToken" placeholder="reset token" />
-          <input id="newPassword" type="password" placeholder="new password" value="newStrongPass456" />
+          <input id="resetToken" placeholder="токен сброса" />
+          <input id="newPassword" type="password" placeholder="новый пароль" value="newStrongPass456" />
         </div>
-        <button onclick="resetPassword()">Reset password</button>
+        <button onclick="resetPassword()">Сбросить пароль</button>
       </div>
 
       <div class="card">
-        <h3>4) Onboarding</h3>
+        <h3>4) Онбординг</h3>
         <div class="row3">
           <select id="startMode" onchange="toggleSoberDate()">
-            <option value="now">start now</option>
-            <option value="already_sober">already sober</option>
+            <option value="now">начать сейчас</option>
+            <option value="already_sober">уже не пью</option>
           </select>
           <input id="soberStartDate" type="date" disabled />
           <input id="goalDays" type="number" min="1" max="3650" value="30" />
         </div>
         <div style="margin-top:10px">
-          <button onclick="saveOnboarding()">Save onboarding</button>
-          <button onclick="getOnboarding()" style="margin-top:8px">Get onboarding</button>
+          <button onclick="saveOnboarding()">Сохранить онбординг</button>
+          <button onclick="getOnboarding()" style="margin-top:8px">Получить онбординг</button>
         </div>
       </div>
 
       <div class="card">
-        <h3>5) Reasons</h3>
-        <button onclick="loadReasons()">Load drink reasons</button>
+        <h3>5) Цели / Серия</h3>
+        <p class="muted">После входа нажмите <b>Загрузить цели/прогресс</b>. Если целей нет, сначала создайте цель.</p>
+        <div class="row">
+          <input id="targetDays" type="number" min="1" max="3650" value="30" placeholder="дней в цели" />
+          <input id="streakView" type="text" value="серия: неизвестно" readonly />
+        </div>
+        <button onclick="createGoal()">Создать цель</button>
+        <button onclick="loadGoals()" style="margin-top:8px">Загрузить цели/прогресс</button>
+      </div>
+
+      <div class="card">
+        <h3>6) Причины</h3>
+        <button onclick="loadReasons()">Загрузить причины</button>
         <div id="reasonsPills" style="margin-top:10px"></div>
       </div>
 
       <div class="card">
-        <h3>6) Daily entry</h3>
+        <h3>7) Ежедневная запись</h3>
         <div class="row">
           <input id="entryDate" type="date" />
           <select id="mood">
-            <option value="awful">awful</option>
-            <option value="bad">bad</option>
-            <option value="neutral">neutral</option>
-            <option value="good" selected>good</option>
-            <option value="great">great</option>
+            <option value="awful">ужасно</option>
+            <option value="bad">плохо</option>
+            <option value="neutral">нормально</option>
+            <option value="good" selected>хорошо</option>
+            <option value="great">отлично</option>
           </select>
         </div>
         <div class="row">
-          <input id="stress" type="number" min="1" max="10" value="3" placeholder="stress 1-10" />
-          <input id="craving" type="number" min="1" max="10" value="4" placeholder="craving 1-10" />
+          <input id="stress" type="number" min="1" max="10" value="3" placeholder="стресс 1-10" />
+          <input id="craving" type="number" min="1" max="10" value="4" placeholder="тяга 1-10" />
         </div>
         <select id="drank">
-          <option value="false" selected>Did not drink</option>
-          <option value="true">Drank</option>
+          <option value="false" selected>Не пил</option>
+          <option value="true">Пил</option>
         </select>
-        <textarea id="summary" placeholder="How was your day">Calm day without alcohol</textarea>
-        <input id="comment" placeholder="Comment" value="All good" />
-        <input id="reasonCodes" placeholder="reason codes csv, e.g. stress,boredom" value="stress,boredom" />
-        <button onclick="createEntry()">Save entry</button>
+        <textarea id="summary" placeholder="Как прошёл день">Спокойный день без алкоголя</textarea>
+        <input id="comment" placeholder="Комментарий" value="Всё хорошо" />
+        <input id="reasonCodes" placeholder="коды причин через запятую, например stress,boredom" value="stress,boredom" />
+        <button onclick="createEntry()">Сохранить запись</button>
       </div>
 
       <div class="card">
-        <h3>7) Get entries</h3>
+        <h3>8) Получить записи</h3>
         <div class="row">
           <input id="from" type="date" />
           <input id="to" type="date" />
         </div>
-        <button onclick="listEntries()">Show entries</button>
+        <button onclick="listEntries()">Показать записи</button>
       </div>
 
       <div class="card">
-        <h3>API response</h3>
-        <pre id="out">Ready...</pre>
+        <h3>Ответ API</h3>
+        <pre id="out">Готово...</pre>
       </div>
     </div>
 
@@ -124,11 +135,26 @@
       const API = `${API_BASE}/api`;
       let token = localStorage.getItem('token') || '';
       const out = document.getElementById('out');
+      const reasonTitleRu = {
+        stress: 'Стресс',
+        conflict: 'Конфликт',
+        loneliness: 'Одиночество',
+        social: 'Социальная ситуация',
+        celebration: 'Праздник',
+        habit: 'Привычка',
+        boredom: 'Скука',
+        insomnia: 'Бессонница',
+        other: 'Другое'
+      };
       const today = new Date().toISOString().slice(0,10);
       document.getElementById('entryDate').value = today;
       document.getElementById('from').value = today.slice(0,8) + '01';
       document.getElementById('to').value = today;
       document.getElementById('soberStartDate').value = today;
+
+      if (token) {
+        loadGoals();
+      }
 
       const print = (data) => out.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
 
@@ -167,6 +193,7 @@
           token = data.accessToken;
           localStorage.setItem('token', token);
           print({ ok: true, token });
+          await loadGoals();
         } catch (e) { print(e); }
       }
 
@@ -201,7 +228,9 @@
           if (startMode.value === 'already_sober') {
             payload.soberStartDate = soberStartDate.value;
           }
-          print(await req('/onboarding', { method:'POST', body: JSON.stringify(payload) }));
+          const data = await req('/onboarding', { method:'POST', body: JSON.stringify(payload) });
+          print(data);
+          await loadGoals();
         } catch (e) { print(e); }
       }
 
@@ -211,10 +240,49 @@
         } catch (e) { print(e); }
       }
 
+      async function createGoal() {
+        try {
+          const rawTarget = Number(targetDays.value);
+          if (!Number.isFinite(rawTarget) || rawTarget < 1) {
+            throw new Error('targetDays должен быть положительным числом');
+          }
+
+          const payload = { targetDays: rawTarget };
+          print(await req('/goals', { method:'POST', body: JSON.stringify(payload) }));
+          await loadGoals();
+        } catch (e) { print(e); }
+      }
+
+      async function loadGoals() {
+        try {
+          const data = await req('/goals');
+          const progress = data?.progress;
+
+          if (!data?.activeGoal) {
+            streakView.value = 'активной цели пока нет';
+          } else if (!progress) {
+            streakView.value = `цель: ${data.activeGoal.target_days}д | серия: 0д`;
+          } else {
+            const streak = progress.streakDays ?? 0;
+            const target = progress.targetDays ?? data.activeGoal.target_days ?? '-';
+            const percent = progress.percent ?? 0;
+            const remaining = progress.remainingDays ?? Math.max(0, Number(target) - streak);
+            streakView.value = `серия: ${streak}д | цель: ${target}д | ${percent}% | осталось: ${remaining}д`;
+          }
+
+          print(data);
+        } catch (e) {
+          if (e?.error === 'Unauthorized') {
+            streakView.value = 'требуется вход';
+          }
+          print(e);
+        }
+      }
+
       async function loadReasons() {
         try {
           const data = await req('/entries/reasons');
-          reasonsPills.innerHTML = (data.reasons || []).map((r) => `<span class="pill">${r.code}: ${r.title}</span>`).join('');
+          reasonsPills.innerHTML = (data.reasons || []).map((r) => `<span class="pill">${r.code}: ${reasonTitleRu[r.code] ?? r.title}</span>`).join('');
           print(data);
         } catch (e) { print(e); }
       }
