@@ -30,6 +30,7 @@ New-Item -ItemType Directory -Force -Path "apps/api/src/db" | Out-Null
 New-Item -ItemType Directory -Force -Path "apps/api/src/routes" | Out-Null
 New-Item -ItemType Directory -Force -Path "apps/api/src/types" | Out-Null
 New-Item -ItemType Directory -Force -Path "apps/api/src/utils" | Out-Null
+New-Item -ItemType Directory -Force -Path "apps/api/src/test" | Out-Null
 New-Item -ItemType Directory -Force -Path "docs" | Out-Null
 New-Item -ItemType Directory -Force -Path "apps/web" | Out-Null
 New-Item -ItemType Directory -Force -Path "scripts" | Out-Null
@@ -254,7 +255,7 @@ Write-FileUtf8NoBom -Path "apps/api/package.json" -Content @'
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/**/*.test.ts"
+    "test": "node --import tsx --import ./src/test/setup-env.ts --test src/**/*.test.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -322,6 +323,11 @@ const envSchema = z.object({
 
 export const env = envSchema.parse(process.env);
 '@ | Set-Content -Path "apps/api/src/config/env.ts" -Encoding UTF8
+
+@'
+process.env.JWT_SECRET ??= 'test-secret-123';
+process.env.DATABASE_URL ??= 'postgres://postgres:postgres@localhost:5432/sobriety_track_test';
+'@ | Set-Content -Path "apps/api/src/test/setup-env.ts" -Encoding UTF8
 
 @'
 import { Pool } from 'pg';
