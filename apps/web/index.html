@@ -442,10 +442,6 @@
         margin-top: 12px;
         display: grid;
         gap: 10px;
-        max-height: 640px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding-right: 4px;
       }
       .analytics-grid {
         display: grid;
@@ -456,6 +452,21 @@
         border-radius: 14px;
         background: linear-gradient(160deg, #f8fffd, #ebf8f4);
         padding: 11px;
+      }
+      .analytics-card.chart-card {
+        min-height: 324px;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+      .analytics-card.ribbon-card {
+        min-height: 170px;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+      .analytics-card.insights-card {
+        min-height: 260px;
+        display: grid;
+        grid-template-rows: auto 1fr;
       }
       .analytics-head {
         display: flex;
@@ -480,6 +491,7 @@
       .chart-svg {
         width: 100%;
         height: auto;
+        min-height: 240px;
         border-radius: 8px;
         background: #f9fffd;
         border: 1px solid #d3e6e1;
@@ -490,6 +502,8 @@
         overflow-x: auto;
         overflow-y: hidden;
         max-width: 100%;
+        align-items: flex-start;
+        min-height: 72px;
         padding-bottom: 4px;
       }
       .day-pill {
@@ -542,6 +556,9 @@
       .insights-grid {
         display: grid;
         gap: 8px;
+        min-height: 0;
+        max-height: 170px;
+        overflow: auto;
       }
       .insight-row {
         display: grid;
@@ -928,7 +945,7 @@
           <button id="entriesToggleBtn" class="btn secondary" onclick="toggleEntriesView()">Показать записи</button>
           <div id="entriesAnalytics" class="analytics-wrap hidden">
             <div class="analytics-grid">
-              <div class="analytics-card">
+              <div class="analytics-card chart-card">
                 <div class="analytics-head">
                   <strong>Линейный график зависимости</strong>
                   <span class="legend">
@@ -939,14 +956,14 @@
                 </div>
                 <svg id="entriesLineChart" class="chart-svg" viewBox="0 0 760 240" preserveAspectRatio="none"></svg>
               </div>
-              <div class="analytics-card">
+              <div class="analytics-card ribbon-card">
                 <div class="analytics-head">
                   <strong>Календарная лента периода</strong>
                   <span class="muted">цвет дня + настроение</span>
                 </div>
                 <div id="entriesCalendarRibbon" class="calendar-ribbon"></div>
               </div>
-              <div class="analytics-card">
+              <div class="analytics-card insights-card">
                 <div class="analytics-head">
                   <strong>Аналитика триггеров</strong>
                   <span class="muted">где выше риск в выбранном периоде</span>
@@ -2003,14 +2020,21 @@
         const ribbon = document.getElementById("entriesCalendarRibbon");
         if (!ribbon) return;
         const byDate = new Map(entries.map((e) => [normalizeDateOnly(e.entry_date), e]));
-        const dates = enumerateDates(fromDateOnly, toDateOnly).slice(-90);
+        const allDates = enumerateDates(fromDateOnly, toDateOnly);
+        const entryDates = Array.from(new Set(entries.map((e) => normalizeDateOnly(e.entry_date)))).sort();
+        const useSparseMode = allDates.length > 120 && entryDates.length > 0 && entryDates.length <= Math.max(10, Math.floor(allDates.length * 0.35));
+        const dates = (useSparseMode ? entryDates : allDates).slice(-90);
 
         if (!dates.length) {
           ribbon.innerHTML = `<span class="muted">Пустой диапазон дат.</span>`;
           return;
         }
 
-        ribbon.innerHTML = dates.map((d) => {
+        const sparseHint = useSparseMode
+          ? `<span class="muted" style="display:block; margin-bottom:6px;">РџРµСЂРёРѕРґ Р±РѕР»СЊС€РѕР№, РїРѕРєР°Р·Р°РЅС‹ С‚РѕР»СЊРєРѕ РґРЅРё СЃ Р·Р°РїРёСЃСЏРјРё.</span>`
+          : "";
+
+        ribbon.innerHTML = sparseHint + dates.map((d) => {
           const item = byDate.get(d);
           if (!item) {
             return `<div class="day-pill empty" title="${d}: записи нет"><div>${formatShortDate(d)}</div><span class="m">—</span></div>`;
