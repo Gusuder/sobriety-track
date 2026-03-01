@@ -614,6 +614,33 @@
       .focus-lock {
         overflow: hidden;
       }
+      .goal-modal-shell {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(17, 37, 35, 0.48);
+        backdrop-filter: blur(2px);
+        display: grid;
+        place-items: center;
+        padding: 14px;
+      }
+      .goal-modal {
+        width: min(460px, 100%);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: linear-gradient(160deg, #ffffff, #ebf8f4);
+        box-shadow: var(--shadow);
+        padding: 14px;
+        display: grid;
+        gap: 10px;
+      }
+      .goal-modal h3 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .goal-modal .muted {
+        line-height: 1.45;
+      }
 
       pre {
         margin: 0;
@@ -1038,11 +1065,29 @@
       </div>
     </section>
 
+    <section id="goalAchievedShell" class="goal-modal-shell hidden">
+      <div class="goal-modal">
+        <h3>Цель достигнута</h3>
+        <p id="goalAchievedText" class="muted">Поздравляем! Вы достигли поставленной цели.</p>
+        <div class="field" style="margin-top:0;">
+          <label for="nextGoalDays">Новая цель (дней)</label>
+          <input id="nextGoalDays" type="number" min="2" max="3650" />
+          <p id="nextGoalHint" class="muted" style="margin-top:6px;">Новая цель должна быть больше текущей серии.</p>
+        </div>
+        <div class="row">
+          <button class="btn" type="button" onclick="saveNextGoalFromModal()">Поставить новую цель</button>
+          <button class="btn secondary" type="button" onclick="closeGoalAchievedModal()">Позже</button>
+        </div>
+      </div>
+    </section>
+
     <script>
       const API_BASE = "http://localhost:4000";
       const API = `${API_BASE}/api`;
       let token = localStorage.getItem("token") || "";
       let currentStreakDays = 0;
+      let currentProfile = null;
+      let currentActiveGoal = null;
       let failedLoginAttempts = 0;
       let onboardingRefreshTimer = null;
       let breathInterval = null;
@@ -1086,6 +1131,7 @@
       function showAuth(errorText = "") {
         stopOnboardingAutoRefresh();
         resetProgressState("Требуется вход в аккаунт.");
+        closeGoalAchievedModal();
         document.getElementById("authShell").classList.remove("hidden");
         document.getElementById("onboardingShell").classList.add("hidden");
         document.getElementById("appShell").classList.add("hidden");
@@ -1427,6 +1473,7 @@
         try {
           const data = await req("/onboarding");
           const profile = data?.profile;
+          currentProfile = profile ?? null;
           const summary = document.getElementById("onboardingSummary");
           if (!profile) {
             summary.textContent = "Стартовый профиль ещё не заполнен.";
@@ -1745,12 +1792,15 @@
         try {
           const data = await req("/goals");
           const progress = data?.progress;
+          currentActiveGoal = data?.activeGoal ?? null;
 
           if (!data?.activeGoal) {
             currentStreakDays = 0;
+            closeGoalAchievedModal();
             updateProgressWidget(null, null, 0, "Создайте или обновите цель в стартовом профиле.");
           } else if (!progress) {
             currentStreakDays = 0;
+            closeGoalAchievedModal();
             const target = Number(data.activeGoal.target_days ?? 0);
             updateProgressWidget(0, target, 0, "Добавьте первую запись дня, чтобы запустить прогресс.");
           } else {
@@ -1761,6 +1811,7 @@
             const remaining = progress.remainingDays ?? Math.max(0, Number(target) - streak);
             const note = remaining === 0 ? "Цель достигнута. Можно выбрать новую, более амбициозную!" : `До цели осталось ${remaining} дн. Держитесь курса.`;
             updateProgressWidget(streak, target, percent, note);
+            maybeOpenGoalAchievedModal(data.activeGoal, progress);
           }
 
           refreshGoalConstraints();
@@ -2165,6 +2216,77 @@
         }
       }
 
+      function goalMilestoneKey(activeGoal, progress) {
+        if (!activeGoal || !progress) return "";
+        const id = activeGoal.id ?? "goal";
+        const target = progress.targetDays ?? activeGoal.target_days ?? "target";
+        return `goal-reached:${id}:${target}`;
+      }
+
+      function maybeOpenGoalAchievedModal(activeGoal, progress) {
+        if (!activeGoal || !progress?.reached) return;
+        const key = goalMilestoneKey(activeGoal, progress);
+        if (!key || localStorage.getItem(key) === "1") return;
+        localStorage.setItem(key, "1");
+        openGoalAchievedModal(progress.targetDays, progress.streakDays);
+      }
+
+      function openGoalAchievedModal(targetDays, streakDays) {
+        const shell = document.getElementById("goalAchievedShell");
+        const text = document.getElementById("goalAchievedText");
+        const hint = document.getElementById("nextGoalHint");
+        const input = document.getElementById("nextGoalDays");
+        if (!shell || !text || !hint || !input) return;
+
+        const minGoal = Math.max(2, Number(streakDays ?? currentStreakDays) + 1);
+        input.min = String(minGoal);
+        input.value = String(Math.min(3650, minGoal + 7));
+        text.textContent = `Поздравляем! Вы достигли цели ${targetDays} дн. Серия: ${streakDays} дн.`;
+        hint.textContent = `Новая цель должна быть больше текущей серии: минимум ${minGoal} дн.`;
+        shell.classList.remove("hidden");
+      }
+
+      function closeGoalAchievedModal() {
+        const shell = document.getElementById("goalAchievedShell");
+        if (!shell) return;
+        shell.classList.add("hidden");
+      }
+
+      async function saveNextGoalFromModal() {
+        try {
+          const input = document.getElementById("nextGoalDays");
+          const value = Number(input?.value);
+          const minGoal = Math.max(2, currentStreakDays + 1);
+          if (!Number.isFinite(value) || value < minGoal || value > 3650) {
+            throw new Error(`Новая цель должна быть от ${minGoal} до 3650 дней.`);
+          }
+
+          let profile = currentProfile;
+          if (!profile) {
+            const data = await req("/onboarding");
+            profile = data?.profile ?? null;
+          }
+          if (!profile) {
+            throw new Error("Не найден стартовый профиль. Сначала заполните старт и цель.");
+          }
+
+          const startMode = profile.started_with_existing_streak ? "already_sober" : "now";
+          const payload = { startMode, goalDays: value };
+          if (startMode === "already_sober") {
+            payload.soberStartDate = String(profile.started_at).slice(0, 10);
+          }
+
+          const data = await req("/onboarding", { method: "POST", body: JSON.stringify(payload) });
+          print(data);
+          closeGoalAchievedModal();
+          await loadOnboardingSummary();
+          await loadGoals();
+        } catch (e) {
+          print(e);
+          alert(e?.message || "Не удалось обновить цель.");
+        }
+      }
+
       if (token) {
         startOnboardingFlow(false);
       } else {
@@ -2173,6 +2295,7 @@
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           closeCrisisFocus();
+          closeGoalAchievedModal();
         }
       });
       syncDrankDependentFields();
