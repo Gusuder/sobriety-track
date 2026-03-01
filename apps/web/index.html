@@ -226,10 +226,14 @@
       .reason-tags {
         margin-top: 8px;
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: thin;
       }
       .reason-tag {
+        flex: 0 0 auto;
         border: 1px solid var(--line);
         background: #efe6da;
         color: #6b513d;
