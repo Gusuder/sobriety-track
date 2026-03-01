@@ -157,13 +157,36 @@
       }
 
       const print = (data) => out.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      const protectedPaths = ['/goals', '/entries', '/onboarding'];
+
+      function invalidateSession(message) {
+        token = '';
+        localStorage.removeItem('token');
+        streakView.value = 'требуется вход';
+        if (message) {
+          print({ error: message });
+        }
+      }
 
       async function req(path, options = {}) {
         const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
         if (token) headers.Authorization = `Bearer ${token}`;
         const res = await fetch(API + path, { ...options, headers });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw data;
+        if (!res.ok) {
+          if (res.status === 401) {
+            invalidateSession('Сессия истекла. Войдите снова.');
+          } else if (
+            token &&
+            res.status === 500 &&
+            data?.error === 'Internal server error' &&
+            protectedPaths.some((p) => path.startsWith(p))
+          ) {
+            invalidateSession('Токен устарел после перезапуска БД. Войдите заново.');
+          }
+
+          throw { ...data, __status: res.status };
+        }
         return data;
       }
 
