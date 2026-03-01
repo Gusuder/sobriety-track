@@ -144,7 +144,31 @@ test('POST /api/onboarding updates active goal target when it already exists', a
   (pool as any).query = originalQuery;
 });
 
-test('POST /api/onboarding allows startMode=now with goal 1 even when entries exist', async () => {
+test('POST /api/onboarding rejects startMode=now with goal 1', async () => {
+  const originalConnect = pool.connect;
+  const originalQuery = pool.query;
+  (pool as any).connect = async () => {
+    throw new Error('connect should not be called when goal is invalid');
+  };
+  (pool as any).query = async () => ({ rows: [], rowCount: 0 });
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/onboarding',
+    payload: { startMode: 'now', goalDays: 1 }
+  });
+
+  assert.equal(res.statusCode, 400);
+  const body = res.json();
+  assert.equal(body.minGoal, 2);
+
+  await app.close();
+  (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
+});
+
+test('POST /api/onboarding allows startMode=now with goal 2 even when entries exist', async () => {
   const originalConnect = pool.connect;
   const originalQuery = pool.query;
   const calls: Array<{ sql: string; params: unknown[] | undefined }> = [];
@@ -159,9 +183,9 @@ test('POST /api/onboarding allows startMode=now with goal 1 even when entries ex
     async query(sql, params) {
       calls.push({ sql, params });
       if (sql === 'BEGIN' || sql === 'COMMIT') return { rows: [], rowCount: 0 };
-      if (sql.includes('INSERT INTO user_profiles')) return { rows: [{ user_id: 1, current_goal_days: 1 }], rowCount: 1 };
+      if (sql.includes('INSERT INTO user_profiles')) return { rows: [{ user_id: 1, current_goal_days: 2 }], rowCount: 1 };
       if (sql.includes('FROM goals') && sql.includes('is_active = TRUE')) return { rows: [], rowCount: 0 };
-      if (sql.includes('INSERT INTO goals')) return { rows: [{ id: 33, target_days: 1, is_active: true }], rowCount: 1 };
+      if (sql.includes('INSERT INTO goals')) return { rows: [{ id: 33, target_days: 2, is_active: true }], rowCount: 1 };
       return { rows: [], rowCount: 0 };
     },
     release() {}
@@ -172,7 +196,7 @@ test('POST /api/onboarding allows startMode=now with goal 1 even when entries ex
   const res = await app.inject({
     method: 'POST',
     url: '/api/onboarding',
-    payload: { startMode: 'now', goalDays: 1 }
+    payload: { startMode: 'now', goalDays: 2 }
   });
 
   assert.equal(res.statusCode, 200);

@@ -41,6 +41,13 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
       started_with_existing_streak: payload.startMode === 'already_sober'
     };
 
+    if (payload.startMode === 'now' && payload.goalDays < 2) {
+      return reply.status(400).send({
+        error: 'Goal must be at least 2 days for start today mode',
+        minGoal: 2
+      });
+    }
+
     const entriesResult = await pool.query<StreakEntry>(
       `SELECT entry_date::text, drank
        FROM daily_entries

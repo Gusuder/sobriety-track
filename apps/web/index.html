@@ -648,7 +648,7 @@
         if (selectedStartMode === "already_sober") {
           goalConstraintHint.textContent = `Цель должна быть больше текущей серии: минимум ${minGoal} дн.`;
         } else {
-          goalConstraintHint.textContent = "Для режима «бросаю сегодня» цель может начинаться с 1 дня.";
+          goalConstraintHint.textContent = "Для режима «бросаю сегодня» цель начинается с 2 дней.";
         }
       }
 
@@ -660,7 +660,7 @@
         if (selectedStartMode === "already_sober") {
           return Math.max(1, currentStreakDays + 1);
         }
-        return 1;
+        return 2;
       }
 
       async function syncCurrentStreakForConstraints() {
