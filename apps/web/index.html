@@ -2216,6 +2216,12 @@
         }
       }
 
+      function refreshEntriesIfOpen() {
+        const wrap = document.getElementById("entriesAnalytics");
+        if (!wrap || wrap.classList.contains("hidden")) return;
+        listEntries();
+      }
+
       function goalMilestoneKey(activeGoal, progress) {
         if (!activeGoal || !progress) return "";
         const id = activeGoal.id ?? "goal";
@@ -2298,6 +2304,8 @@
           closeGoalAchievedModal();
         }
       });
+      from.addEventListener("change", refreshEntriesIfOpen);
+      to.addEventListener("change", refreshEntriesIfOpen);
       syncDrankDependentFields();
       syncQuickDrankDependentFields();
       setBreathTechnique();
