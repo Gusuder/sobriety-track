@@ -263,6 +263,79 @@
       .reason-tag-wrap.disabled .reason-tag {
         pointer-events: none;
       }
+      .crisis-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .crisis-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff6ea;
+        padding: 12px;
+      }
+      .crisis-card h4 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+      .breath-box {
+        display: grid;
+        gap: 10px;
+      }
+      .breath-circle-wrap {
+        display: grid;
+        place-items: center;
+        min-height: 140px;
+      }
+      .breath-circle {
+        width: 92px;
+        height: 92px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 30% 30%, #ffd3ab, #c26e36);
+        box-shadow: 0 10px 22px rgba(145, 84, 45, 0.34);
+        transition: transform 0.9s ease;
+      }
+      .breath-meta {
+        display: grid;
+        gap: 4px;
+        text-align: center;
+      }
+      .breath-phase {
+        font-weight: 700;
+      }
+      .game-grid {
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+      }
+      .game-cell {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #d8b999;
+        background: #f4e6d4;
+        padding: 7px 0;
+        font-size: 20px;
+        line-height: 1;
+      }
+      .game-cell.sel {
+        outline: 2px solid var(--brand);
+        background: #ffe9cf;
+      }
+      .game-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .tips-list {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        display: grid;
+        gap: 6px;
+      }
 
       pre {
         margin: 0;
@@ -276,7 +349,7 @@
       }
 
       @media (max-width: 980px) {
-        .two-col, .row, .row3 { grid-template-columns: 1fr; }
+        .two-col, .row, .row3, .crisis-grid { grid-template-columns: 1fr; }
         .topbar { display: block; }
       }
 
@@ -504,6 +577,57 @@
         </section>
 
         <section class="card">
+          <h3>Кризисное меню</h3>
+          <p class="muted">Если стало тяжело: дыхание, переключение внимания и быстрые шаги к спокойствию.</p>
+          <div class="crisis-grid" style="margin-top: 10px;">
+            <div class="crisis-card">
+              <h4>Дыхательные техники</h4>
+              <div class="breath-box">
+                <select id="breathTechnique" onchange="setBreathTechnique()">
+                  <option value="box">Квадратное дыхание (4-4-4-4)</option>
+                  <option value="478">4-7-8</option>
+                  <option value="calm">Мягкое (3-2-4-2)</option>
+                </select>
+                <div class="row">
+                  <input id="breathMinutes" type="number" min="1" max="15" value="2" />
+                  <button class="btn secondary" type="button" onclick="startBreathing()">Старт</button>
+                </div>
+                <button class="btn secondary" type="button" onclick="stopBreathing()">Стоп</button>
+                <div class="breath-circle-wrap">
+                  <div id="breathCircle" class="breath-circle"></div>
+                </div>
+                <div class="breath-meta">
+                  <div id="breathPhase" class="breath-phase">Готово к дыханию</div>
+                  <div id="breathTimer" class="muted">02:00</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="crisis-card">
+              <h4>Мини-игра: собери 3</h4>
+              <div class="game-top">
+                <span id="gameScore" class="muted">Очки: 0</span>
+                <button class="btn secondary" type="button" onclick="newMatch3Game()">Новая игра</button>
+              </div>
+              <p id="gameStatus" class="muted" style="margin-top: 8px;">Меняйте соседние фишки, чтобы собрать 3 в ряд.</p>
+              <div id="gameGrid" class="game-grid"></div>
+            </div>
+
+            <div class="crisis-card">
+              <h4>Как быстро успокоиться</h4>
+              <ul class="tips-list">
+                <li>Сделайте 6 медленных выдохов длиннее вдоха.</li>
+                <li>Выпейте стакан воды маленькими глотками.</li>
+                <li>Назовите 5 предметов вокруг себя вслух.</li>
+                <li>Умойтесь прохладной водой и разомните плечи.</li>
+                <li>Напишите коротко: что я чувствую прямо сейчас.</li>
+                <li>Отложите решение на 15 минут и повторите дыхание.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
           <h3>Список записей</h3>
           <div class="row">
             <div class="field" style="margin-top:0;">
@@ -531,6 +655,14 @@
       let token = localStorage.getItem("token") || "";
       let currentStreakDays = 0;
       let onboardingRefreshTimer = null;
+      let breathInterval = null;
+      let breathSecondsLeft = 120;
+      let breathPhaseIndex = 0;
+      let breathPhaseSeconds = 0;
+      let breathProgram = [];
+      let gameBoard = [];
+      let gameSelected = null;
+      let gameScoreValue = 0;
       const out = document.getElementById("out");
       const protectedPaths = ["/goals", "/entries", "/onboarding"];
       const reasonTitleRu = {
@@ -879,6 +1011,211 @@
         }
       }
 
+      function formatMMSS(totalSeconds) {
+        const s = Math.max(0, totalSeconds);
+        const mm = String(Math.floor(s / 60)).padStart(2, "0");
+        const ss = String(s % 60).padStart(2, "0");
+        return `${mm}:${ss}`;
+      }
+
+      function setBreathTechnique() {
+        const value = breathTechnique.value;
+        if (value === "478") {
+          breathProgram = [
+            { label: "Вдох", seconds: 4, scale: 1.15 },
+            { label: "Задержка", seconds: 7, scale: 1.15 },
+            { label: "Выдох", seconds: 8, scale: 0.86 }
+          ];
+          return;
+        }
+        if (value === "calm") {
+          breathProgram = [
+            { label: "Вдох", seconds: 3, scale: 1.1 },
+            { label: "Задержка", seconds: 2, scale: 1.1 },
+            { label: "Выдох", seconds: 4, scale: 0.9 },
+            { label: "Пауза", seconds: 2, scale: 0.9 }
+          ];
+          return;
+        }
+        breathProgram = [
+          { label: "Вдох", seconds: 4, scale: 1.12 },
+          { label: "Задержка", seconds: 4, scale: 1.12 },
+          { label: "Выдох", seconds: 4, scale: 0.88 },
+          { label: "Пауза", seconds: 4, scale: 0.88 }
+        ];
+      }
+
+      function updateBreathUi() {
+        if (!breathProgram.length) {
+          setBreathTechnique();
+        }
+        const phase = breathProgram[breathPhaseIndex];
+        breathCircle.style.transform = `scale(${phase.scale})`;
+        breathPhase.textContent = `${phase.label}: ${breathPhaseSeconds}с`;
+        breathTimer.textContent = formatMMSS(breathSecondsLeft);
+      }
+
+      function startBreathing() {
+        stopBreathing();
+        setBreathTechnique();
+        const minutes = Number(breathMinutes.value);
+        breathSecondsLeft = Math.max(60, Math.min(900, Number.isFinite(minutes) ? minutes * 60 : 120));
+        breathPhaseIndex = 0;
+        breathPhaseSeconds = breathProgram[0].seconds;
+        updateBreathUi();
+
+        breathInterval = setInterval(() => {
+          breathSecondsLeft -= 1;
+          breathPhaseSeconds -= 1;
+          if (breathSecondsLeft <= 0) {
+            stopBreathing(true);
+            return;
+          }
+          if (breathPhaseSeconds <= 0) {
+            breathPhaseIndex = (breathPhaseIndex + 1) % breathProgram.length;
+            breathPhaseSeconds = breathProgram[breathPhaseIndex].seconds;
+          }
+          updateBreathUi();
+        }, 1000);
+      }
+
+      function stopBreathing(finished = false) {
+        if (breathInterval) {
+          clearInterval(breathInterval);
+          breathInterval = null;
+        }
+        breathCircle.style.transform = "scale(1)";
+        breathPhase.textContent = finished ? "Цикл завершён" : "Готово к дыханию";
+        breathTimer.textContent = formatMMSS(breathSecondsLeft);
+      }
+
+      const gameItems = ["🌿", "💧", "🍊", "🌞", "🧩", "🍃"];
+
+      function randomGameItem() {
+        return gameItems[Math.floor(Math.random() * gameItems.length)];
+      }
+
+      function newMatch3Game() {
+        gameScoreValue = 0;
+        gameScore.textContent = "Очки: 0";
+        gameStatus.textContent = "Меняйте соседние фишки, чтобы собрать 3 в ряд.";
+        gameSelected = null;
+        gameBoard = Array.from({ length: 6 }, () => Array.from({ length: 6 }, () => randomGameItem()));
+        resolveMatchesLoop();
+        renderMatch3();
+      }
+
+      function renderMatch3() {
+        gameGrid.innerHTML = gameBoard
+          .map((row, r) =>
+            row
+              .map((cell, c) => {
+                const isSel = gameSelected && gameSelected.r === r && gameSelected.c === c ? "sel" : "";
+                return `<button type="button" class="game-cell ${isSel}" onclick="onGameCellClick(${r},${c})">${cell}</button>`;
+              })
+              .join("")
+          )
+          .join("");
+      }
+
+      function isNear(a, b) {
+        return Math.abs(a.r - b.r) + Math.abs(a.c - b.c) === 1;
+      }
+
+      function swapCells(a, b) {
+        const t = gameBoard[a.r][a.c];
+        gameBoard[a.r][a.c] = gameBoard[b.r][b.c];
+        gameBoard[b.r][b.c] = t;
+      }
+
+      function findMatches() {
+        const matched = new Set();
+        const key = (r, c) => `${r}:${c}`;
+        for (let r = 0; r < 6; r += 1) {
+          let run = 1;
+          for (let c = 1; c <= 6; c += 1) {
+            if (c < 6 && gameBoard[r][c] === gameBoard[r][c - 1]) {
+              run += 1;
+            } else {
+              if (run >= 3) {
+                for (let k = c - run; k < c; k += 1) matched.add(key(r, k));
+              }
+              run = 1;
+            }
+          }
+        }
+        for (let c = 0; c < 6; c += 1) {
+          let run = 1;
+          for (let r = 1; r <= 6; r += 1) {
+            if (r < 6 && gameBoard[r][c] === gameBoard[r - 1][c]) {
+              run += 1;
+            } else {
+              if (run >= 3) {
+                for (let k = r - run; k < r; k += 1) matched.add(key(k, c));
+              }
+              run = 1;
+            }
+          }
+        }
+        return matched;
+      }
+
+      function collapseBoard() {
+        for (let c = 0; c < 6; c += 1) {
+          const col = [];
+          for (let r = 5; r >= 0; r -= 1) {
+            if (gameBoard[r][c] !== null) col.push(gameBoard[r][c]);
+          }
+          for (let r = 5; r >= 0; r -= 1) {
+            gameBoard[r][c] = col[5 - r] ?? randomGameItem();
+          }
+        }
+      }
+
+      function resolveMatchesLoop() {
+        while (true) {
+          const matched = findMatches();
+          if (!matched.size) break;
+          matched.forEach((v) => {
+            const [r, c] = v.split(":").map(Number);
+            gameBoard[r][c] = null;
+          });
+          gameScoreValue += matched.size;
+          collapseBoard();
+        }
+        gameScore.textContent = `Очки: ${gameScoreValue}`;
+      }
+
+      function onGameCellClick(r, c) {
+        const cur = { r, c };
+        if (!gameSelected) {
+          gameSelected = cur;
+          renderMatch3();
+          return;
+        }
+        if (gameSelected.r === r && gameSelected.c === c) {
+          gameSelected = null;
+          renderMatch3();
+          return;
+        }
+        if (!isNear(gameSelected, cur)) {
+          gameSelected = cur;
+          renderMatch3();
+          return;
+        }
+        swapCells(gameSelected, cur);
+        const matched = findMatches();
+        if (!matched.size) {
+          swapCells(gameSelected, cur);
+          gameStatus.textContent = "Совпадений нет. Попробуйте другой ход.";
+        } else {
+          resolveMatchesLoop();
+          gameStatus.textContent = "Отлично! Совпадение собрано.";
+        }
+        gameSelected = null;
+        renderMatch3();
+      }
+
       function startOnboardingAutoRefresh() {
         stopOnboardingAutoRefresh();
         onboardingRefreshTimer = setInterval(() => {
@@ -1037,6 +1374,9 @@
         showAuth();
       }
       syncDrankDependentFields();
+      setBreathTechnique();
+      breathTimer.textContent = formatMMSS(120);
+      newMatch3Game();
     </script>
   </body>
 </html>
