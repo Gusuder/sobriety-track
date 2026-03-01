@@ -33,6 +33,7 @@ New-Item -ItemType Directory -Force -Path "apps/api/src/utils" | Out-Null
 New-Item -ItemType Directory -Force -Path "docs" | Out-Null
 New-Item -ItemType Directory -Force -Path "apps/web" | Out-Null
 New-Item -ItemType Directory -Force -Path "scripts" | Out-Null
+New-Item -ItemType Directory -Force -Path ".github/workflows" | Out-Null
 
 Write-Step "Writing backend MVP files"
 @'
@@ -102,6 +103,66 @@ logs:
 smoke:
 	powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
 '@ | Set-Content -Path "Makefile" -Encoding UTF8
+
+@'
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+  smoke-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and start services
+        run: docker compose up --build -d
+
+      - name: Run smoke E2E
+        shell: pwsh
+        run: ./scripts/smoke-e2e.ps1
+
+      - name: Dump compose status
+        if: always()
+        run: docker compose ps
+
+      - name: Dump API logs on failure
+        if: failure()
+        run: docker compose logs api
+
+      - name: Stop services
+        if: always()
+        run: docker compose down -v
+'@ | Set-Content -Path ".github/workflows/ci.yml" -Encoding UTF8
 
 @'
 # Sobriety Track
