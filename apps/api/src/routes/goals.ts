@@ -74,7 +74,7 @@ export const goalsRoutes: FastifyPluginAsync = async (app) => {
     );
 
     const profileResult = await pool.query<StreakProfile>(
-      `SELECT started_at::text, started_with_existing_streak
+      `SELECT started_at::date::text AS started_at, started_with_existing_streak
        FROM user_profiles
        WHERE user_id = $1
        LIMIT 1`,

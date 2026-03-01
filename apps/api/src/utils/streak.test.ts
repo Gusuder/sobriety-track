@@ -69,6 +69,16 @@ test('profile streak counts elapsed days for already_sober mode', () => {
   assert.equal(value, 9);
 });
 
+test('profile streak supports ISO timestamp in started_at', () => {
+  const value = calcStreakWithProfile(
+    entries([]),
+    { started_at: '2026-02-20T00:00:00.000Z', started_with_existing_streak: true },
+    fixedNow
+  );
+
+  assert.equal(value, 9);
+});
+
 test('profile streak resets after drank=true entry', () => {
   const value = calcStreakWithProfile(
     entries([

@@ -8,6 +8,18 @@ export type StreakProfile = {
   started_with_existing_streak: boolean;
 };
 
+function normalizeDateOnly(value: string): string | null {
+  const dateOnlyMatch = value.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (dateOnlyMatch) {
+    return dateOnlyMatch[1];
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  return parsed.toISOString().slice(0, 10);
+}
+
 function toDateOnly(value: Date): string {
   return value.toISOString().slice(0, 10);
 }
@@ -67,7 +79,11 @@ export function calcStreakWithProfile(entries: StreakEntry[], profile: StreakPro
   }
 
   const todayKey = toDateOnly(now);
-  let streakStart = profile.started_at;
+  const normalizedStart = normalizeDateOnly(profile.started_at);
+  if (!normalizedStart) {
+    return calcCurrentStreak(entries, now);
+  }
+  let streakStart = normalizedStart;
 
   for (const entry of entries) {
     if (entry.drank && entry.entry_date >= profile.started_at && entry.entry_date <= todayKey) {
