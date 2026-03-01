@@ -1078,8 +1078,14 @@
 
       const print = (data) => out.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
 
+      function resetProgressState(note = "Заполните стартовый профиль, чтобы видеть мотивацию.") {
+        currentStreakDays = 0;
+        updateProgressWidget(null, null, 0, note);
+      }
+
       function showAuth(errorText = "") {
         stopOnboardingAutoRefresh();
+        resetProgressState("Требуется вход в аккаунт.");
         document.getElementById("authShell").classList.remove("hidden");
         document.getElementById("onboardingShell").classList.add("hidden");
         document.getElementById("appShell").classList.add("hidden");
@@ -1103,6 +1109,7 @@
 
       function showOnboardingShell() {
         stopOnboardingAutoRefresh();
+        resetProgressState("Сначала завершите стартовый профиль.");
         document.getElementById("authShell").classList.add("hidden");
         document.getElementById("appShell").classList.add("hidden");
         document.getElementById("onboardingShell").classList.remove("hidden");
@@ -1358,6 +1365,7 @@
 
       async function loginUser() {
         clearAuthMessages();
+        resetProgressState("Проверяем аккаунт...");
         try {
           const payload = { login: login.value.trim(), password: password.value };
           const data = await req("/auth/login", { method: "POST", body: JSON.stringify(payload) });
