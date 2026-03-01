@@ -40,6 +40,21 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS goals (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_days INTEGER NOT NULL CHECK (target_days BETWEEN 1 AND 3650),
+  start_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  completed_at DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_goals_one_active_per_user
+ON goals (user_id)
+WHERE is_active = TRUE;
+
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -99,6 +114,19 @@ DROP TRIGGER IF EXISTS trg_user_profiles_updated_at ON user_profiles;
 CREATE TRIGGER trg_user_profiles_updated_at
 BEFORE UPDATE ON user_profiles
 FOR EACH ROW EXECUTE FUNCTION touch_user_profiles_updated_at();
+
+CREATE OR REPLACE FUNCTION touch_goals_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_goals_updated_at ON goals;
+CREATE TRIGGER trg_goals_updated_at
+BEFORE UPDATE ON goals
+FOR EACH ROW EXECUTE FUNCTION touch_goals_updated_at();
 `;
 
 export async function runMigrations() {

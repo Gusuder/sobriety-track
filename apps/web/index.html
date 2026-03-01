@@ -23,7 +23,7 @@
   <body>
     <div class="wrap">
       <h1>Sobriety Track (MVP)</h1>
-      <p class="muted">Extended web UI for testing auth, onboarding, password reset, reasons and entries.</p>
+      <p class="muted">Extended web UI for testing auth, onboarding, goals/progress, password reset, reasons and entries.</p>
 
       <div class="card">
         <h3>0) Health</h3>
@@ -73,13 +73,24 @@
       </div>
 
       <div class="card">
-        <h3>5) Reasons</h3>
+        <h3>5) Goals / Streak</h3>
+        <p class="muted">После логина нажмите <b>Load goals/progress</b>. Если целей ещё нет, сначала создайте Goal.</p>
+        <div class="row">
+          <input id="targetDays" type="number" min="1" max="3650" value="30" placeholder="target days" />
+          <input id="streakView" type="text" value="streak: unknown" readonly />
+        </div>
+        <button onclick="createGoal()">Create goal</button>
+        <button onclick="loadGoals()" style="margin-top:8px">Load goals/progress</button>
+      </div>
+
+      <div class="card">
+        <h3>6) Reasons</h3>
         <button onclick="loadReasons()">Load drink reasons</button>
         <div id="reasonsPills" style="margin-top:10px"></div>
       </div>
 
       <div class="card">
-        <h3>6) Daily entry</h3>
+        <h3>7) Daily entry</h3>
         <div class="row">
           <input id="entryDate" type="date" />
           <select id="mood">
@@ -105,7 +116,7 @@
       </div>
 
       <div class="card">
-        <h3>7) Get entries</h3>
+        <h3>8) Get entries</h3>
         <div class="row">
           <input id="from" type="date" />
           <input id="to" type="date" />
@@ -129,6 +140,10 @@
       document.getElementById('from').value = today.slice(0,8) + '01';
       document.getElementById('to').value = today;
       document.getElementById('soberStartDate').value = today;
+
+      if (token) {
+        loadGoals();
+      }
 
       const print = (data) => out.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
 
@@ -167,6 +182,7 @@
           token = data.accessToken;
           localStorage.setItem('token', token);
           print({ ok: true, token });
+          await loadGoals();
         } catch (e) { print(e); }
       }
 
@@ -201,7 +217,9 @@
           if (startMode.value === 'already_sober') {
             payload.soberStartDate = soberStartDate.value;
           }
-          print(await req('/onboarding', { method:'POST', body: JSON.stringify(payload) }));
+          const data = await req('/onboarding', { method:'POST', body: JSON.stringify(payload) });
+          print(data);
+          await loadGoals();
         } catch (e) { print(e); }
       }
 
@@ -209,6 +227,45 @@
         try {
           print(await req('/onboarding'));
         } catch (e) { print(e); }
+      }
+
+      async function createGoal() {
+        try {
+          const rawTarget = Number(targetDays.value);
+          if (!Number.isFinite(rawTarget) || rawTarget < 1) {
+            throw new Error('targetDays must be a positive number');
+          }
+
+          const payload = { targetDays: rawTarget };
+          print(await req('/goals', { method:'POST', body: JSON.stringify(payload) }));
+          await loadGoals();
+        } catch (e) { print(e); }
+      }
+
+      async function loadGoals() {
+        try {
+          const data = await req('/goals');
+          const progress = data?.progress;
+
+          if (!data?.activeGoal) {
+            streakView.value = 'no active goal yet';
+          } else if (!progress) {
+            streakView.value = `goal: ${data.activeGoal.target_days}d | streak: 0d`;
+          } else {
+            const streak = progress.streakDays ?? 0;
+            const target = progress.targetDays ?? data.activeGoal.target_days ?? '-';
+            const percent = progress.percent ?? 0;
+            const remaining = progress.remainingDays ?? Math.max(0, Number(target) - streak);
+            streakView.value = `streak: ${streak}d | target: ${target}d | ${percent}% | left: ${remaining}d`;
+          }
+
+          print(data);
+        } catch (e) {
+          if (e?.error === 'Unauthorized') {
+            streakView.value = 'login required';
+          }
+          print(e);
+        }
       }
 
       async function loadReasons() {

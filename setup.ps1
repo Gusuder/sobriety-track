@@ -10,6 +10,15 @@ function Write-Step($msg) {
   Write-Host "`n=== $msg ===" -ForegroundColor Cyan
 }
 
+function Write-FileUtf8NoBom {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)][string]$Content
+  )
+  $enc = [System.Text.UTF8Encoding]::new($false)
+  [System.IO.File]::WriteAllText((Join-Path $PSScriptRoot $Path), $Content, $enc)
+}
+
 Write-Step "Checking current folder"
 if (-not (Test-Path ".git")) {
   throw "Run the script from the repository root (where .git exists)."
@@ -102,6 +111,33 @@ MVP now includes:
 docker compose up --build
 ```
 
+## Как проверить MVP локально
+
+1. Скопировать переменные окружения API:
+   ```bash
+   cp apps/api/.env.example apps/api/.env
+   ```
+2. Запустить проект:
+   ```bash
+   docker compose up --build
+   ```
+3. Дождаться готовности сервисов и проверить health endpoint:
+   ```bash
+   curl http://localhost:4000/health
+   ```
+   Ожидаемый ответ: `{"status":"ok"}`.
+4. Открыть UI для ручной проверки: `http://localhost:8080`.
+5. Пройти базовый сценарий в UI:
+   - Register
+   - Login
+   - Save/Get onboarding
+   - Create/Load goals
+   - Create entry и List entries
+6. Остановить окружение после проверки:
+   ```bash
+   docker compose down -v
+   ```
+
 ## URLs
 - Web UI: http://localhost:8080
 - API health: http://localhost:4000/health
@@ -116,12 +152,16 @@ docker compose up --build
 - `GET /api/entries?from=YYYY-MM-DD&to=YYYY-MM-DD`
 - `POST /api/onboarding`
 - `GET /api/onboarding`
+- `POST /api/goals`
+- `GET /api/goals`
 
 ## What to test in Web UI
 1. Register
 2. Login (token saved in localStorage)
-3. Create daily entry
-4. List entries by period
+3. Save/Get onboarding
+4. Create goal and load progress
+5. Create daily entry
+6. List entries by period
 
 '@ | Set-Content -Path "README.md" -Encoding UTF8
 
@@ -131,7 +171,7 @@ JWT_SECRET=change-me
 DATABASE_URL=postgres://postgres:postgres@postgres:5432/sobriety_track
 '@ | Set-Content -Path "apps/api/.env.example" -Encoding UTF8
 
-@'
+Write-FileUtf8NoBom -Path "apps/api/package.json" -Content @'
 {
   "name": "sobriety-track-api",
   "version": "0.1.0",
@@ -161,7 +201,7 @@ DATABASE_URL=postgres://postgres:postgres@postgres:5432/sobriety_track
     "typescript": "^5.7.2"
   }
 }
-'@ | Set-Content -Path "apps/api/package.json" -Encoding UTF8
+'@
 
 @'
 {
@@ -261,6 +301,21 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS goals (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_days INTEGER NOT NULL CHECK (target_days BETWEEN 1 AND 3650),
+  start_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  completed_at DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_goals_one_active_per_user
+ON goals (user_id)
+WHERE is_active = TRUE;
+
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -320,6 +375,19 @@ DROP TRIGGER IF EXISTS trg_user_profiles_updated_at ON user_profiles;
 CREATE TRIGGER trg_user_profiles_updated_at
 BEFORE UPDATE ON user_profiles
 FOR EACH ROW EXECUTE FUNCTION touch_user_profiles_updated_at();
+
+CREATE OR REPLACE FUNCTION touch_goals_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_goals_updated_at ON goals;
+CREATE TRIGGER trg_goals_updated_at
+BEFORE UPDATE ON goals
+FOR EACH ROW EXECUTE FUNCTION touch_goals_updated_at();
 `;
 
 export async function runMigrations() {
@@ -597,6 +665,163 @@ export const entriesRoutes: FastifyPluginAsync = async (app) => {
 '@ | Set-Content -Path "apps/api/src/routes/entries.ts" -Encoding UTF8
 
 @'
+export type StreakEntry = {
+  entry_date: string;
+  drank: boolean;
+};
+
+function toDateOnly(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
+
+function minusDays(date: Date, days: number): Date {
+  const d = new Date(date);
+  d.setUTCDate(d.getUTCDate() - days);
+  return d;
+}
+
+export function calcCurrentStreak(entries: StreakEntry[], now = new Date()): number {
+  const byDate = new Map(entries.map((entry) => [entry.entry_date, entry]));
+  const todayKey = toDateOnly(now);
+  const yesterdayKey = toDateOnly(minusDays(now, 1));
+
+  const hasTodayEntry = byDate.has(todayKey);
+  const hasYesterdayEntry = byDate.has(yesterdayKey);
+
+  if (!hasTodayEntry && !hasYesterdayEntry) {
+    return 0;
+  }
+
+  let streak = 0;
+  let cursor = hasTodayEntry ? new Date(now) : minusDays(now, 1);
+
+  while (true) {
+    const key = toDateOnly(cursor);
+    const entry = byDate.get(key);
+
+    if (!entry || entry.drank) {
+      break;
+    }
+
+    streak += 1;
+    cursor = minusDays(cursor, 1);
+  }
+
+  return streak;
+}
+'@ | Set-Content -Path "apps/api/src/utils/streak.ts" -Encoding UTF8
+
+@'
+export type GoalProgress = {
+  targetDays: number;
+  streakDays: number;
+  percent: number;
+  reached: boolean;
+  remainingDays: number;
+};
+
+export function buildGoalProgress(targetDays: number, streakDays: number): GoalProgress {
+  const safeTarget = Math.max(1, Math.trunc(targetDays));
+  const safeStreak = Math.max(0, Math.trunc(streakDays));
+  const percent = Math.min(100, Math.round((safeStreak / safeTarget) * 100));
+  const reached = safeStreak >= safeTarget;
+
+  return {
+    targetDays: safeTarget,
+    streakDays: safeStreak,
+    percent,
+    reached,
+    remainingDays: reached ? 0 : safeTarget - safeStreak
+  };
+}
+'@ | Set-Content -Path "apps/api/src/utils/goal-progress.ts" -Encoding UTF8
+
+@'
+import type { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
+import { pool } from '../db/pool.js';
+import { buildGoalProgress } from '../utils/goal-progress.js';
+import { calcCurrentStreak, type StreakEntry } from '../utils/streak.js';
+
+const createGoalSchema = z.object({
+  targetDays: z.number().int().min(1).max(3650)
+});
+
+export const goalsRoutes: FastifyPluginAsync = async (app) => {
+  app.addHook('preHandler', app.authenticate);
+
+  app.post('/goals', async (request, reply) => {
+    const parsed = createGoalSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.flatten() });
+    }
+
+    const userId = request.user.userId;
+    const payload = parsed.data;
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      await client.query(
+        `UPDATE goals
+         SET is_active = FALSE, completed_at = CURRENT_DATE
+         WHERE user_id = $1 AND is_active = TRUE`,
+        [userId]
+      );
+
+      const goalResult = await client.query(
+        `INSERT INTO goals (user_id, target_days, start_date, is_active)
+         VALUES ($1, $2, CURRENT_DATE, TRUE)
+         RETURNING id, user_id, target_days, start_date, is_active, completed_at, created_at, updated_at`,
+        [userId, payload.targetDays]
+      );
+
+      await client.query('COMMIT');
+      return reply.status(201).send({ goal: goalResult.rows[0] });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      request.log.error(error);
+      return reply.status(500).send({ error: 'Internal server error' });
+    } finally {
+      client.release();
+    }
+  });
+
+  app.get('/goals', async (request, reply) => {
+    const userId = request.user.userId;
+
+    const goalsResult = await pool.query(
+      `SELECT id, user_id, target_days, start_date, is_active, completed_at, created_at, updated_at
+       FROM goals
+       WHERE user_id = $1
+       ORDER BY created_at DESC`,
+      [userId]
+    );
+
+    const activeGoal = goalsResult.rows.find((g) => g.is_active);
+
+    const entriesResult = await pool.query<StreakEntry>(
+      `SELECT entry_date::text, drank
+       FROM daily_entries
+       WHERE user_id = $1 AND entry_date <= CURRENT_DATE
+       ORDER BY entry_date DESC`,
+      [userId]
+    );
+
+    const streakDays = calcCurrentStreak(entriesResult.rows);
+
+    let progress = null;
+    if (activeGoal) {
+      progress = buildGoalProgress(Number(activeGoal.target_days), streakDays);
+    }
+
+    return reply.send({ goals: goalsResult.rows, activeGoal: activeGoal ?? null, progress });
+  });
+};
+'@ | Set-Content -Path "apps/api/src/routes/goals.ts" -Encoding UTF8
+
+@'
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import cors from '@fastify/cors';
@@ -604,6 +829,7 @@ import { env } from './config/env.js';
 import { runMigrations } from './db/migrate.js';
 import { authRoutes } from './routes/auth.js';
 import { entriesRoutes } from './routes/entries.js';
+import { goalsRoutes } from './routes/goals.js';
 import { onboardingRoutes } from './routes/onboarding.js';
 
 const app = Fastify({ logger: true });
@@ -622,6 +848,7 @@ app.decorate('authenticate', async function (request: FastifyRequest, reply: Fas
 app.get('/health', async () => ({ status: 'ok' }));
 app.register(authRoutes, { prefix: '/api' });
 app.register(entriesRoutes, { prefix: '/api' });
+app.register(goalsRoutes, { prefix: '/api' });
 app.register(onboardingRoutes, { prefix: '/api' });
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -706,7 +933,7 @@ declare module 'fastify' {
   <body>
     <div class="wrap">
       <h1>Sobriety Track (MVP)</h1>
-      <p class="muted">Extended web UI for testing auth, onboarding, password reset, reasons and entries.</p>
+      <p class="muted">Extended web UI for testing auth, onboarding, goals/progress, password reset, reasons and entries.</p>
 
       <div class="card">
         <h3>0) Health</h3>
@@ -756,13 +983,24 @@ declare module 'fastify' {
       </div>
 
       <div class="card">
-        <h3>5) Reasons</h3>
+        <h3>5) Goals / Streak</h3>
+        <p class="muted">После логина нажмите <b>Load goals/progress</b>. Если целей ещё нет, сначала создайте Goal.</p>
+        <div class="row">
+          <input id="targetDays" type="number" min="1" max="3650" value="30" placeholder="target days" />
+          <input id="streakView" type="text" value="streak: unknown" readonly />
+        </div>
+        <button onclick="createGoal()">Create goal</button>
+        <button onclick="loadGoals()" style="margin-top:8px">Load goals/progress</button>
+      </div>
+
+      <div class="card">
+        <h3>6) Reasons</h3>
         <button onclick="loadReasons()">Load drink reasons</button>
         <div id="reasonsPills" style="margin-top:10px"></div>
       </div>
 
       <div class="card">
-        <h3>6) Daily entry</h3>
+        <h3>7) Daily entry</h3>
         <div class="row">
           <input id="entryDate" type="date" />
           <select id="mood">
@@ -788,7 +1026,7 @@ declare module 'fastify' {
       </div>
 
       <div class="card">
-        <h3>7) Get entries</h3>
+        <h3>8) Get entries</h3>
         <div class="row">
           <input id="from" type="date" />
           <input id="to" type="date" />
@@ -812,6 +1050,10 @@ declare module 'fastify' {
       document.getElementById('from').value = today.slice(0,8) + '01';
       document.getElementById('to').value = today;
       document.getElementById('soberStartDate').value = today;
+
+      if (token) {
+        loadGoals();
+      }
 
       const print = (data) => out.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
 
@@ -850,6 +1092,7 @@ declare module 'fastify' {
           token = data.accessToken;
           localStorage.setItem('token', token);
           print({ ok: true, token });
+          await loadGoals();
         } catch (e) { print(e); }
       }
 
@@ -884,7 +1127,9 @@ declare module 'fastify' {
           if (startMode.value === 'already_sober') {
             payload.soberStartDate = soberStartDate.value;
           }
-          print(await req('/onboarding', { method:'POST', body: JSON.stringify(payload) }));
+          const data = await req('/onboarding', { method:'POST', body: JSON.stringify(payload) });
+          print(data);
+          await loadGoals();
         } catch (e) { print(e); }
       }
 
@@ -892,6 +1137,45 @@ declare module 'fastify' {
         try {
           print(await req('/onboarding'));
         } catch (e) { print(e); }
+      }
+
+      async function createGoal() {
+        try {
+          const rawTarget = Number(targetDays.value);
+          if (!Number.isFinite(rawTarget) || rawTarget < 1) {
+            throw new Error('targetDays must be a positive number');
+          }
+
+          const payload = { targetDays: rawTarget };
+          print(await req('/goals', { method:'POST', body: JSON.stringify(payload) }));
+          await loadGoals();
+        } catch (e) { print(e); }
+      }
+
+      async function loadGoals() {
+        try {
+          const data = await req('/goals');
+          const progress = data?.progress;
+
+          if (!data?.activeGoal) {
+            streakView.value = 'no active goal yet';
+          } else if (!progress) {
+            streakView.value = `goal: ${data.activeGoal.target_days}d | streak: 0d`;
+          } else {
+            const streak = progress.streakDays ?? 0;
+            const target = progress.targetDays ?? data.activeGoal.target_days ?? '-';
+            const percent = progress.percent ?? 0;
+            const remaining = progress.remainingDays ?? Math.max(0, Number(target) - streak);
+            streakView.value = `streak: ${streak}d | target: ${target}d | ${percent}% | left: ${remaining}d`;
+          }
+
+          print(data);
+        } catch (e) {
+          if (e?.error === 'Unauthorized') {
+            streakView.value = 'login required';
+          }
+          print(e);
+        }
       }
 
       async function loadReasons() {
@@ -967,19 +1251,50 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
     const payload = parsed.data;
     const startedAt = payload.startMode === 'already_sober' ? payload.soberStartDate : new Date().toISOString().slice(0, 10);
 
-    const result = await pool.query(
-      `INSERT INTO user_profiles (user_id, started_at, started_with_existing_streak, current_goal_days)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (user_id)
-       DO UPDATE SET
-         started_at = EXCLUDED.started_at,
-         started_with_existing_streak = EXCLUDED.started_with_existing_streak,
-         current_goal_days = EXCLUDED.current_goal_days
-       RETURNING *`,
-      [userId, startedAt, payload.startMode === 'already_sober', payload.goalDays]
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    return reply.send({ profile: result.rows[0] });
+      const profileResult = await client.query(
+        `INSERT INTO user_profiles (user_id, started_at, started_with_existing_streak, current_goal_days)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (user_id)
+         DO UPDATE SET
+           started_at = EXCLUDED.started_at,
+           started_with_existing_streak = EXCLUDED.started_with_existing_streak,
+           current_goal_days = EXCLUDED.current_goal_days
+         RETURNING *`,
+        [userId, startedAt, payload.startMode === 'already_sober', payload.goalDays]
+      );
+
+      const activeGoalResult = await client.query(
+        `SELECT id
+         FROM goals
+         WHERE user_id = $1 AND is_active = TRUE
+         LIMIT 1`,
+        [userId]
+      );
+
+      let goal = null;
+      if (activeGoalResult.rowCount === 0) {
+        const goalResult = await client.query(
+          `INSERT INTO goals (user_id, target_days, start_date, is_active)
+           VALUES ($1, $2, CURRENT_DATE, TRUE)
+           RETURNING id, target_days, start_date, is_active, completed_at, created_at, updated_at`,
+          [userId, payload.goalDays]
+        );
+        goal = goalResult.rows[0];
+      }
+
+      await client.query('COMMIT');
+      return reply.send({ profile: profileResult.rows[0], goal });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      request.log.error(err);
+      return reply.status(500).send({ error: 'Internal server error' });
+    } finally {
+      client.release();
+    }
   });
 
   app.get('/onboarding', async (request, reply) => {
@@ -1021,6 +1336,101 @@ test('hashPassword creates non-plain hash and verifyPassword validates it', asyn
 @'
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { buildGoalProgress } from './goal-progress.js';
+
+test('calculates progress with remaining days for active goal', () => {
+  const progress = buildGoalProgress(30, 12);
+
+  assert.deepEqual(progress, {
+    targetDays: 30,
+    streakDays: 12,
+    percent: 40,
+    reached: false,
+    remainingDays: 18
+  });
+});
+
+test('caps percent at 100 and remaining at 0 when goal is reached', () => {
+  const progress = buildGoalProgress(7, 10);
+
+  assert.deepEqual(progress, {
+    targetDays: 7,
+    streakDays: 10,
+    percent: 100,
+    reached: true,
+    remainingDays: 0
+  });
+});
+
+'@ | Set-Content -Path "apps/api/src/utils/goal-progress.test.ts" -Encoding UTF8
+
+@'
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { calcCurrentStreak, type StreakEntry } from './streak.js';
+
+const fixedNow = new Date('2026-03-01T10:00:00.000Z');
+
+function entries(rows: Array<[string, boolean]>): StreakEntry[] {
+  return rows.map(([entry_date, drank]) => ({ entry_date, drank }));
+}
+
+test('returns 0 when there is no entry for today and yesterday', () => {
+  const value = calcCurrentStreak(
+    entries([
+      ['2026-02-27', false],
+      ['2026-02-26', false]
+    ]),
+    fixedNow
+  );
+
+  assert.equal(value, 0);
+});
+
+test('counts streak from yesterday when today entry is missing', () => {
+  const value = calcCurrentStreak(
+    entries([
+      ['2026-02-28', false],
+      ['2026-02-27', false],
+      ['2026-02-26', true]
+    ]),
+    fixedNow
+  );
+
+  assert.equal(value, 2);
+});
+
+test('streak is 0 when today entry exists and drank=true', () => {
+  const value = calcCurrentStreak(
+    entries([
+      ['2026-03-01', true],
+      ['2026-02-28', false]
+    ]),
+    fixedNow
+  );
+
+  assert.equal(value, 0);
+});
+
+test('counts consecutive sober days when today is sober', () => {
+  const value = calcCurrentStreak(
+    entries([
+      ['2026-03-01', false],
+      ['2026-02-28', false],
+      ['2026-02-27', false],
+      ['2026-02-26', true]
+    ]),
+    fixedNow
+  );
+
+  assert.equal(value, 3);
+});
+
+'@ | Set-Content -Path "apps/api/src/utils/streak.test.ts" -Encoding UTF8
+
+@'
+import test from 'node:test';
+import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -1033,6 +1443,7 @@ test('migration includes required phase-1 tables', async () => {
   assert.match(src, /CREATE TABLE IF NOT EXISTS users/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS daily_entries/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS user_profiles/i);
+  assert.match(src, /CREATE TABLE IF NOT EXISTS goals/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS password_reset_tokens/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS drink_reasons/i);
   assert.match(src, /CREATE TABLE IF NOT EXISTS entry_reasons/i);

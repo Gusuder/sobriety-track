@@ -9,6 +9,33 @@ MVP now includes:
 docker compose up --build
 ```
 
+## Как проверить MVP локально
+
+1. Скопировать переменные окружения API:
+   ```bash
+   cp apps/api/.env.example apps/api/.env
+   ```
+2. Запустить проект:
+   ```bash
+   docker compose up --build
+   ```
+3. Дождаться готовности сервисов и проверить health endpoint:
+   ```bash
+   curl http://localhost:4000/health
+   ```
+   Ожидаемый ответ: `{"status":"ok"}`.
+4. Открыть UI для ручной проверки: `http://localhost:8080`.
+5. Пройти базовый сценарий в UI:
+   - Register
+   - Login
+   - Save/Get onboarding
+   - Create/Load goals
+   - Create entry и List entries
+6. Остановить окружение после проверки:
+   ```bash
+   docker compose down -v
+   ```
+
 ## URLs
 - Web UI: http://localhost:8080
 - API health: http://localhost:4000/health
@@ -23,10 +50,14 @@ docker compose up --build
 - `GET /api/entries?from=YYYY-MM-DD&to=YYYY-MM-DD`
 - `POST /api/onboarding`
 - `GET /api/onboarding`
+- `POST /api/goals`
+- `GET /api/goals`
 
 ## What to test in Web UI
 1. Register
 2. Login (token saved in localStorage)
-3. Create daily entry
-4. List entries by period
+3. Save/Get onboarding
+4. Create goal and load progress
+5. Create daily entry
+6. List entries by period
 
