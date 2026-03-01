@@ -223,6 +223,24 @@
         font-size: 12px;
         border: 1px solid #ead1b4;
       }
+      .reason-options {
+        margin-top: 8px;
+        display: grid;
+        gap: 6px;
+      }
+      .reason-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--card-2);
+      }
+      .reason-option input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+      }
 
       pre {
         margin: 0;
@@ -402,7 +420,7 @@
         <div class="two-col">
           <section class="card">
             <h3>Причины</h3>
-            <button class="btn secondary" onclick="loadReasons()">Загрузить причины</button>
+            <button class="btn secondary" onclick="loadReasons()">Обновить причины</button>
             <div id="reasonsPills" class="pill-wrap"></div>
           </section>
 
@@ -462,8 +480,8 @@
               <input id="comment" placeholder="Комментарий" value="Всё хорошо" />
             </div>
             <div class="field">
-              <label for="reasonCodes">Коды причин через запятую</label>
-              <input id="reasonCodes" placeholder="например stress,boredom" value="stress,boredom" />
+              <label>Причины (выберите)</label>
+              <div id="reasonOptions" class="reason-options muted">Нажмите «Обновить причины» или подождите автозагрузку.</div>
             </div>
             <button class="btn" onclick="createEntry()">Сохранить запись</button>
           </section>
@@ -536,6 +554,7 @@
         document.getElementById("onboardingShell").classList.add("hidden");
         document.getElementById("appShell").classList.remove("hidden");
         startOnboardingAutoRefresh();
+        loadReasons(true);
       }
 
       function showOnboardingStep(step) {
@@ -923,23 +942,32 @@
         }
       }
 
-      async function loadReasons() {
+      async function loadReasons(silent = false) {
         try {
           const data = await req("/entries/reasons");
-          reasonsPills.innerHTML = (data.reasons || [])
-            .map((r) => `<span class="pill">${r.code}: ${reasonTitleRu[r.code] ?? r.title}</span>`)
+          const selectedCodes = new Set(Array.from(document.querySelectorAll(".reason-checkbox:checked")).map((el) => el.value));
+          const pillsEl = document.getElementById("reasonsPills");
+          const optionsEl = document.getElementById("reasonOptions");
+          pillsEl.innerHTML = (data.reasons || [])
+            .map((r) => `<span class="pill">${reasonTitleRu[r.code] ?? r.title}</span>`)
             .join("");
-          print(data);
+          optionsEl.innerHTML = (data.reasons || [])
+            .map((r) => {
+              const title = reasonTitleRu[r.code] ?? r.title;
+              const checked = selectedCodes.has(r.code) ? "checked" : "";
+              return `<label class="reason-option"><input class="reason-checkbox" type="checkbox" value="${r.code}" ${checked} />${title}</label>`;
+            })
+            .join("");
+          if (!silent) {
+            print(data);
+          }
         } catch (e) {
           print(e);
         }
       }
 
-      function reasonCodesInput() {
-        return reasonCodes.value
-          .split(",")
-          .map((x) => x.trim())
-          .filter(Boolean);
+      function selectedReasonCodes() {
+        return Array.from(document.querySelectorAll(".reason-checkbox:checked")).map((el) => el.value);
       }
 
       async function createEntry() {
@@ -952,7 +980,7 @@
             cravingLevel: Number(craving.value),
             daySummary: summary.value,
             comment: comment.value,
-            reasonCodes: reasonCodesInput()
+            reasonCodes: selectedReasonCodes()
           };
           print(await req("/entries", { method: "POST", body: JSON.stringify(payload) }));
           await loadGoals();
