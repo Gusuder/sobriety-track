@@ -42,7 +42,10 @@ test('POST /api/onboarding validates payload', async () => {
 
 test('POST /api/onboarding creates profile and active goal when missing', async () => {
   const originalConnect = pool.connect;
+  const originalQuery = pool.query;
   const calls: Array<{ sql: string; params: unknown[] | undefined }> = [];
+
+  (pool as any).query = async () => ({ rows: [], rowCount: 0 });
 
   const client: DbClientMock = {
     async query(sql, params) {
@@ -86,11 +89,15 @@ test('POST /api/onboarding creates profile and active goal when missing', async 
 
   await app.close();
   (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
 });
 
 test('POST /api/onboarding updates active goal target when it already exists', async () => {
   const originalConnect = pool.connect;
+  const originalQuery = pool.query;
   const calls: Array<{ sql: string; params: unknown[] | undefined }> = [];
+
+  (pool as any).query = async () => ({ rows: [], rowCount: 0 });
 
   const client: DbClientMock = {
     async query(sql, params) {
@@ -134,6 +141,37 @@ test('POST /api/onboarding updates active goal target when it already exists', a
 
   await app.close();
   (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
+});
+
+test('POST /api/onboarding rejects goal lower than current streak', async () => {
+  const originalConnect = pool.connect;
+  const originalQuery = pool.query;
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setUTCDate(startDate.getUTCDate() - 7);
+  const startedAt = startDate.toISOString().slice(0, 10);
+
+  (pool as any).connect = async () => {
+    throw new Error('connect should not be called when goal is invalid');
+  };
+  (pool as any).query = async () => ({ rows: [], rowCount: 0 });
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/onboarding',
+    payload: { startMode: 'already_sober', soberStartDate: startedAt, goalDays: 3 }
+  });
+
+  assert.equal(res.statusCode, 400);
+  const body = res.json();
+  assert.equal(typeof body.currentStreak, 'number');
+  assert.ok(body.currentStreak >= 7);
+
+  await app.close();
+  (pool as any).connect = originalConnect;
+  (pool as any).query = originalQuery;
 });
 
 test('GET /api/onboarding returns profile', async () => {

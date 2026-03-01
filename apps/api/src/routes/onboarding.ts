@@ -1,7 +1,8 @@
-﻿import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { pool } from '../db/pool.js';
 import { mapDbError } from '../utils/db-errors.js';
+import { calcStreakWithProfile, type StreakEntry, type StreakProfile } from '../utils/streak.js';
 
 const onboardingSchema = z
   .object({
@@ -27,6 +28,25 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
     const userId = request.user.userId;
     const payload = parsed.data;
     const startedAt = payload.startMode === 'already_sober' ? payload.soberStartDate : new Date().toISOString().slice(0, 10);
+    const profileForCheck: StreakProfile = {
+      started_at: startedAt,
+      started_with_existing_streak: payload.startMode === 'already_sober'
+    };
+
+    const entriesResult = await pool.query<StreakEntry>(
+      `SELECT entry_date::text, drank
+       FROM daily_entries
+       WHERE user_id = $1 AND entry_date <= CURRENT_DATE
+       ORDER BY entry_date DESC`,
+      [userId]
+    );
+    const currentStreak = calcStreakWithProfile(entriesResult.rows, profileForCheck);
+    if (payload.goalDays < currentStreak) {
+      return reply.status(400).send({
+        error: `Goal cannot be less than current streak (${currentStreak})`,
+        currentStreak
+      });
+    }
 
     const client = await pool.connect();
     try {
@@ -98,5 +118,3 @@ export const onboardingRoutes: FastifyPluginAsync = async (app) => {
     return reply.send({ profile: result.rows[0] ?? null });
   });
 };
-
-

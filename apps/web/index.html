@@ -347,7 +347,8 @@
 
           <div id="soberPeriodWrap" class="field hidden">
             <label for="soberStartDateWizard">Дата начала трезвости</label>
-            <input id="soberStartDateWizard" type="date" />
+            <input id="soberStartDateWizard" type="date" onchange="refreshWizardDateHints()" />
+            <p id="soberDateHint" class="muted" style="margin-top:6px;">Выберите дату в календаре. Будущее недоступно.</p>
           </div>
 
           <div class="stack">
@@ -360,6 +361,7 @@
           <div class="field">
             <label for="goalDaysWizard">Цель (дней)</label>
             <input id="goalDaysWizard" type="number" min="1" max="3650" value="30" />
+            <p id="goalConstraintHint" class="muted" style="margin-top:6px;">Цель должна быть не меньше текущей серии.</p>
           </div>
           <div class="stack">
             <button class="btn" type="button" onclick="finishOnboardingWizard()">Начать отсчёт</button>
@@ -494,6 +496,7 @@
       const API_BASE = "http://localhost:4000";
       const API = `${API_BASE}/api`;
       let token = localStorage.getItem("token") || "";
+      let currentStreakDays = 0;
       const out = document.getElementById("out");
       const protectedPaths = ["/goals", "/entries", "/onboarding"];
       const reasonTitleRu = {
@@ -513,6 +516,7 @@
       document.getElementById("from").value = today.slice(0, 8) + "01";
       document.getElementById("to").value = today;
       document.getElementById("soberStartDateWizard").value = today;
+      document.getElementById("soberStartDateWizard").min = "2000-01-01";
       document.getElementById("soberStartDateWizard").max = today;
 
       const print = (data) => out.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
@@ -591,9 +595,12 @@
         document.getElementById("startNowBtn").classList.toggle("active", mode === "now");
         document.getElementById("startSoberBtn").classList.toggle("active", mode === "already_sober");
         document.getElementById("soberPeriodWrap").classList.toggle("hidden", mode !== "already_sober");
+        refreshWizardDateHints();
+        refreshGoalConstraints();
       }
 
       function goToGoalStep() {
+        refreshGoalConstraints();
         showOnboardingStep(2);
       }
 
@@ -607,7 +614,52 @@
         document.getElementById("onboardingError").classList.add("hidden");
       }
 
+      function daysBetweenDateOnly(fromDateOnly, toDateOnly) {
+        const from = new Date(`${fromDateOnly}T00:00:00.000Z`).getTime();
+        const to = new Date(`${toDateOnly}T00:00:00.000Z`).getTime();
+        if (!Number.isFinite(from) || !Number.isFinite(to) || to < from) {
+          return 0;
+        }
+        return Math.floor((to - from) / (24 * 60 * 60 * 1000));
+      }
+
+      function refreshWizardDateHints() {
+        const hint = document.getElementById("soberDateHint");
+        if (selectedStartMode !== "already_sober") {
+          hint.textContent = "Дата начала трезвости не нужна для режима «бросаю сегодня».";
+          return;
+        }
+
+        if (!soberStartDateWizard.value) {
+          hint.textContent = "Выберите дату в календаре. Будущее недоступно.";
+          return;
+        }
+
+        const elapsed = daysBetweenDateOnly(soberStartDateWizard.value, today);
+        hint.textContent = `С выбранной даты прошло: ${elapsed} дн.`;
+      }
+
+      function refreshGoalConstraints() {
+        const minGoal = Math.max(1, currentStreakDays);
+        goalDaysWizard.min = String(minGoal);
+        if (Number(goalDaysWizard.value) < minGoal) {
+          goalDaysWizard.value = String(minGoal);
+        }
+        goalConstraintHint.textContent = `Цель должна быть не меньше текущей серии: ${minGoal} дн.`;
+      }
+
+      async function syncCurrentStreakForConstraints() {
+        try {
+          const data = await req("/goals");
+          currentStreakDays = Math.max(0, Number(data?.progress?.streakDays ?? 0));
+        } catch {
+          currentStreakDays = 0;
+        }
+        refreshGoalConstraints();
+      }
+
       async function startOnboardingFlow(force = false) {
+        await syncCurrentStreakForConstraints();
         if (!force) {
           try {
             const data = await req("/onboarding");
@@ -625,6 +677,7 @@
         }
 
         selectStartMode("now");
+        refreshWizardDateHints();
         showOnboardingStep(1);
         showOnboardingShell();
       }
@@ -771,8 +824,9 @@
         clearOnboardingError();
         try {
           const goalDays = Number(goalDaysWizard.value);
-          if (!Number.isFinite(goalDays) || goalDays < 1 || goalDays > 3650) {
-            showOnboardingError("Цель должна быть числом от 1 до 3650.");
+          const minGoal = Math.max(1, currentStreakDays);
+          if (!Number.isFinite(goalDays) || goalDays < minGoal || goalDays > 3650) {
+            showOnboardingError(`Цель должна быть числом от ${minGoal} до 3650.`);
             return;
           }
 
@@ -798,7 +852,13 @@
           await loadOnboardingSummary();
           await loadGoals();
         } catch (e) {
-          showOnboardingError("Не удалось сохранить стартовый профиль.");
+          if (e?.currentStreak !== undefined) {
+            currentStreakDays = Math.max(0, Number(e.currentStreak));
+            refreshGoalConstraints();
+            showOnboardingError(`Цель не может быть меньше текущей серии: ${currentStreakDays} дн.`);
+          } else {
+            showOnboardingError("Не удалось сохранить стартовый профиль.");
+          }
           print(e);
         }
       }
@@ -810,17 +870,21 @@
           const streakField = document.getElementById("streakView");
 
           if (!data?.activeGoal) {
+            currentStreakDays = 0;
             streakField.value = "активной цели пока нет";
           } else if (!progress) {
+            currentStreakDays = 0;
             streakField.value = `цель: ${data.activeGoal.target_days}д | серия: 0д`;
           } else {
             const streak = progress.streakDays ?? 0;
+            currentStreakDays = Math.max(0, Number(streak));
             const target = progress.targetDays ?? data.activeGoal.target_days ?? "-";
             const percent = progress.percent ?? 0;
             const remaining = progress.remainingDays ?? Math.max(0, Number(target) - streak);
             streakField.value = `серия: ${streak}д | цель: ${target}д | ${percent}% | осталось: ${remaining}д`;
           }
 
+          refreshGoalConstraints();
           print(data);
         } catch (e) {
           print(e);
