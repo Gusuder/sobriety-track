@@ -967,7 +967,7 @@ declare module 'fastify' {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sobriety Track</title>
+    <title>Трекер трезвости</title>
     <style>
       body { font-family: Inter, Arial, sans-serif; background:#f6f3ed; margin:0; color:#2d2a26; }
       .wrap { max-width: 860px; margin: 24px auto; padding: 0 16px; }
@@ -986,7 +986,7 @@ declare module 'fastify' {
   </head>
   <body>
     <div class="wrap">
-      <h1>Sobriety Track (MVP)</h1>
+      <h1>Трекер трезвости (MVP)</h1>
       <p class="muted">Русский интерфейс для проверки авторизации, онбординга, целей/прогресса, сброса пароля, причин и записей.</p>
 
       <div class="card">
@@ -1099,6 +1099,17 @@ declare module 'fastify' {
       const API = `${API_BASE}/api`;
       let token = localStorage.getItem('token') || '';
       const out = document.getElementById('out');
+      const reasonTitleRu = {
+        stress: 'Стресс',
+        conflict: 'Конфликт',
+        loneliness: 'Одиночество',
+        social: 'Социальная ситуация',
+        celebration: 'Праздник',
+        habit: 'Привычка',
+        boredom: 'Скука',
+        insomnia: 'Бессонница',
+        other: 'Другое'
+      };
       const today = new Date().toISOString().slice(0,10);
       document.getElementById('entryDate').value = today;
       document.getElementById('from').value = today.slice(0,8) + '01';
@@ -1235,7 +1246,7 @@ declare module 'fastify' {
       async function loadReasons() {
         try {
           const data = await req('/entries/reasons');
-          reasonsPills.innerHTML = (data.reasons || []).map((r) => `<span class="pill">${r.code}: ${r.title}</span>`).join('');
+          reasonsPills.innerHTML = (data.reasons || []).map((r) => `<span class="pill">${r.code}: ${reasonTitleRu[r.code] ?? r.title}</span>`).join('');
           print(data);
         } catch (e) { print(e); }
       }
