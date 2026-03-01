@@ -700,7 +700,7 @@
               <input id="to" type="date" />
             </div>
           </div>
-          <button class="btn secondary" onclick="listEntries()">Показать записи</button>
+          <button id="entriesToggleBtn" class="btn secondary" onclick="toggleEntriesView()">Показать записи</button>
           <div id="entriesAnalytics" class="analytics-wrap hidden">
             <div class="analytics-grid">
               <div class="analytics-card">
@@ -1664,6 +1664,23 @@
         renderEntriesCalendarRibbon(entries, fromDateOnly, toDateOnly);
       }
 
+      function setEntriesToggleLabel(showing) {
+        const btn = document.getElementById("entriesToggleBtn");
+        if (!btn) return;
+        btn.textContent = showing ? "Скрыть записи" : "Показать записи";
+      }
+
+      async function toggleEntriesView() {
+        const wrap = document.getElementById("entriesAnalytics");
+        if (!wrap) return;
+        if (wrap.classList.contains("hidden")) {
+          await listEntries();
+          return;
+        }
+        wrap.classList.add("hidden");
+        setEntriesToggleLabel(false);
+      }
+
       function openCrisisFocus() {
         const shell = document.getElementById("crisisFocusShell");
         if (!shell) return;
@@ -1683,6 +1700,7 @@
           const data = await req(`/entries?from=${from.value}&to=${to.value}`);
           print(data);
           renderEntriesAnalytics(data.entries || [], from.value, to.value);
+          setEntriesToggleLabel(true);
         } catch (e) {
           print(e);
         }
