@@ -101,7 +101,7 @@ test('now mode still relies on daily entries', () => {
   assert.equal(value, 0);
 });
 
-test('now mode ignores entries before started_at', () => {
+test('now mode counts past sober entries when they form current streak', () => {
   const value = calcStreakWithProfile(
     entries([
       ['2026-02-28', false]
@@ -110,5 +110,5 @@ test('now mode ignores entries before started_at', () => {
     fixedNow
   );
 
-  assert.equal(value, 0);
+  assert.equal(value, 1);
 });

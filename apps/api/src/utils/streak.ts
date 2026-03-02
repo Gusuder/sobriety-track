@@ -86,7 +86,8 @@ export function calcStreakWithProfile(entries: StreakEntry[], profile: StreakPro
   const entriesSinceStart = entries.filter((entry) => entry.entry_date >= normalizedStart && entry.entry_date <= todayKey);
 
   if (!profile.started_with_existing_streak) {
-    return calcCurrentStreak(entriesSinceStart, now);
+    const entriesToToday = entries.filter((entry) => entry.entry_date <= todayKey);
+    return calcCurrentStreak(entriesToToday, now);
   }
 
   let streakStart = normalizedStart;
