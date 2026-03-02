@@ -870,12 +870,6 @@
       </header>
 
       <div class="layout">
-        <div class="card">
-          <h3>Проверка API</h3>
-          <p class="muted">Быстрая проверка, что backend отвечает.</p>
-          <button class="btn" onclick="healthCheck()">Проверить статус API</button>
-        </div>
-
         <section class="card">
           <h3>Стартовый профиль</h3>
           <p id="onboardingSummary" class="muted">Профиль старта будет показан после сохранения.</p>
@@ -1049,11 +1043,6 @@
             </div>
           </div>
         </section>
-
-        <section class="card">
-          <h3>Ответ API</h3>
-          <pre id="out">Готово к проверке...</pre>
-        </section>
       </div>
     </main>
 
@@ -1174,7 +1163,6 @@
       let gameBoard = [];
       let gameSelected = null;
       let gameScoreValue = 0;
-      const out = document.getElementById("out");
       const protectedPaths = ["/goals", "/entries", "/onboarding"];
       const reasonTitleRu = {
         stress: "Стресс",
@@ -1197,7 +1185,10 @@
       document.getElementById("soberStartDateWizard").min = "2000-01-01";
       document.getElementById("soberStartDateWizard").max = today;
 
-      const print = (data) => out.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+      const print = (data) => {
+        const payload = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+        console.log(payload);
+      };
 
       function resetProgressState(note = "Заполните стартовый профиль, чтобы видеть мотивацию.") {
         currentStreakDays = 0;
