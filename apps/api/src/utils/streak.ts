@@ -83,10 +83,10 @@ export function calcStreakWithProfile(entries: StreakEntry[], profile: StreakPro
     return calcCurrentStreak(entries, now);
   }
   const todayKey = toDateOnly(now);
+  const entriesToToday = entries.filter((entry) => entry.entry_date <= todayKey);
   const entriesSinceStart = entries.filter((entry) => entry.entry_date >= normalizedStart && entry.entry_date <= todayKey);
 
   if (!profile.started_with_existing_streak) {
-    const entriesToToday = entries.filter((entry) => entry.entry_date <= todayKey);
     return calcCurrentStreak(entriesToToday, now);
   }
 
@@ -102,8 +102,10 @@ export function calcStreakWithProfile(entries: StreakEntry[], profile: StreakPro
   }
 
   if (streakStart > todayKey) {
-    return 0;
+    return calcCurrentStreak(entriesToToday, now);
   }
 
-  return diffDays(streakStart, todayKey) + 1;
+  const inferredStreak = diffDays(streakStart, todayKey) + 1;
+  const entriesStreak = calcCurrentStreak(entriesToToday, now);
+  return Math.max(inferredStreak, entriesStreak);
 }

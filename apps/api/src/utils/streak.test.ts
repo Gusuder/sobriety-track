@@ -91,6 +91,20 @@ test('profile streak resets after drank=true entry', () => {
   assert.equal(value, 2);
 });
 
+test('already_sober mode can extend streak from historical sober entries', () => {
+  const value = calcStreakWithProfile(
+    entries([
+      ['2026-02-28', false],
+      ['2026-02-27', false],
+      ['2026-02-26', false]
+    ]),
+    { started_at: '2026-02-28', started_with_existing_streak: true },
+    fixedNow
+  );
+
+  assert.equal(value, 3);
+});
+
 test('now mode still relies on daily entries', () => {
   const value = calcStreakWithProfile(
     entries([]),
