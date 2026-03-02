@@ -2011,6 +2011,7 @@
           syncDrankDependentFields();
           toggleAdvancedEntry(false);
           await loadGoals();
+          await refreshEntriesIfOpen();
         } catch (e) {
           print(e);
         }
@@ -2031,6 +2032,7 @@
           };
           print(await req("/entries", { method: "POST", body: JSON.stringify(payload) }));
           await loadGoals();
+          await refreshEntriesIfOpen();
         } catch (e) {
           print(e);
         }
@@ -2298,10 +2300,10 @@
         }
       }
 
-      function refreshEntriesIfOpen() {
+      async function refreshEntriesIfOpen() {
         const wrap = document.getElementById("entriesAnalytics");
         if (!wrap || wrap.classList.contains("hidden")) return;
-        listEntries();
+        await listEntries();
       }
 
       function goalMilestoneKey(activeGoal, progress) {
