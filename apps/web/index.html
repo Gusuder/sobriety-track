@@ -851,7 +851,7 @@
       <header class="topbar">
         <div>
           <h2>Трекер трезвости</h2>
-          <p>Личный кабинет: онбординг, цели, дневник и история записей.</p>
+          <p>Личный кабинет: старт, цели, дневник и история.</p>
         </div>
         <div style="display:grid; gap:8px; min-width: 210px;">
           <div class="progress-widget">
@@ -880,10 +880,10 @@
 
         <section class="card">
           <div id="quickHeader" class="quick-head">
-            <h3>Быстрый чек-ин</h3>
+            <h3>Быстрая отметка</h3>
             <span class="quick-badge">~20 секунд</span>
           </div>
-          <p id="quickIntro" class="muted">Минимальная отметка дня для удержания фокуса и трека прогресса.</p>
+          <p id="quickIntro" class="muted">Короткая отметка дня, чтобы не терять темп.</p>
           <div id="quickCheckinPanel" class="quick-grid">
             <div class="row">
               <div class="field" style="margin-top:0;">
@@ -989,15 +989,15 @@
                 <div id="reasonOptions" class="reason-tags muted">Причины загружаются автоматически…</div>
               </div>
             </div>
-            <button class="btn" type="button" onclick="createEntry()">Сохранить расширенную запись</button>
+            <button class="btn" type="button" onclick="createEntry()">Сохранить подробную запись</button>
           </div>
-          <button id="advancedToggleBtn" class="btn secondary" type="button" onclick="toggleAdvancedEntry()" style="margin-top:10px;">Открыть расширенную запись</button>
+          <button id="advancedToggleBtn" class="btn secondary" type="button" onclick="toggleAdvancedEntry()" style="margin-top:10px;">Открыть подробную запись</button>
         </section>
 
         <section class="card">
-          <h3>Кризисное меню</h3>
-          <p class="muted">Отдельный фокус-режим с дыханием, игрой на переключение и советами.</p>
-          <button class="btn" type="button" onclick="openCrisisFocus()">Открыть фокус-режим</button>
+          <h3>Помощь в сложный момент</h3>
+          <p class="muted">Отдельный режим помощи: дыхание, игра на переключение и короткие советы.</p>
+          <button class="btn" type="button" onclick="openCrisisFocus()">Открыть режим помощи</button>
         </section>
 
         <section class="card">
@@ -1017,7 +1017,7 @@
             <div class="analytics-grid">
               <div class="analytics-card chart-card">
                 <div class="analytics-head">
-                  <strong>Линейный график зависимости</strong>
+                  <strong>График по дням</strong>
                   <span class="legend">
                     <span><b style="background:#1e83c7"></b>Настроение</span>
                     <span><b style="background:#c24d43"></b>Пил</span>
@@ -1028,15 +1028,15 @@
               </div>
               <div class="analytics-card ribbon-card">
                 <div class="analytics-head">
-                  <strong>Календарная лента периода</strong>
+                  <strong>Календарь за период</strong>
                   <span class="muted">цвет дня + настроение</span>
                 </div>
                 <div id="entriesCalendarRibbon" class="calendar-ribbon"></div>
               </div>
               <div class="analytics-card insights-card">
                 <div class="analytics-head">
-                  <strong>Аналитика триггеров</strong>
-                  <span class="muted">где выше риск в выбранном периоде</span>
+                  <strong>Что чаще приводит к срывам</strong>
+                  <span class="muted">что происходило в выбранном периоде</span>
                 </div>
                 <div id="triggerInsights" class="insights-grid"></div>
               </div>
@@ -1049,7 +1049,7 @@
     <section id="crisisFocusShell" class="focus-shell hidden">
       <div class="focus-panel">
         <div class="focus-head">
-          <h3>Кризисный фокус-режим</h3>
+          <h3>Режим помощи</h3>
           <button class="btn secondary" type="button" onclick="closeCrisisFocus()">Вернуться назад</button>
         </div>
         <div class="crisis-grid">
@@ -1057,12 +1057,12 @@
             <h4>Дыхательные техники</h4>
             <div class="breath-box">
               <select id="breathTechnique" onchange="setBreathTechnique()">
-                <option value="nhs">NHS спокойное дыхание (5-5)</option>
-                <option value="box">Box breathing (4-4-4-4)</option>
+                <option value="nhs">Спокойное дыхание 5-5</option>
+                <option value="box">Ровное дыхание 4-4-4-4</option>
                 <option value="478">4-7-8</option>
-                <option value="sigh">Cyclic/physiological sigh (3-1-6)</option>
+                <option value="sigh">Двойной вдох и длинный выдох (3-1-6)</option>
               </select>
-              <p id="breathHint" class="muted">NHS: вдох 5с, выдох 5с, 5+ минут.</p>
+              <p id="breathHint" class="muted">Спокойное дыхание: вдох 5с, выдох 5с, от 5 минут.</p>
               <div class="row">
                 <input id="breathMinutes" type="number" min="1" max="15" value="2" />
                 <button class="btn secondary" type="button" onclick="startBreathing()">Старт</button>
@@ -1079,7 +1079,7 @@
           </div>
 
           <div class="crisis-card">
-            <h4>Мини-игра: собери 3</h4>
+            <h4>Мини-игра: три в ряд</h4>
             <div class="game-top">
               <span id="gameScore" class="muted">Очки: 0</span>
               <button class="btn secondary" type="button" onclick="newMatch3Game()">Новая игра</button>
@@ -1593,7 +1593,7 @@
             { label: "Вдох", seconds: 5, scale: 1.14 },
             { label: "Выдох", seconds: 5, scale: 0.86 }
           ];
-          hintEl.textContent = "NHS: вдох 5с, выдох 5с, повторяйте минимум 5 минут.";
+          hintEl.textContent = "Спокойное дыхание: вдох 5с, выдох 5с, повторяйте минимум 5 минут.";
           return;
         }
         if (value === "478") {
@@ -1611,7 +1611,7 @@
             { label: "Довдох", seconds: 1, scale: 1.16 },
             { label: "Длинный выдох", seconds: 6, scale: 0.84 }
           ];
-          hintEl.textContent = "Cyclic sighing: два вдоха через нос, длинный выдох через рот.";
+          hintEl.textContent = "Двойной вдох и длинный выдох: два вдоха через нос, длинный выдох через рот.";
           return;
         }
         breathProgram = [
@@ -1620,7 +1620,7 @@
           { label: "Выдох", seconds: 4, scale: 0.88 },
           { label: "Пауза", seconds: 4, scale: 0.88 }
         ];
-        hintEl.textContent = "Box breathing: 4с вдох, 4с задержка, 4с выдох, 4с пауза.";
+        hintEl.textContent = "Ровное дыхание: 4с вдох, 4с задержка, 4с выдох, 4с пауза.";
       }
 
       function applyBreathPhase() {
@@ -1966,7 +1966,7 @@
         quickPanel.classList.toggle("hidden", shouldOpen);
         quickHeader.classList.toggle("hidden", shouldOpen);
         quickIntro.classList.toggle("hidden", shouldOpen);
-        btn.textContent = shouldOpen ? "Открыть быстрый чек-ин" : "Открыть расширенную запись";
+        btn.textContent = shouldOpen ? "Открыть быструю отметку" : "Открыть подробную запись";
 
         if (shouldOpen) {
           entryDate.value = quickDate.value;
@@ -1998,7 +1998,7 @@
             mood: quickMood.value,
             stressLevel: stress,
             cravingLevel: craving,
-            daySummary: selectedDrank ? "Быстрый чек-ин: был алкоголь." : "Быстрый чек-ин: день без алкоголя.",
+            daySummary: selectedDrank ? "Быстрая отметка: был алкоголь." : "Быстрая отметка: день без алкоголя.",
             comment: "Быстрый режим",
             reasonCodes: selectedDrank ? selectedQuickReasonCodes() : []
           };
@@ -2202,7 +2202,7 @@
         const el = document.getElementById("triggerInsights");
         if (!el) return;
         if (!entries.length) {
-          el.innerHTML = `<div class="insight-note">Нет данных для аналитики за выбранный период.</div>`;
+          el.innerHTML = `<div class="insight-note">Нет данных за выбранный период.</div>`;
           return;
         }
 
