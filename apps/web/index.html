@@ -1206,6 +1206,7 @@
 
       function showAuth(errorText = "") {
         stopOnboardingAutoRefresh();
+        closeCrisisFocus();
         resetProgressState("Требуется вход в аккаунт.");
         closeGoalAchievedModal();
         closeProfileModal();
@@ -1459,8 +1460,16 @@
       async function healthCheck() {
         try {
           const res = await fetch(`${API_BASE}/health`);
-          const data = await res.json();
-          print(data);
+          const raw = await res.text();
+          let data = null;
+          if (raw) {
+            try {
+              data = JSON.parse(raw);
+            } catch {
+              data = raw;
+            }
+          }
+          print(data ?? { status: res.ok ? "ok" : "error", httpStatus: res.status });
         } catch (e) {
           print(e);
         }
@@ -1935,13 +1944,13 @@
 
       function toggleReasonTag(code) {
         if (drank.value !== "true") return;
-        const el = document.querySelector(`.reason-tag[data-code="${code}"]`);
+        const el = document.querySelector(`#reasonOptions .reason-tag[data-code="${code}"]`);
         if (!el) return;
         el.classList.toggle("active");
       }
 
       function selectedReasonCodes() {
-        return Array.from(document.querySelectorAll(".reason-tag.active"))
+        return Array.from(document.querySelectorAll("#reasonOptions .reason-tag.active"))
           .map((el) => el.dataset.code)
           .filter(Boolean);
       }
@@ -2038,12 +2047,12 @@
 
       function syncDrankDependentFields() {
         const canSelectReasons = drank.value === "true";
-        const wrap = document.querySelector(".reason-tag-wrap");
+        const wrap = document.getElementById("reasonOptions")?.parentElement;
         if (!wrap) return;
 
         wrap.classList.toggle("disabled", !canSelectReasons);
         if (!canSelectReasons) {
-          document.querySelectorAll(".reason-tag.active").forEach((el) => el.classList.remove("active"));
+          document.querySelectorAll("#reasonOptions .reason-tag.active").forEach((el) => el.classList.remove("active"));
         }
       }
 
@@ -2455,3 +2464,5 @@
     </script>
   </body>
 </html>
+
+

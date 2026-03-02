@@ -242,6 +242,24 @@ test('GET /api/entries validates query', async () => {
   (pool as any).query = originalQuery;
 });
 
+test('GET /api/entries rejects range where from is greater than to', async () => {
+  const originalQuery = pool.query;
+  (pool as any).query = async () => {
+    throw new Error('query should not be called for invalid date range');
+  };
+
+  const app = await buildApp();
+  const res = await app.inject({ method: 'GET', url: '/api/entries?from=2026-03-10&to=2026-03-01' });
+
+  assert.equal(res.statusCode, 400);
+  const body = res.json();
+  assert.equal(body.error, 'Invalid query');
+  assert.equal(body.details.formErrors[0], 'from must be less than or equal to to');
+
+  await app.close();
+  (pool as any).query = originalQuery;
+});
+
 test('GET /api/entries returns entries list', async () => {
   const originalQuery = pool.query;
   (pool as any).query = async () => ({

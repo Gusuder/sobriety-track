@@ -95,6 +95,9 @@ export const entriesRoutes: FastifyPluginAsync = async (app) => {
 
     const userId = request.user.userId;
     const { from, to } = parsed.data;
+    if (from > to) {
+      return reply.status(400).send({ error: 'Invalid query', details: { formErrors: ['from must be less than or equal to to'] } });
+    }
 
     const result = await pool.query(
       `SELECT de.id,
