@@ -53,6 +53,7 @@ docker compose up --build
 ## Production
 - Use [apps/api/.env.production.example](apps/api/.env.production.example) as the production env template.
 - Follow [docs/production-rollout.md](docs/production-rollout.md) for pre-deploy, rollout, and rollback checks.
+- For staging validation use [docs/staging-dry-run.md](docs/staging-dry-run.md) and `scripts/post-deploy-check.ps1`.
 
 ## Smoke E2E
 Запуск после `docker compose up --build`:
