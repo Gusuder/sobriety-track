@@ -26,6 +26,4 @@ Run your normal deployment pipeline for `main`.
    - entry save/list
 
 ## 5. Rollback
-1. Redeploy previous known-good image/commit.
-2. Verify `/health` and `/ready`.
-3. Validate user login + onboarding path.
+Follow [docs/rollback-runbook.md](rollback-runbook.md).

@@ -18,8 +18,8 @@
 - No sustained `5xx` errors in API logs
 
 ## 4. Data and Rollback
-- Database backup confirmed before deploy
-- Rollback command/script prepared and tested
+- Database backup confirmed before deploy (`scripts/db-backup.ps1`)
+- Rollback runbook reviewed (`docs/rollback-runbook.md`)
 - Migration changes reviewed for backward compatibility
 
 ## 5. Post-Deploy Validation
