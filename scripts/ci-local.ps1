@@ -13,7 +13,11 @@ function Step($text) {
 Step "API tests"
 Push-Location (Join-Path $repoRoot "apps/api")
 try {
-  npm test
+  $testFiles = Get-ChildItem -Path "src" -Recurse -Filter "*.test.ts" | ForEach-Object { $_.FullName }
+  if (-not $testFiles -or $testFiles.Count -eq 0) {
+    throw "No API test files found under apps/api/src"
+  }
+  node --import tsx --import ./src/test/setup-env.ts --test $testFiles
 } finally {
   Pop-Location
 }
