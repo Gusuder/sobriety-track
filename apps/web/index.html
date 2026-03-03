@@ -1402,9 +1402,21 @@
               await loadGoals();
               return;
             }
+            if (data && Object.prototype.hasOwnProperty.call(data, "profile") && data.profile === null) {
+              selectStartMode("now");
+              refreshWizardDateHints();
+              showOnboardingStep(1);
+              showOnboardingShell();
+              return;
+            }
           } catch (e) {
+            if (e?.__status === 401 || e?.error === "Unauthorized") {
+              return;
+            }
             if (e?.__status !== 404 && e?.error !== "Not Found") {
               print(e);
+              showAuth("Не удалось загрузить профиль. Проверьте API и повторите вход.");
+              return;
             }
           }
         }
@@ -1497,6 +1509,9 @@
         try {
           const payload = { login: login.value.trim(), password: password.value };
           const data = await req("/auth/login", { method: "POST", body: JSON.stringify(payload) });
+          if (!data?.accessToken || typeof data.accessToken !== "string") {
+            throw { error: "Invalid auth response" };
+          }
           token = data.accessToken;
           localStorage.setItem("token", token);
           failedLoginAttempts = 0;
