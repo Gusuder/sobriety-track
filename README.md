@@ -50,6 +50,22 @@ docker compose up --build
 powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
 ```
 
+## Web Regression E2E (Playwright)
+1. Поднимите сервисы:
+   ```bash
+   docker compose up --build -d
+   ```
+2. Установите зависимости тестов:
+   ```bash
+   cd e2e
+   npm install
+   npx playwright install chromium
+   ```
+3. Запустите тесты:
+   ```bash
+   npm test
+   ```
+
 ## API endpoints
 - `POST /api/auth/register`
 - `POST /api/auth/login`

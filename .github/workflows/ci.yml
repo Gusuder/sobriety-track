@@ -55,3 +55,47 @@ jobs:
       - name: Stop services
         if: always()
         run: docker compose down -v
+
+  web-regression-e2e:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: e2e/package.json
+
+      - name: Install E2E dependencies
+        run: npm install
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Build and start services
+        working-directory: .
+        run: docker compose up --build -d
+
+      - name: Run web regression E2E
+        run: npm test
+
+      - name: Dump compose status
+        if: always()
+        working-directory: .
+        run: docker compose ps
+
+      - name: Dump API logs on failure
+        if: failure()
+        working-directory: .
+        run: docker compose logs api
+
+      - name: Stop services
+        if: always()
+        working-directory: .
+        run: docker compose down -v

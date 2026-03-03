@@ -3,6 +3,7 @@
 ## 1. Build and Tests
 - `apps/api`: `npm ci`, `npm run typecheck`, `npm test`
 - Full smoke: `powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1`
+- Web regression: `cd e2e && npm install && npx playwright install chromium && npm test`
 - Docker health: `docker compose ps` (all services `Up`, `postgres` and `api` healthy)
 
 ## 2. Security Baseline
