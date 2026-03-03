@@ -35,6 +35,28 @@ if (-not $token) {
 }
 $headers = @{ Authorization = "Bearer $token" }
 
+Step "Auth negative checks"
+$badLoginBody = @{ login = $login; password = "WrongPass123!" } | ConvertTo-Json
+try {
+  [void](Invoke-RestMethod -Method POST -Uri "$api/auth/login" -ContentType "application/json" -Body $badLoginBody)
+  throw "Expected 401 for invalid credentials"
+} catch {
+  $statusCode = $_.Exception.Response.StatusCode.value__
+  if ($statusCode -ne 401) {
+    throw "Expected 401 for invalid credentials, got $statusCode"
+  }
+}
+
+try {
+  [void](Invoke-RestMethod -Method POST -Uri "$api/onboarding" -ContentType "application/json" -Body (@{ startMode = "now"; goalDays = 30 } | ConvertTo-Json))
+  throw "Expected 401 for onboarding without token"
+} catch {
+  $statusCode = $_.Exception.Response.StatusCode.value__
+  if ($statusCode -ne 401) {
+    throw "Expected 401 for onboarding without token, got $statusCode"
+  }
+}
+
 Step "Onboarding"
 $onboardingBody = @{ startMode = "now"; goalDays = 30 } | ConvertTo-Json
 $onboardingSave = Invoke-RestMethod -Method POST -Uri "$api/onboarding" -Headers $headers -ContentType "application/json" -Body $onboardingBody
