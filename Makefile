@@ -1,4 +1,4 @@
-﻿.PHONY: up down reset logs smoke
+.PHONY: up down reset logs smoke api-test web-e2e ci-local
 
 up:
 	docker compose up --build
@@ -14,3 +14,11 @@ logs:
 
 smoke:
 	powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
+
+api-test:
+	cd apps/api && npm test
+
+web-e2e:
+	cd e2e && npm test
+
+ci-local: api-test smoke web-e2e

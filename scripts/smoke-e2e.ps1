@@ -23,6 +23,12 @@ if ($health.status -ne "ok") {
   throw "Health check failed"
 }
 
+Step "Readiness"
+$ready = Invoke-RestMethod -Method GET -Uri "$ApiBase/ready"
+if ($ready.status -ne "ready") {
+  throw "Readiness check failed"
+}
+
 Step "Auth register/login"
 $registerBody = @{ login = $login; email = $email; displayName = "Smoke User"; password = $password } | ConvertTo-Json
 [void](Invoke-RestMethod -Method POST -Uri "$api/auth/register" -ContentType "application/json" -Body $registerBody)
@@ -34,6 +40,28 @@ if (-not $token) {
   throw "Login failed: no access token"
 }
 $headers = @{ Authorization = "Bearer $token" }
+
+Step "Auth negative checks"
+$badLoginBody = @{ login = $login; password = "WrongPass123!" } | ConvertTo-Json
+try {
+  [void](Invoke-RestMethod -Method POST -Uri "$api/auth/login" -ContentType "application/json" -Body $badLoginBody)
+  throw "Expected 401 for invalid credentials"
+} catch {
+  $statusCode = $_.Exception.Response.StatusCode.value__
+  if ($statusCode -ne 401) {
+    throw "Expected 401 for invalid credentials, got $statusCode"
+  }
+}
+
+try {
+  [void](Invoke-RestMethod -Method POST -Uri "$api/onboarding" -ContentType "application/json" -Body (@{ startMode = "now"; goalDays = 30 } | ConvertTo-Json))
+  throw "Expected 401 for onboarding without token"
+} catch {
+  $statusCode = $_.Exception.Response.StatusCode.value__
+  if ($statusCode -ne 401) {
+    throw "Expected 401 for onboarding without token, got $statusCode"
+  }
+}
 
 Step "Onboarding"
 $onboardingBody = @{ startMode = "now"; goalDays = 30 } | ConvertTo-Json
