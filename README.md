@@ -14,6 +14,7 @@ docker compose up --build
 - `make smoke` - run API/web smoke checks
 - `make web-e2e` - run Playwright web regression tests
 - `make ci-local` - run all checks required before merge
+- `powershell -ExecutionPolicy Bypass -File .\scripts\ci-local.ps1` - same local CI gate for Windows (without `make`)
 
 ## Как проверить MVP локально
 
