@@ -23,6 +23,12 @@ if ($health.status -ne "ok") {
   throw "Health check failed"
 }
 
+Step "Readiness"
+$ready = Invoke-RestMethod -Method GET -Uri "$ApiBase/ready"
+if ($ready.status -ne "ready") {
+  throw "Readiness check failed"
+}
+
 Step "Auth register/login"
 $registerBody = @{ login = $login; email = $email; displayName = "Smoke User"; password = $password } | ConvertTo-Json
 [void](Invoke-RestMethod -Method POST -Uri "$api/auth/register" -ContentType "application/json" -Body $registerBody)

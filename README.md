@@ -20,11 +20,12 @@ docker compose up --build
    ```bash
    docker compose up --build
    ```
-3. Дождаться готовности сервисов и проверить health endpoint:
+3. Дождаться готовности сервисов и проверить health/readiness endpoints:
    ```bash
    curl http://localhost:4000/health
+   curl http://localhost:4000/ready
    ```
-   Ожидаемый ответ: `{"status":"ok"}`.
+   Ожидаемые ответы: `{"status":"ok"}` и `{"status":"ready"}`.
 4. Открыть UI для ручной проверки: `http://localhost:8080`.
 5. Пройти базовый сценарий в UI:
    - Register
@@ -40,6 +41,7 @@ docker compose up --build
 ## URLs
 - Web UI: http://localhost:8080
 - API health: http://localhost:4000/health
+- API readiness: http://localhost:4000/ready
 
 ## Smoke E2E
 Запуск после `docker compose up --build`:

@@ -3,6 +3,7 @@ import fastifyJwt from '@fastify/jwt';
 import cors from '@fastify/cors';
 import { env } from './config/env.js';
 import { runMigrations } from './db/migrate.js';
+import { pool } from './db/pool.js';
 import { authRoutes } from './routes/auth.js';
 import { entriesRoutes } from './routes/entries.js';
 import { goalsRoutes } from './routes/goals.js';
@@ -47,6 +48,15 @@ app.decorate('authenticate', async function (request: FastifyRequest, reply: Fas
 });
 
 app.get('/health', async () => ({ status: 'ok' }));
+app.get('/ready', async (_request, reply) => {
+  try {
+    await pool.query('SELECT 1');
+    return { status: 'ready' };
+  } catch (err) {
+    app.log.error({ err }, 'Readiness check failed');
+    return reply.status(503).send({ status: 'not_ready' });
+  }
+});
 app.register(authRoutes, { prefix: '/api' });
 app.register(entriesRoutes, { prefix: '/api' });
 app.register(goalsRoutes, { prefix: '/api' });
