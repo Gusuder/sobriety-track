@@ -1,5 +1,5 @@
 ﻿import { createHash, randomBytes } from 'node:crypto';
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginAsync, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { pool } from '../db/pool.js';
 import { hashPassword, verifyPassword } from '../utils/hash.js';
@@ -26,9 +26,44 @@ const resetPasswordSchema = z.object({
 });
 
 const hashResetToken = (token: string) => createHash('sha256').update(token).digest('hex');
+const rateLimitWindowMs = 15 * 60 * 1000;
+const authRateLimits = {
+  register: 5,
+  login: 10,
+  forgotPassword: 5,
+  resetPassword: 10
+} as const;
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function applyAuthRateLimit(
+  reply: FastifyReply,
+  key: string,
+  maxRequests: number
+) {
+  const now = Date.now();
+  const record = rateLimitStore.get(key);
+  if (!record || record.resetAt <= now) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + rateLimitWindowMs });
+    return false;
+  }
+
+  if (record.count >= maxRequests) {
+    const retryAfter = Math.max(1, Math.ceil((record.resetAt - now) / 1000));
+    reply.header('Retry-After', String(retryAfter));
+    reply.status(429).send({ error: 'Too many requests. Please try again later.' });
+    return true;
+  }
+
+  record.count += 1;
+  rateLimitStore.set(key, record);
+  return false;
+}
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
   app.post('/auth/register', async (request, reply) => {
+    if (applyAuthRateLimit(reply, `register:${request.ip}`, authRateLimits.register)) {
+      return;
+    }
     const parsed = registerSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.flatten() });
@@ -57,6 +92,9 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   });
 
   app.post('/auth/login', async (request, reply) => {
+    if (applyAuthRateLimit(reply, `login:${request.ip}`, authRateLimits.login)) {
+      return;
+    }
     const parsed = loginSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.flatten() });
@@ -81,6 +119,9 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   });
 
   app.post('/auth/forgot-password', async (request, reply) => {
+    if (applyAuthRateLimit(reply, `forgot:${request.ip}`, authRateLimits.forgotPassword)) {
+      return;
+    }
     const parsed = forgotPasswordSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.flatten() });
@@ -111,6 +152,9 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   });
 
   app.post('/auth/reset-password', async (request, reply) => {
+    if (applyAuthRateLimit(reply, `reset:${request.ip}`, authRateLimits.resetPassword)) {
+      return;
+    }
     const parsed = resetPasswordSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.flatten() });

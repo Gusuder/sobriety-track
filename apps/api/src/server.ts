@@ -9,9 +9,33 @@ import { goalsRoutes } from './routes/goals.js';
 import { onboardingRoutes } from './routes/onboarding.js';
 import { profileRoutes } from './routes/profile.js';
 
+const insecureProductionSecrets = new Set(['change-me', 'change-me-super-secret', 'secret', 'password', '12345678']);
+if (env.NODE_ENV === 'production' && insecureProductionSecrets.has(env.JWT_SECRET)) {
+  throw new Error('Unsafe JWT_SECRET for production environment');
+}
+
 const app = Fastify({ logger: true });
 
-app.register(cors, { origin: true });
+const allowedOrigins = new Set(
+  (env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+);
+
+app.register(cors, {
+  origin: (origin, cb) => {
+    if (!origin) {
+      cb(null, true);
+      return;
+    }
+    if (allowedOrigins.size === 0) {
+      cb(null, env.NODE_ENV !== 'production');
+      return;
+    }
+    cb(null, allowedOrigins.has(origin));
+  }
+});
 app.register(fastifyJwt, { secret: env.JWT_SECRET });
 
 app.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply) {

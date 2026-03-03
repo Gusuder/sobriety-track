@@ -15,6 +15,7 @@ docker compose up --build
    ```bash
    cp apps/api/.env.example apps/api/.env
    ```
+   Для production обязательно задайте сильный `JWT_SECRET` и список `CORS_ORIGINS`.
 2. Запустить проект:
    ```bash
    docker compose up --build

@@ -6,7 +6,9 @@ dotenv.config();
 const envSchema = z.object({
   PORT: z.coerce.number().default(4000),
   JWT_SECRET: z.string().min(8),
-  DATABASE_URL: z.string().min(1)
+  DATABASE_URL: z.string().min(1),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  CORS_ORIGINS: z.string().optional()
 });
 
 export const env = envSchema.parse(process.env);
