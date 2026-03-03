@@ -9,6 +9,12 @@ MVP now includes:
 docker compose up --build
 ```
 
+## Useful commands
+- `make api-test` - run API tests
+- `make smoke` - run API/web smoke checks
+- `make web-e2e` - run Playwright web regression tests
+- `make ci-local` - run all checks required before merge
+
 ## Как проверить MVP локально
 
 1. Скопировать переменные окружения API:
