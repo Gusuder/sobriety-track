@@ -1,4 +1,4 @@
-﻿import '@fastify/jwt';
+import '@fastify/jwt';
 import 'fastify';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
@@ -16,6 +16,10 @@ declare module '@fastify/jwt' {
 }
 
 declare module 'fastify' {
+  interface FastifyRequest {
+    requestStartHrTime?: bigint;
+  }
+
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<unknown>;
   }

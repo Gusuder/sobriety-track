@@ -49,11 +49,13 @@ docker compose up --build
 - Web UI: http://localhost:8080
 - API health: http://localhost:4000/health
 - API readiness: http://localhost:4000/ready
+- API metrics: http://localhost:4000/metrics
 
 ## Production
 - Use [apps/api/.env.production.example](apps/api/.env.production.example) as the production env template.
 - Follow [docs/production-rollout.md](docs/production-rollout.md) for pre-deploy, rollout, and rollback checks.
 - For staging validation use [docs/staging-dry-run.md](docs/staging-dry-run.md) and `scripts/post-deploy-check.ps1`.
+- Monitoring baseline and alert thresholds: [docs/observability.md](docs/observability.md).
 - DB backup/restore scripts:
   - `powershell -ExecutionPolicy Bypass -File .\scripts\db-backup.ps1`
   - `powershell -ExecutionPolicy Bypass -File .\scripts\db-restore.ps1 -BackupFile <path-to-sql> -ResetPublicSchema`

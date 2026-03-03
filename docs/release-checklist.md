@@ -15,6 +15,7 @@
 ## 3. Runtime Readiness
 - `GET /health` returns `{"status":"ok"}`
 - `GET /ready` returns `{"status":"ready"}`
+- `GET /metrics` is reachable and reports expected counters
 - No sustained `5xx` errors in API logs
 
 ## 4. Data and Rollback
