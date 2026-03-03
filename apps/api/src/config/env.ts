@@ -1,4 +1,4 @@
-﻿import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import { z } from 'zod';
 
 dotenv.config();
@@ -11,4 +11,15 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().optional()
 });
 
-export const env = envSchema.parse(process.env);
+const parsed = envSchema.parse(process.env);
+
+if (parsed.NODE_ENV === 'production') {
+  if (!parsed.CORS_ORIGINS || parsed.CORS_ORIGINS.trim().length === 0) {
+    throw new Error('CORS_ORIGINS is required in production');
+  }
+  if (parsed.JWT_SECRET.length < 32) {
+    throw new Error('JWT_SECRET must be at least 32 characters in production');
+  }
+}
+
+export const env = parsed;

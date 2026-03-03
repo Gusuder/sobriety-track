@@ -50,6 +50,10 @@ docker compose up --build
 - API health: http://localhost:4000/health
 - API readiness: http://localhost:4000/ready
 
+## Production
+- Use [apps/api/.env.production.example](apps/api/.env.production.example) as the production env template.
+- Follow [docs/production-rollout.md](docs/production-rollout.md) for pre-deploy, rollout, and rollback checks.
+
 ## Smoke E2E
 Запуск после `docker compose up --build`:
 
