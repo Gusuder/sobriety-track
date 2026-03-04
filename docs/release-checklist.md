@@ -30,3 +30,5 @@
 - Register -> Login -> Onboarding -> Goals -> Entry flow works from Web UI
 - Profile page loads and metrics are visible
 - Auth failures return expected errors (`401` or `429`)
+- `scripts/post-deploy-check.ps1` passes
+- If Google OAuth is required, `scripts/post-deploy-check.ps1 -RequireGoogleOAuth` passes

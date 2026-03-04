@@ -1,6 +1,7 @@
 param(
   [string]$ApiBase = "http://localhost:4000",
-  [string]$WebBase = "http://localhost:8080"
+  [string]$WebBase = "http://localhost:8080",
+  [switch]$RequireGoogleOAuth
 )
 
 $ErrorActionPreference = "Stop"
@@ -27,6 +28,21 @@ Step "Readiness"
 $ready = Invoke-RestMethod -Method GET -Uri "$ApiBase/ready"
 if ($ready.status -ne "ready") {
   throw "Readiness check failed"
+}
+
+Step "Google OAuth config"
+$googleConfig = Invoke-RestMethod -Method GET -Uri "$api/auth/google/config"
+$googleEnabled = [bool]($googleConfig.enabled)
+if ($RequireGoogleOAuth -and -not $googleEnabled) {
+  throw "Google OAuth is required but disabled (/api/auth/google/config returned enabled=false)"
+}
+if ($googleEnabled) {
+  if (-not $googleConfig.clientId) {
+    throw "Google OAuth is enabled but clientId is empty"
+  }
+  Write-Host "Google OAuth: enabled" -ForegroundColor Green
+} else {
+  Write-Host "Google OAuth: disabled (optional mode)" -ForegroundColor Yellow
 }
 
 Step "Auth register/login"

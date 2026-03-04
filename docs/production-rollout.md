@@ -27,6 +27,9 @@ Run your normal deployment pipeline for `main`.
    - onboarding save
    - goals load/update
    - entry save/list
+4. Run post-deploy script:
+   - default: `powershell -ExecutionPolicy Bypass -File .\scripts\post-deploy-check.ps1`
+   - require Google OAuth: `powershell -ExecutionPolicy Bypass -File .\scripts\post-deploy-check.ps1 -RequireGoogleOAuth`
 
 ## 5. Rollback
 Follow [docs/rollback-runbook.md](rollback-runbook.md).
