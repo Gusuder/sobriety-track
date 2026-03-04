@@ -1262,10 +1262,11 @@
         return origin;
       })();
       const API = `${API_BASE}/api`;
-      const GOOGLE_CLIENT_ID =
+      let googleClientId =
         (window.GOOGLE_CLIENT_ID && String(window.GOOGLE_CLIENT_ID).trim()) ||
         localStorage.getItem("googleClientId") ||
         "";
+      let googleConfigLoaded = false;
       let token = localStorage.getItem("token") || "";
       let currentStreakDays = 0;
       let currentProfile = null;
@@ -1387,7 +1388,7 @@
         document.getElementById("loginForm").classList.remove("hidden");
         document.getElementById("registerForm").classList.add("hidden");
         updateForgotHintVisibility();
-        initGoogleAuthButton();
+        void initGoogleAuthButton();
       }
 
       function openRegisterPanel() {
@@ -1398,7 +1399,7 @@
         document.getElementById("loginForm").classList.add("hidden");
         document.getElementById("registerForm").classList.remove("hidden");
         document.getElementById("forgotHintWrap").classList.add("hidden");
-        initGoogleAuthButton();
+        void initGoogleAuthButton();
       }
 
       function continueStartFlow() {
@@ -1747,11 +1748,27 @@
         }
       }
 
-      function initGoogleAuthButton() {
+      async function loadGoogleAuthConfig() {
+        if (googleConfigLoaded) return;
+        googleConfigLoaded = true;
+        try {
+          const res = await fetch(`${API}/auth/google/config`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data?.enabled && typeof data.clientId === "string" && data.clientId.trim()) {
+            googleClientId = data.clientId.trim();
+          }
+        } catch {
+          // Keep fallback sources if config endpoint is not reachable.
+        }
+      }
+
+      async function initGoogleAuthButton() {
+        await loadGoogleAuthConfig();
         const wraps = Array.from(document.querySelectorAll(".oauth-google-wrap"));
         if (!wraps.length) return;
 
-        if (!GOOGLE_CLIENT_ID) {
+        if (!googleClientId) {
           wraps.forEach((wrap) => {
             wrap.innerHTML = `<span class="muted">Google-вход временно недоступен.</span>`;
           });
@@ -1768,7 +1785,7 @@
 
         if (!googleAuthRendered) {
           window.google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
+            client_id: googleClientId,
             callback: (response) => {
               handleGoogleAuthCredential(response?.credential);
             }

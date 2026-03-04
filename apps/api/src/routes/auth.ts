@@ -142,6 +142,13 @@ async function applyAuthRateLimit(
 }
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
+  app.get('/auth/google/config', async () => {
+    return {
+      enabled: Boolean(env.GOOGLE_CLIENT_ID),
+      clientId: env.GOOGLE_CLIENT_ID ?? ''
+    };
+  });
+
   app.post('/auth/register', async (request, reply) => {
     const parsed = registerSchema.safeParse(request.body);
     if (!parsed.success) {

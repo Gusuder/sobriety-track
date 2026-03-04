@@ -239,3 +239,17 @@ test('POST /api/auth/google returns 401 for invalid token', async () => {
   __setGoogleVerifierForTests(null);
   process.env.GOOGLE_CLIENT_ID = originalGoogleClientId;
 });
+
+test('GET /api/auth/google/config returns oauth config state', async () => {
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'GET',
+    url: '/api/auth/google/config'
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(typeof res.json().enabled, 'boolean');
+  assert.equal(typeof res.json().clientId, 'string');
+
+  await app.close();
+});
