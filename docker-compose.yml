@@ -41,6 +41,7 @@
       JWT_SECRET: change-me-super-secret
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/sobriety_track
       REDIS_URL: redis://redis:6379
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       TRUST_PROXY: "true"
     ports:
       - "4000:4000"

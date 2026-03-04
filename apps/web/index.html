@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Трекер трезвости</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       :root {
         --bg-0: #eef6f4;
@@ -201,6 +202,36 @@
       }
 
       .stack { display: grid; gap: 8px; margin-top: 12px; }
+
+      .oauth-divider {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 10px;
+        margin: 12px 0 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .oauth-divider::before,
+      .oauth-divider::after {
+        content: "";
+        height: 1px;
+        background: #cfe2de;
+      }
+
+      .oauth-hint {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .oauth-google-wrap {
+        margin-top: 8px;
+        min-height: 44px;
+        display: flex;
+        justify-content: center;
+      }
 
       .auth-note {
         margin-top: 12px;
@@ -856,6 +887,9 @@
             <button class="btn" type="submit">Создать аккаунт</button>
             <button class="btn secondary" type="button" onclick="showAuthHome()">Назад</button>
           </div>
+          <div class="oauth-divider">или</div>
+          <p class="oauth-hint">Уже зарегистрированы через Google? Войдите с помощью Google.</p>
+          <div id="googleAuthWrap" class="oauth-google-wrap"></div>
         </form>
 
         <div id="authError" class="auth-note error hidden"></div>
@@ -1225,11 +1259,16 @@
         return origin;
       })();
       const API = `${API_BASE}/api`;
+      const GOOGLE_CLIENT_ID =
+        (window.GOOGLE_CLIENT_ID && String(window.GOOGLE_CLIENT_ID).trim()) ||
+        localStorage.getItem("googleClientId") ||
+        "";
       let token = localStorage.getItem("token") || "";
       let currentStreakDays = 0;
       let currentProfile = null;
       let currentActiveGoal = null;
       let failedLoginAttempts = 0;
+      let googleAuthRendered = false;
       const forgotHintThreshold = 2;
       let onboardingRefreshTimer = null;
       let breathInterval = null;
@@ -1355,6 +1394,7 @@
         document.getElementById("loginForm").classList.add("hidden");
         document.getElementById("registerForm").classList.remove("hidden");
         document.getElementById("forgotHintWrap").classList.add("hidden");
+        initGoogleAuthButton();
       }
 
       function continueStartFlow() {
@@ -1666,6 +1706,77 @@
           }
           print(e);
         }
+      }
+
+      async function handleGoogleAuthCredential(credential) {
+        clearAuthMessages();
+        if (!credential) {
+          showAuthError("Не удалось получить данные Google. Попробуйте ещё раз.");
+          return;
+        }
+
+        try {
+          const data = await req("/auth/google", {
+            method: "POST",
+            body: JSON.stringify({ idToken: credential })
+          });
+          if (!data?.accessToken || typeof data.accessToken !== "string") {
+            throw { error: "Invalid auth response" };
+          }
+
+          token = data.accessToken;
+          localStorage.setItem("token", token);
+          failedLoginAttempts = 0;
+          updateForgotHintVisibility();
+          toggleReset(false);
+          showAuthInfo("Вход через Google выполнен успешно.");
+          await startOnboardingFlow(false);
+        } catch (e) {
+          if (e?.__status === 401) {
+            showAuthError("Google-авторизация не подтверждена. Попробуйте ещё раз.");
+          } else if (e?.__status === 503) {
+            showAuthError("Google-вход пока не настроен на сервере.");
+          } else {
+            showAuthError("Не удалось войти через Google.");
+          }
+          print(e);
+        }
+      }
+
+      function initGoogleAuthButton() {
+        const wrap = document.getElementById("googleAuthWrap");
+        if (!wrap) return;
+
+        if (!GOOGLE_CLIENT_ID) {
+          wrap.innerHTML = `<span class="muted">Google-вход временно недоступен.</span>`;
+          return;
+        }
+
+        if (!window.google?.accounts?.id) {
+          wrap.innerHTML = `<span class="muted">Загрузка Google-входа...</span>`;
+          setTimeout(initGoogleAuthButton, 500);
+          return;
+        }
+
+        if (!googleAuthRendered) {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: (response) => {
+              handleGoogleAuthCredential(response?.credential);
+            }
+          });
+          googleAuthRendered = true;
+        }
+
+        wrap.innerHTML = "";
+        window.google.accounts.id.renderButton(wrap, {
+          theme: "outline",
+          size: "large",
+          type: "standard",
+          shape: "pill",
+          width: 300,
+          text: "signin_with"
+        });
       }
 
       async function loginUser() {

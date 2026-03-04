@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
-import { authRoutes } from './auth.js';
+import { __setGoogleVerifierForTests, authRoutes } from './auth.js';
 import { pool } from '../db/pool.js';
 
 async function buildApp() {
@@ -166,4 +166,76 @@ test('POST /api/auth/register invalid payload does not consume rate limit', asyn
   }
 
   await app.close();
+});
+
+test('POST /api/auth/google signs in existing user by verified google email', async () => {
+  const originalGoogleClientId = process.env.GOOGLE_CLIENT_ID;
+  process.env.GOOGLE_CLIENT_ID = 'test-google-client-id';
+  __setGoogleVerifierForTests(async () => ({
+    email: 'google_user@example.com',
+    displayName: 'Google User'
+  }));
+
+  const originalQuery = pool.query;
+  let selectCalls = 0;
+  (pool as any).query = async (sql: string) => {
+    if (sql.includes('FROM users WHERE email')) {
+      selectCalls += 1;
+      return {
+        rows: [
+          {
+            id: 101,
+            login: 'google_user',
+            email: 'google_user@example.com',
+            display_name: 'Google User'
+          }
+        ],
+        rowCount: 1
+      };
+    }
+    if (sql.startsWith('UPDATE users SET display_name')) {
+      return { rows: [], rowCount: 1 };
+    }
+    return { rows: [], rowCount: 0 };
+  };
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/google',
+    payload: { idToken: 'x'.repeat(24) },
+    remoteAddress: '10.10.1.1'
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.ok(typeof res.json().accessToken === 'string');
+  assert.equal(selectCalls >= 1, true);
+
+  await app.close();
+  (pool as any).query = originalQuery;
+  __setGoogleVerifierForTests(null);
+  process.env.GOOGLE_CLIENT_ID = originalGoogleClientId;
+});
+
+test('POST /api/auth/google returns 401 for invalid token', async () => {
+  const originalGoogleClientId = process.env.GOOGLE_CLIENT_ID;
+  process.env.GOOGLE_CLIENT_ID = 'test-google-client-id';
+  __setGoogleVerifierForTests(async () => {
+    throw new Error('invalid token');
+  });
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/google',
+    payload: { idToken: 'x'.repeat(24) },
+    remoteAddress: '10.10.1.2'
+  });
+
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.json().error, 'Invalid Google token');
+
+  await app.close();
+  __setGoogleVerifierForTests(null);
+  process.env.GOOGLE_CLIENT_ID = originalGoogleClientId;
 });

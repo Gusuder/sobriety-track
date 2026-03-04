@@ -10,6 +10,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   CORS_ORIGINS: z.string().optional(),
   REDIS_URL: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
   TRUST_PROXY: z.preprocess(
     (value) => value === '1' || value === 'true' || value === true,
     z.boolean().default(false)
