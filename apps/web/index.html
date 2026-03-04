@@ -1684,6 +1684,8 @@
           print({ ok: true });
           await startOnboardingFlow(false);
         } catch (e) {
+          const forgotHint = document.getElementById("forgotHintWrap");
+          if (forgotHint) forgotHint.classList.remove("hidden");
           if (e?.__status === 401 || e?.error === "Unauthorized" || e?.__status === 400) {
             failedLoginAttempts += 1;
             updateForgotHintVisibility();
