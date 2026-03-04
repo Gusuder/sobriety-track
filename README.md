@@ -53,9 +53,9 @@ docker compose up --build
 
 ## Google OAuth (optional)
 - Backend requires `GOOGLE_CLIENT_ID` in API environment.
-- Web UI reads Google client id from `window.GOOGLE_CLIENT_ID` or `localStorage.googleClientId`.
-- Local quick setup example in browser console:
-  - `localStorage.setItem('googleClientId', '<your-google-client-id>')`
+- Web UI reads Google client id from `apps/web/config.js` (`window.APP_CONFIG.googleClientId`) and falls back to API config endpoint.
+- Local quick setup:
+  - set `googleClientId` in [apps/web/config.js](apps/web/config.js)
 
 ## Production
 - Use [apps/api/.env.production.example](apps/api/.env.production.example) as the production env template.

@@ -12,7 +12,7 @@ test('failed login keeps user on auth screen and does not open onboarding', asyn
 
   await page.goto('/');
   await expect(page.locator('#authShell')).toBeVisible();
-  await page.getByRole('button', { name: 'Войти в систему' }).click();
+  await page.click('button[onclick="openLoginPanel()"]');
   await expect(page.locator('#loginForm')).toBeVisible();
 
   await page.fill('#login', 'demo_user');

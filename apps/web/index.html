@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Трекер трезвости</title>
+    <title>РўСЂРµРєРµСЂ С‚СЂРµР·РІРѕСЃС‚Рё</title>
+    <script src="/config.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       :root {
@@ -813,14 +814,14 @@
     <section id="authShell" class="auth-shell hidden">
       <div class="auth-card">
         <div class="brand">
-          <h1>Трезвый трекер</h1>
-          <p>Спокойный старт без перегруза. Отметьте точку начала и двигайтесь шаг за шагом.</p>
+          <h1>РўСЂРµР·РІС‹Р№ С‚СЂРµРєРµСЂ</h1>
+          <p>РЎРїРѕРєРѕР№РЅС‹Р№ СЃС‚Р°СЂС‚ Р±РµР· РїРµСЂРµРіСЂСѓР·Р°. РћС‚РјРµС‚СЊС‚Рµ С‚РѕС‡РєСѓ РЅР°С‡Р°Р»Р° Рё РґРІРёРіР°Р№С‚РµСЃСЊ С€Р°Рі Р·Р° С€Р°РіРѕРј.</p>
         </div>
 
         <div id="authLandingPanel">
           <div class="intro-hero">
-            <p>Первые 3 минуты: задайте стартовую дату, создайте аккаунт и получите личный план.</p>
-            <svg viewBox="0 0 360 120" role="img" aria-label="Иллюстрация спокойного старта">
+            <p>РџРµСЂРІС‹Рµ 3 РјРёРЅСѓС‚С‹: Р·Р°РґР°Р№С‚Рµ СЃС‚Р°СЂС‚РѕРІСѓСЋ РґР°С‚Сѓ, СЃРѕР·РґР°Р№С‚Рµ Р°РєРєР°СѓРЅС‚ Рё РїРѕР»СѓС‡РёС‚Рµ Р»РёС‡РЅС‹Р№ РїР»Р°РЅ.</p>
+            <svg viewBox="0 0 360 120" role="img" aria-label="РР»Р»СЋСЃС‚СЂР°С†РёСЏ СЃРїРѕРєРѕР№РЅРѕРіРѕ СЃС‚Р°СЂС‚Р°">
               <rect x="0" y="0" width="360" height="120" rx="14" fill="#e8f7f2"></rect>
               <path d="M20 88c34-30 65-25 96 3s69 31 105-3 76-38 119-4" fill="none" stroke="#88bca9" stroke-width="6" stroke-linecap="round"></path>
               <circle cx="58" cy="45" r="14" fill="#9ed2bf"></circle>
@@ -829,69 +830,69 @@
             </svg>
           </div>
           <div class="welcome-actions">
-            <button class="btn" type="button" onclick="openStartPanel()">Начать</button>
-            <p class="muted" style="margin: 2px 0 -2px; text-align:center;">Уже есть аккаунт? Войдите в систему.</p>
-            <button class="btn secondary" type="button" onclick="openLoginPanel()">Войти в систему</button>
+            <button class="btn" type="button" onclick="openStartPanel()">РќР°С‡Р°С‚СЊ</button>
+            <p class="muted" style="margin: 2px 0 -2px; text-align:center;">РЈР¶Рµ РµСЃС‚СЊ Р°РєРєР°СѓРЅС‚? Р’РѕР№РґРёС‚Рµ РІ СЃРёСЃС‚РµРјСѓ.</p>
+            <button class="btn secondary" type="button" onclick="openLoginPanel()">Р’РѕР№С‚Рё РІ СЃРёСЃС‚РµРјСѓ</button>
           </div>
         </div>
 
         <div id="startPanel" class="hidden">
           <div class="field">
-            <label for="startDateIntro">Дата начала трезвости</label>
+            <label for="startDateIntro">Р”Р°С‚Р° РЅР°С‡Р°Р»Р° С‚СЂРµР·РІРѕСЃС‚Рё</label>
             <input id="startDateIntro" type="date" />
-            <p class="muted" style="margin: 8px 0 0;">Вы можете изменить дату позже в профиле старта.</p>
+            <p class="muted" style="margin: 8px 0 0;">Р’С‹ РјРѕР¶РµС‚Рµ РёР·РјРµРЅРёС‚СЊ РґР°С‚Сѓ РїРѕР·Р¶Рµ РІ РїСЂРѕС„РёР»Рµ СЃС‚Р°СЂС‚Р°.</p>
           </div>
           <div class="stack">
-            <button class="btn" type="button" onclick="continueStartFlow()">Продолжить</button>
-            <button class="btn secondary" type="button" onclick="showAuthHome()">Назад</button>
+            <button class="btn" type="button" onclick="continueStartFlow()">РџСЂРѕРґРѕР»Р¶РёС‚СЊ</button>
+            <button class="btn secondary" type="button" onclick="showAuthHome()">РќР°Р·Р°Рґ</button>
           </div>
         </div>
 
         <form id="loginForm" class="hidden" onsubmit="event.preventDefault(); loginUser()">
           <div class="field">
-            <label for="login">Логин</label>
-            <input id="login" placeholder="Введите логин" autocomplete="username" />
+            <label for="login">Р›РѕРіРёРЅ</label>
+            <input id="login" placeholder="Р’РІРµРґРёС‚Рµ Р»РѕРіРёРЅ" autocomplete="username" />
           </div>
           <div class="field">
-            <label for="password">Пароль</label>
-            <input id="password" type="password" placeholder="Введите пароль" autocomplete="current-password" />
+            <label for="password">РџР°СЂРѕР»СЊ</label>
+            <input id="password" type="password" placeholder="Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ" autocomplete="current-password" />
           </div>
           <div id="forgotHintWrap" class="hidden" style="margin-top: 10px;">
-            <button class="btn secondary" type="button" onclick="toggleReset(true)">Забыли пароль?</button>
+            <button class="btn secondary" type="button" onclick="toggleReset(true)">Р—Р°Р±С‹Р»Рё РїР°СЂРѕР»СЊ?</button>
           </div>
 
           <div class="stack">
-            <button class="btn" type="submit">Войти</button>
-            <button class="btn secondary" type="button" onclick="showAuthHome()">Назад</button>
+            <button class="btn" type="submit">Р’РѕР№С‚Рё</button>
+            <button class="btn secondary" type="button" onclick="showAuthHome()">РќР°Р·Р°Рґ</button>
           </div>
-          <div class="oauth-divider">или</div>
-          <p class="oauth-hint">Войти через Google</p>
+          <div class="oauth-divider">РёР»Рё</div>
+          <p class="oauth-hint">Р’РѕР№С‚Рё С‡РµСЂРµР· Google</p>
           <div id="googleAuthWrapLogin" class="oauth-google-wrap"></div>
         </form>
 
         <form id="registerForm" class="hidden" onsubmit="event.preventDefault(); registerUser()">
           <div class="field">
-            <label for="regDisplayName">Имя</label>
-            <input id="regDisplayName" placeholder="Как к вам обращаться" autocomplete="name" />
+            <label for="regDisplayName">РРјСЏ</label>
+            <input id="regDisplayName" placeholder="РљР°Рє Рє РІР°Рј РѕР±СЂР°С‰Р°С‚СЊСЃСЏ" autocomplete="name" />
           </div>
           <div class="field">
-            <label for="regLogin">Логин</label>
-            <input id="regLogin" placeholder="Например demo_user" autocomplete="username" />
+            <label for="regLogin">Р›РѕРіРёРЅ</label>
+            <input id="regLogin" placeholder="РќР°РїСЂРёРјРµСЂ demo_user" autocomplete="username" />
           </div>
           <div class="field">
             <label for="regEmail">Email</label>
             <input id="regEmail" type="email" placeholder="demo@example.com" autocomplete="email" />
           </div>
           <div class="field">
-            <label for="regPassword">Пароль</label>
-            <input id="regPassword" type="password" placeholder="Минимум 8 символов" autocomplete="new-password" />
+            <label for="regPassword">РџР°СЂРѕР»СЊ</label>
+            <input id="regPassword" type="password" placeholder="РњРёРЅРёРјСѓРј 8 СЃРёРјРІРѕР»РѕРІ" autocomplete="new-password" />
           </div>
           <div class="stack">
-            <button class="btn" type="submit">Зарегистрироваться</button>
-            <button class="btn secondary" type="button" onclick="showAuthHome()">Назад</button>
+            <button class="btn" type="submit">Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ</button>
+            <button class="btn secondary" type="button" onclick="showAuthHome()">РќР°Р·Р°Рґ</button>
           </div>
-          <div class="oauth-divider">или</div>
-          <p class="oauth-hint">Войти через Google</p>
+          <div class="oauth-divider">РёР»Рё</div>
+          <p class="oauth-hint">Р’РѕР№С‚Рё С‡РµСЂРµР· Google</p>
           <div id="googleAuthWrapRegister" class="oauth-google-wrap"></div>
         </form>
 
@@ -899,27 +900,27 @@
         <div id="authInfo" class="auth-note info hidden"></div>
 
         <div id="resetPanel" class="hidden" style="margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px;">
-          <p class="muted">Сброс пароля</p>
+          <p class="muted">РЎР±СЂРѕСЃ РїР°СЂРѕР»СЏ</p>
           <div class="field">
             <label for="forgotEmail">Email</label>
-            <input id="forgotEmail" type="email" placeholder="Введите email аккаунта" />
+            <input id="forgotEmail" type="email" placeholder="Р’РІРµРґРёС‚Рµ email Р°РєРєР°СѓРЅС‚Р°" />
           </div>
           <div class="stack">
-            <button class="btn secondary" type="button" onclick="forgotPassword()">Получить токен сброса</button>
+            <button class="btn secondary" type="button" onclick="forgotPassword()">РџРѕР»СѓС‡РёС‚СЊ С‚РѕРєРµРЅ СЃР±СЂРѕСЃР°</button>
           </div>
           <div class="row" style="margin-top: 8px;">
             <div class="field" style="margin-top: 0;">
-              <label for="resetToken">Токен</label>
-              <input id="resetToken" placeholder="Токен" />
+              <label for="resetToken">РўРѕРєРµРЅ</label>
+              <input id="resetToken" placeholder="РўРѕРєРµРЅ" />
             </div>
             <div class="field" style="margin-top: 0;">
-              <label for="newPassword">Новый пароль</label>
-              <input id="newPassword" type="password" placeholder="Новый пароль" />
+              <label for="newPassword">РќРѕРІС‹Р№ РїР°СЂРѕР»СЊ</label>
+              <input id="newPassword" type="password" placeholder="РќРѕРІС‹Р№ РїР°СЂРѕР»СЊ" />
             </div>
           </div>
           <div class="stack">
-            <button class="btn" type="button" onclick="resetPassword()">Обновить пароль</button>
-            <button class="btn secondary" type="button" onclick="toggleReset(false)">Скрыть сброс</button>
+            <button class="btn" type="button" onclick="resetPassword()">РћР±РЅРѕРІРёС‚СЊ РїР°СЂРѕР»СЊ</button>
+            <button class="btn secondary" type="button" onclick="toggleReset(false)">РЎРєСЂС‹С‚СЊ СЃР±СЂРѕСЃ</button>
           </div>
         </div>
       </div>
@@ -928,32 +929,32 @@
     <section id="onboardingShell" class="auth-shell hidden">
       <div class="auth-card">
         <div class="brand">
-          <h1>Старт трезвости</h1>
-          <p>Шаг 1 из 2: выберите дату начала.</p>
+          <h1>РЎС‚Р°СЂС‚ С‚СЂРµР·РІРѕСЃС‚Рё</h1>
+          <p>РЁР°Рі 1 РёР· 2: РІС‹Р±РµСЂРёС‚Рµ РґР°С‚Сѓ РЅР°С‡Р°Р»Р°.</p>
         </div>
 
         <div id="onboardingStep1">
           <div id="soberPeriodWrap" class="field">
-            <label for="soberStartDateWizard">Дата начала трезвости</label>
+            <label for="soberStartDateWizard">Р”Р°С‚Р° РЅР°С‡Р°Р»Р° С‚СЂРµР·РІРѕСЃС‚Рё</label>
             <input id="soberStartDateWizard" type="date" onchange="refreshWizardDateHints()" />
-            <p id="soberDateHint" class="muted" style="margin-top:6px;">Выберите дату в календаре. Будущее недоступно.</p>
+            <p id="soberDateHint" class="muted" style="margin-top:6px;">Р’С‹Р±РµСЂРёС‚Рµ РґР°С‚Сѓ РІ РєР°Р»РµРЅРґР°СЂРµ. Р‘СѓРґСѓС‰РµРµ РЅРµРґРѕСЃС‚СѓРїРЅРѕ.</p>
           </div>
 
           <div class="stack">
-            <button class="btn" type="button" onclick="goToGoalStep()">Далее: выбрать цель</button>
+            <button class="btn" type="button" onclick="goToGoalStep()">Р”Р°Р»РµРµ: РІС‹Р±СЂР°С‚СЊ С†РµР»СЊ</button>
           </div>
         </div>
 
         <div id="onboardingStep2" class="hidden">
-          <p class="muted">Шаг 2 из 2: задайте цель в днях.</p>
+          <p class="muted">РЁР°Рі 2 РёР· 2: Р·Р°РґР°Р№С‚Рµ С†РµР»СЊ РІ РґРЅСЏС….</p>
           <div class="field">
-            <label for="goalDaysWizard">Цель (дней)</label>
+            <label for="goalDaysWizard">Р¦РµР»СЊ (РґРЅРµР№)</label>
             <input id="goalDaysWizard" type="number" min="1" max="3650" value="30" />
-            <p id="goalConstraintHint" class="muted" style="margin-top:6px;">Цель должна быть больше текущей серии.</p>
+            <p id="goalConstraintHint" class="muted" style="margin-top:6px;">Р¦РµР»СЊ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ С‚РµРєСѓС‰РµР№ СЃРµСЂРёРё.</p>
           </div>
           <div class="stack">
-            <button class="btn" type="button" onclick="finishOnboardingWizard()">Начать отсчёт</button>
-            <button class="btn secondary" type="button" onclick="showOnboardingStep(1)">Назад</button>
+            <button class="btn" type="button" onclick="finishOnboardingWizard()">РќР°С‡Р°С‚СЊ РѕС‚СЃС‡С‘С‚</button>
+            <button class="btn secondary" type="button" onclick="showOnboardingStep(1)">РќР°Р·Р°Рґ</button>
           </div>
           <div id="onboardingError" class="auth-note error hidden"></div>
         </div>
@@ -963,193 +964,193 @@
     <main id="appShell" class="page hidden">
       <header class="topbar">
         <div>
-          <h2>Трекер трезвости</h2>
-          <p>Личный кабинет: старт, цели, дневник и история.</p>
+          <h2>РўСЂРµРєРµСЂ С‚СЂРµР·РІРѕСЃС‚Рё</h2>
+          <p>Р›РёС‡РЅС‹Р№ РєР°Р±РёРЅРµС‚: СЃС‚Р°СЂС‚, С†РµР»Рё, РґРЅРµРІРЅРёРє Рё РёСЃС‚РѕСЂРёСЏ.</p>
         </div>
         <div style="display:grid; gap:8px; min-width: 210px;">
           <div class="progress-widget">
             <div class="progress-metrics">
-              <span>Серия<strong id="metricStreak">—</strong></span>
-              <span>Цель<strong id="metricTarget">—</strong></span>
-              <span>Прогресс<strong id="metricPercent">0%</strong></span>
+              <span>РЎРµСЂРёСЏ<strong id="metricStreak">вЂ”</strong></span>
+              <span>Р¦РµР»СЊ<strong id="metricTarget">вЂ”</strong></span>
+              <span>РџСЂРѕРіСЂРµСЃСЃ<strong id="metricPercent">0%</strong></span>
             </div>
             <div class="progress-bar">
               <div id="metricProgressFill" class="progress-fill"></div>
             </div>
-            <div id="metricNote" class="progress-note">Начните с первой записи, чтобы увидеть прогресс.</div>
+            <div id="metricNote" class="progress-note">РќР°С‡РЅРёС‚Рµ СЃ РїРµСЂРІРѕР№ Р·Р°РїРёСЃРё, С‡С‚РѕР±С‹ СѓРІРёРґРµС‚СЊ РїСЂРѕРіСЂРµСЃСЃ.</div>
           </div>
-          <button class="btn secondary" onclick="openProfileModal()">Личный кабинет</button>
+          <button class="btn secondary" onclick="openProfileModal()">Р›РёС‡РЅС‹Р№ РєР°Р±РёРЅРµС‚</button>
         </div>
       </header>
 
       <div class="layout">
         <section class="card">
-          <h3>Стартовый профиль</h3>
-          <p id="onboardingSummary" class="muted">Профиль старта будет показан после сохранения.</p>
+          <h3>РЎС‚Р°СЂС‚РѕРІС‹Р№ РїСЂРѕС„РёР»СЊ</h3>
+          <p id="onboardingSummary" class="muted">РџСЂРѕС„РёР»СЊ СЃС‚Р°СЂС‚Р° Р±СѓРґРµС‚ РїРѕРєР°Р·Р°РЅ РїРѕСЃР»Рµ СЃРѕС…СЂР°РЅРµРЅРёСЏ.</p>
           <div class="row" style="margin-top: 8px;">
-            <button class="btn secondary" onclick="startOnboardingFlow(true)">Изменить старт и цель</button>
+            <button class="btn secondary" onclick="startOnboardingFlow(true)">РР·РјРµРЅРёС‚СЊ СЃС‚Р°СЂС‚ Рё С†РµР»СЊ</button>
           </div>
         </section>
 
         <section class="card">
           <div id="quickHeader" class="quick-head">
-            <h3>Быстрая отметка</h3>
-            <span class="quick-badge">~20 секунд</span>
+            <h3>Р‘С‹СЃС‚СЂР°СЏ РѕС‚РјРµС‚РєР°</h3>
+            <span class="quick-badge">~20 СЃРµРєСѓРЅРґ</span>
           </div>
-          <p id="quickIntro" class="muted">Короткая отметка дня, чтобы не терять темп.</p>
+          <p id="quickIntro" class="muted">РљРѕСЂРѕС‚РєР°СЏ РѕС‚РјРµС‚РєР° РґРЅСЏ, С‡С‚РѕР±С‹ РЅРµ С‚РµСЂСЏС‚СЊ С‚РµРјРї.</p>
           <div id="quickCheckinPanel" class="quick-grid">
             <div class="row">
               <div class="field" style="margin-top:0;">
-                <label for="quickDate">Дата</label>
+                <label for="quickDate">Р”Р°С‚Р°</label>
                 <input id="quickDate" type="date" />
               </div>
               <div class="field" style="margin-top:0;">
-                <label for="quickDrank">Алкоголь</label>
+                <label for="quickDrank">РђР»РєРѕРіРѕР»СЊ</label>
                 <select id="quickDrank" onchange="syncQuickDrankDependentFields()">
-                  <option value="false" selected>Не пил</option>
-                  <option value="true">Пил</option>
+                  <option value="false" selected>РќРµ РїРёР»</option>
+                  <option value="true">РџРёР»</option>
                 </select>
               </div>
             </div>
             <div class="row">
               <div class="field" style="margin-top:0;">
-                <label for="quickMood">Настроение</label>
+                <label for="quickMood">РќР°СЃС‚СЂРѕРµРЅРёРµ</label>
                 <select id="quickMood">
-                  <option value="awful">ужасно</option>
-                  <option value="bad">плохо</option>
-                  <option value="neutral">нормально</option>
-                  <option value="good" selected>хорошо</option>
-                  <option value="great">отлично</option>
+                  <option value="awful">СѓР¶Р°СЃРЅРѕ</option>
+                  <option value="bad">РїР»РѕС…Рѕ</option>
+                  <option value="neutral">РЅРѕСЂРјР°Р»СЊРЅРѕ</option>
+                  <option value="good" selected>С…РѕСЂРѕС€Рѕ</option>
+                  <option value="great">РѕС‚Р»РёС‡РЅРѕ</option>
                 </select>
               </div>
               <div class="field" style="margin-top:0;">
-                <label for="quickCraving">Тяга</label>
+                <label for="quickCraving">РўСЏРіР°</label>
                 <select id="quickCraving">
-                  <option value="1">Нет тяги</option>
-                  <option value="3" selected>Слабая</option>
-                  <option value="5">Умеренная</option>
-                  <option value="8">Сильная</option>
-                  <option value="10">Очень сильная</option>
+                  <option value="1">РќРµС‚ С‚СЏРіРё</option>
+                  <option value="3" selected>РЎР»Р°Р±Р°СЏ</option>
+                  <option value="5">РЈРјРµСЂРµРЅРЅР°СЏ</option>
+                  <option value="8">РЎРёР»СЊРЅР°СЏ</option>
+                  <option value="10">РћС‡РµРЅСЊ СЃРёР»СЊРЅР°СЏ</option>
                 </select>
               </div>
             </div>
             <div class="field" style="margin-top:0;">
-              <label>Причины (только если пил)</label>
+              <label>РџСЂРёС‡РёРЅС‹ (С‚РѕР»СЊРєРѕ РµСЃР»Рё РїРёР»)</label>
               <div class="reason-tag-wrap" id="quickReasonWrap">
-                <div id="quickReasonOptions" class="reason-tags muted">Причины загружаются автоматически…</div>
+                <div id="quickReasonOptions" class="reason-tags muted">РџСЂРёС‡РёРЅС‹ Р·Р°РіСЂСѓР¶Р°СЋС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРёвЂ¦</div>
               </div>
             </div>
-            <button class="btn" type="button" onclick="quickCheckIn()">Быстро сохранить</button>
+            <button class="btn" type="button" onclick="quickCheckIn()">Р‘С‹СЃС‚СЂРѕ СЃРѕС…СЂР°РЅРёС‚СЊ</button>
           </div>
           <div id="advancedEntryPanel" class="hidden" style="margin-top:12px; border-top:1px solid var(--line); padding-top:12px;">
-            <h3 style="margin:0 0 8px;">Расширенная запись</h3>
+            <h3 style="margin:0 0 8px;">Р Р°СЃС€РёСЂРµРЅРЅР°СЏ Р·Р°РїРёСЃСЊ</h3>
             <div class="row">
               <div class="field" style="margin-top:0;">
-                <label for="entryDate">Дата</label>
+                <label for="entryDate">Р”Р°С‚Р°</label>
                 <input id="entryDate" type="date" />
               </div>
               <div class="field" style="margin-top:0;">
-                <label for="mood">Настроение</label>
+                <label for="mood">РќР°СЃС‚СЂРѕРµРЅРёРµ</label>
                 <select id="mood">
-                  <option value="awful">ужасно</option>
-                  <option value="bad">плохо</option>
-                  <option value="neutral">нормально</option>
-                  <option value="good" selected>хорошо</option>
-                  <option value="great">отлично</option>
+                  <option value="awful">СѓР¶Р°СЃРЅРѕ</option>
+                  <option value="bad">РїР»РѕС…Рѕ</option>
+                  <option value="neutral">РЅРѕСЂРјР°Р»СЊРЅРѕ</option>
+                  <option value="good" selected>С…РѕСЂРѕС€Рѕ</option>
+                  <option value="great">РѕС‚Р»РёС‡РЅРѕ</option>
                 </select>
               </div>
             </div>
             <div class="row">
               <div class="field" style="margin-top:0;">
-                <label for="stress">Стресс</label>
+                <label for="stress">РЎС‚СЂРµСЃСЃ</label>
                 <select id="stress">
-                  <option value="2">Спокойно</option>
-                  <option value="4" selected>Лёгкий стресс</option>
-                  <option value="6">Средний стресс</option>
-                  <option value="8">Высокий стресс</option>
-                  <option value="10">Критический стресс</option>
+                  <option value="2">РЎРїРѕРєРѕР№РЅРѕ</option>
+                  <option value="4" selected>Р›С‘РіРєРёР№ СЃС‚СЂРµСЃСЃ</option>
+                  <option value="6">РЎСЂРµРґРЅРёР№ СЃС‚СЂРµСЃСЃ</option>
+                  <option value="8">Р’С‹СЃРѕРєРёР№ СЃС‚СЂРµСЃСЃ</option>
+                  <option value="10">РљСЂРёС‚РёС‡РµСЃРєРёР№ СЃС‚СЂРµСЃСЃ</option>
                 </select>
               </div>
               <div class="field" style="margin-top:0;">
-                <label for="craving">Тяга</label>
+                <label for="craving">РўСЏРіР°</label>
                 <select id="craving">
-                  <option value="1">Нет тяги</option>
-                  <option value="3" selected>Слабая тяга</option>
-                  <option value="5">Умеренная тяга</option>
-                  <option value="8">Сильная тяга</option>
-                  <option value="10">Очень сильная тяга</option>
+                  <option value="1">РќРµС‚ С‚СЏРіРё</option>
+                  <option value="3" selected>РЎР»Р°Р±Р°СЏ С‚СЏРіР°</option>
+                  <option value="5">РЈРјРµСЂРµРЅРЅР°СЏ С‚СЏРіР°</option>
+                  <option value="8">РЎРёР»СЊРЅР°СЏ С‚СЏРіР°</option>
+                  <option value="10">РћС‡РµРЅСЊ СЃРёР»СЊРЅР°СЏ С‚СЏРіР°</option>
                 </select>
               </div>
             </div>
             <div class="field">
-              <label for="drank">Алкоголь</label>
+              <label for="drank">РђР»РєРѕРіРѕР»СЊ</label>
               <select id="drank" onchange="syncDrankDependentFields()">
-                <option value="false" selected>Не пил</option>
-                <option value="true">Пил</option>
+                <option value="false" selected>РќРµ РїРёР»</option>
+                <option value="true">РџРёР»</option>
               </select>
             </div>
             <div class="field">
-              <label for="summary">Кратко о дне</label>
-              <textarea id="summary" placeholder="Спокойный день без алкоголя"></textarea>
+              <label for="summary">РљСЂР°С‚РєРѕ Рѕ РґРЅРµ</label>
+              <textarea id="summary" placeholder="РЎРїРѕРєРѕР№РЅС‹Р№ РґРµРЅСЊ Р±РµР· Р°Р»РєРѕРіРѕР»СЏ"></textarea>
             </div>
             <div class="field">
-              <label for="comment">Комментарий</label>
-              <input id="comment" placeholder="Всё хорошо" />
+              <label for="comment">РљРѕРјРјРµРЅС‚Р°СЂРёР№</label>
+              <input id="comment" placeholder="Р’СЃС‘ С…РѕСЂРѕС€Рѕ" />
             </div>
             <div class="field">
-              <label>Причины (выберите)</label>
+              <label>РџСЂРёС‡РёРЅС‹ (РІС‹Р±РµСЂРёС‚Рµ)</label>
               <div class="reason-tag-wrap">
-                <div id="reasonOptions" class="reason-tags muted">Причины загружаются автоматически…</div>
+                <div id="reasonOptions" class="reason-tags muted">РџСЂРёС‡РёРЅС‹ Р·Р°РіСЂСѓР¶Р°СЋС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРёвЂ¦</div>
               </div>
             </div>
-            <button class="btn" type="button" onclick="createEntry()">Сохранить подробную запись</button>
+            <button class="btn" type="button" onclick="createEntry()">РЎРѕС…СЂР°РЅРёС‚СЊ РїРѕРґСЂРѕР±РЅСѓСЋ Р·Р°РїРёСЃСЊ</button>
           </div>
-          <button id="advancedToggleBtn" class="btn secondary" type="button" onclick="toggleAdvancedEntry()" style="margin-top:10px;">Открыть подробную запись</button>
+          <button id="advancedToggleBtn" class="btn secondary" type="button" onclick="toggleAdvancedEntry()" style="margin-top:10px;">РћС‚РєСЂС‹С‚СЊ РїРѕРґСЂРѕР±РЅСѓСЋ Р·Р°РїРёСЃСЊ</button>
         </section>
 
         <section class="card">
-          <h3>Помощь в сложный момент</h3>
-          <p class="muted">Отдельный режим помощи: дыхание, игра на переключение и короткие советы.</p>
-          <button class="btn" type="button" onclick="openCrisisFocus()">Открыть режим помощи</button>
+          <h3>РџРѕРјРѕС‰СЊ РІ СЃР»РѕР¶РЅС‹Р№ РјРѕРјРµРЅС‚</h3>
+          <p class="muted">РћС‚РґРµР»СЊРЅС‹Р№ СЂРµР¶РёРј РїРѕРјРѕС‰Рё: РґС‹С…Р°РЅРёРµ, РёРіСЂР° РЅР° РїРµСЂРµРєР»СЋС‡РµРЅРёРµ Рё РєРѕСЂРѕС‚РєРёРµ СЃРѕРІРµС‚С‹.</p>
+          <button class="btn" type="button" onclick="openCrisisFocus()">РћС‚РєСЂС‹С‚СЊ СЂРµР¶РёРј РїРѕРјРѕС‰Рё</button>
         </section>
 
         <section class="card">
-          <h3>Список записей</h3>
+          <h3>РЎРїРёСЃРѕРє Р·Р°РїРёСЃРµР№</h3>
           <div class="row">
             <div class="field" style="margin-top:0;">
-              <label for="from">С даты</label>
+              <label for="from">РЎ РґР°С‚С‹</label>
               <input id="from" type="date" />
             </div>
             <div class="field" style="margin-top:0;">
-              <label for="to">По дату</label>
+              <label for="to">РџРѕ РґР°С‚Сѓ</label>
               <input id="to" type="date" />
             </div>
           </div>
-          <button id="entriesToggleBtn" class="btn secondary" onclick="toggleEntriesView()">Показать записи</button>
+          <button id="entriesToggleBtn" class="btn secondary" onclick="toggleEntriesView()">РџРѕРєР°Р·Р°С‚СЊ Р·Р°РїРёСЃРё</button>
           <div id="entriesAnalytics" class="analytics-wrap hidden">
             <div class="analytics-grid">
               <div class="analytics-card chart-card">
                 <div class="analytics-head">
-                  <strong>График по дням</strong>
+                  <strong>Р“СЂР°С„РёРє РїРѕ РґРЅСЏРј</strong>
                   <span class="legend">
-                    <span><b style="background:#1e83c7"></b>Настроение</span>
-                    <span><b style="background:#c24d43"></b>Пил</span>
-                    <span><b style="background:#2fa06f"></b>Не пил</span>
+                    <span><b style="background:#1e83c7"></b>РќР°СЃС‚СЂРѕРµРЅРёРµ</span>
+                    <span><b style="background:#c24d43"></b>РџРёР»</span>
+                    <span><b style="background:#2fa06f"></b>РќРµ РїРёР»</span>
                   </span>
                 </div>
                 <svg id="entriesLineChart" class="chart-svg" viewBox="0 0 760 240" preserveAspectRatio="none"></svg>
               </div>
               <div class="analytics-card ribbon-card">
                 <div class="analytics-head">
-                  <strong>Календарь за период</strong>
-                  <span class="muted">цвет дня + настроение</span>
+                  <strong>РљР°Р»РµРЅРґР°СЂСЊ Р·Р° РїРµСЂРёРѕРґ</strong>
+                  <span class="muted">С†РІРµС‚ РґРЅСЏ + РЅР°СЃС‚СЂРѕРµРЅРёРµ</span>
                 </div>
                 <div id="entriesCalendarRibbon" class="calendar-ribbon"></div>
               </div>
               <div class="analytics-card insights-card">
                 <div class="analytics-head">
-                  <strong>Что чаще приводит к срывам</strong>
-                  <span class="muted">что происходило в выбранном периоде</span>
+                  <strong>Р§С‚Рѕ С‡Р°С‰Рµ РїСЂРёРІРѕРґРёС‚ Рє СЃСЂС‹РІР°Рј</strong>
+                  <span class="muted">С‡С‚Рѕ РїСЂРѕРёСЃС…РѕРґРёР»Рѕ РІ РІС‹Р±СЂР°РЅРЅРѕРј РїРµСЂРёРѕРґРµ</span>
                 </div>
                 <div id="triggerInsights" class="insights-grid"></div>
               </div>
@@ -1162,54 +1163,54 @@
     <section id="crisisFocusShell" class="focus-shell hidden">
       <div class="focus-panel">
         <div class="focus-head">
-          <h3>Режим помощи</h3>
-          <button class="btn secondary" type="button" onclick="closeCrisisFocus()">Вернуться назад</button>
+          <h3>Р РµР¶РёРј РїРѕРјРѕС‰Рё</h3>
+          <button class="btn secondary" type="button" onclick="closeCrisisFocus()">Р’РµСЂРЅСѓС‚СЊСЃСЏ РЅР°Р·Р°Рґ</button>
         </div>
         <div class="crisis-grid">
           <div class="crisis-card">
-            <h4>Дыхательные техники</h4>
+            <h4>Р”С‹С…Р°С‚РµР»СЊРЅС‹Рµ С‚РµС…РЅРёРєРё</h4>
             <div class="breath-box">
               <select id="breathTechnique" onchange="setBreathTechnique()">
-                <option value="nhs">Спокойное дыхание 5-5</option>
-                <option value="box">Ровное дыхание 4-4-4-4</option>
+                <option value="nhs">РЎРїРѕРєРѕР№РЅРѕРµ РґС‹С…Р°РЅРёРµ 5-5</option>
+                <option value="box">Р РѕРІРЅРѕРµ РґС‹С…Р°РЅРёРµ 4-4-4-4</option>
                 <option value="478">4-7-8</option>
-                <option value="sigh">Двойной вдох и длинный выдох (3-1-6)</option>
+                <option value="sigh">Р”РІРѕР№РЅРѕР№ РІРґРѕС… Рё РґР»РёРЅРЅС‹Р№ РІС‹РґРѕС… (3-1-6)</option>
               </select>
-              <p id="breathHint" class="muted">Спокойное дыхание: вдох 5с, выдох 5с, от 5 минут.</p>
+              <p id="breathHint" class="muted">РЎРїРѕРєРѕР№РЅРѕРµ РґС‹С…Р°РЅРёРµ: РІРґРѕС… 5СЃ, РІС‹РґРѕС… 5СЃ, РѕС‚ 5 РјРёРЅСѓС‚.</p>
               <div class="row">
                 <input id="breathMinutes" type="number" min="1" max="15" value="2" />
-                <button class="btn secondary" type="button" onclick="startBreathing()">Старт</button>
+                <button class="btn secondary" type="button" onclick="startBreathing()">РЎС‚Р°СЂС‚</button>
               </div>
-              <button class="btn secondary" type="button" onclick="stopBreathing()">Стоп</button>
+              <button class="btn secondary" type="button" onclick="stopBreathing()">РЎС‚РѕРї</button>
               <div class="breath-circle-wrap">
                 <div id="breathCircle" class="breath-circle"></div>
               </div>
               <div class="breath-meta">
-                <div id="breathPhase" class="breath-phase">Готово к дыханию</div>
+                <div id="breathPhase" class="breath-phase">Р“РѕС‚РѕРІРѕ Рє РґС‹С…Р°РЅРёСЋ</div>
                 <div id="breathTimer" class="muted">02:00</div>
               </div>
             </div>
           </div>
 
           <div class="crisis-card">
-            <h4>Мини-игра: три в ряд</h4>
+            <h4>РњРёРЅРё-РёРіСЂР°: С‚СЂРё РІ СЂСЏРґ</h4>
             <div class="game-top">
-              <span id="gameScore" class="muted">Очки: 0</span>
-              <button class="btn secondary" type="button" onclick="newMatch3Game()">Новая игра</button>
+              <span id="gameScore" class="muted">РћС‡РєРё: 0</span>
+              <button class="btn secondary" type="button" onclick="newMatch3Game()">РќРѕРІР°СЏ РёРіСЂР°</button>
             </div>
-            <p id="gameStatus" class="muted" style="margin-top: 8px;">Меняйте соседние фишки, чтобы собрать 3 в ряд.</p>
+            <p id="gameStatus" class="muted" style="margin-top: 8px;">РњРµРЅСЏР№С‚Рµ СЃРѕСЃРµРґРЅРёРµ С„РёС€РєРё, С‡С‚РѕР±С‹ СЃРѕР±СЂР°С‚СЊ 3 РІ СЂСЏРґ.</p>
             <div id="gameGrid" class="game-grid"></div>
           </div>
 
           <div class="crisis-card">
-            <h4>Как быстро успокоиться</h4>
+            <h4>РљР°Рє Р±С‹СЃС‚СЂРѕ СѓСЃРїРѕРєРѕРёС‚СЊСЃСЏ</h4>
             <ul class="tips-list">
-              <li>Сделайте 6 медленных выдохов длиннее вдоха.</li>
-              <li>Выпейте стакан воды маленькими глотками.</li>
-              <li>Назовите 5 предметов вокруг себя вслух.</li>
-              <li>Умойтесь прохладной водой и разомните плечи.</li>
-              <li>Напишите коротко: что я чувствую прямо сейчас.</li>
-              <li>Отложите решение на 15 минут и повторите дыхание.</li>
+              <li>РЎРґРµР»Р°Р№С‚Рµ 6 РјРµРґР»РµРЅРЅС‹С… РІС‹РґРѕС…РѕРІ РґР»РёРЅРЅРµРµ РІРґРѕС…Р°.</li>
+              <li>Р’С‹РїРµР№С‚Рµ СЃС‚Р°РєР°РЅ РІРѕРґС‹ РјР°Р»РµРЅСЊРєРёРјРё РіР»РѕС‚РєР°РјРё.</li>
+              <li>РќР°Р·РѕРІРёС‚Рµ 5 РїСЂРµРґРјРµС‚РѕРІ РІРѕРєСЂСѓРі СЃРµР±СЏ РІСЃР»СѓС….</li>
+              <li>РЈРјРѕР№С‚РµСЃСЊ РїСЂРѕС…Р»Р°РґРЅРѕР№ РІРѕРґРѕР№ Рё СЂР°Р·РѕРјРЅРёС‚Рµ РїР»РµС‡Рё.</li>
+              <li>РќР°РїРёС€РёС‚Рµ РєРѕСЂРѕС‚РєРѕ: С‡С‚Рѕ СЏ С‡СѓРІСЃС‚РІСѓСЋ РїСЂСЏРјРѕ СЃРµР№С‡Р°СЃ.</li>
+              <li>РћС‚Р»РѕР¶РёС‚Рµ СЂРµС€РµРЅРёРµ РЅР° 15 РјРёРЅСѓС‚ Рё РїРѕРІС‚РѕСЂРёС‚Рµ РґС‹С…Р°РЅРёРµ.</li>
             </ul>
           </div>
         </div>
@@ -1218,16 +1219,16 @@
 
     <section id="goalAchievedShell" class="goal-modal-shell hidden">
       <div class="goal-modal">
-        <h3>Цель достигнута</h3>
-        <p id="goalAchievedText" class="muted">Поздравляем! Вы достигли поставленной цели.</p>
+        <h3>Р¦РµР»СЊ РґРѕСЃС‚РёРіРЅСѓС‚Р°</h3>
+        <p id="goalAchievedText" class="muted">РџРѕР·РґСЂР°РІР»СЏРµРј! Р’С‹ РґРѕСЃС‚РёРіР»Рё РїРѕСЃС‚Р°РІР»РµРЅРЅРѕР№ С†РµР»Рё.</p>
         <div class="field" style="margin-top:0;">
-          <label for="nextGoalDays">Новая цель (дней)</label>
+          <label for="nextGoalDays">РќРѕРІР°СЏ С†РµР»СЊ (РґРЅРµР№)</label>
           <input id="nextGoalDays" type="number" min="2" max="3650" />
-          <p id="nextGoalHint" class="muted" style="margin-top:6px;">Новая цель должна быть больше текущей серии.</p>
+          <p id="nextGoalHint" class="muted" style="margin-top:6px;">РќРѕРІР°СЏ С†РµР»СЊ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ С‚РµРєСѓС‰РµР№ СЃРµСЂРёРё.</p>
         </div>
         <div class="row">
-          <button class="btn" type="button" onclick="saveNextGoalFromModal()">Поставить новую цель</button>
-          <button class="btn secondary" type="button" onclick="closeGoalAchievedModal()">Позже</button>
+          <button class="btn" type="button" onclick="saveNextGoalFromModal()">РџРѕСЃС‚Р°РІРёС‚СЊ РЅРѕРІСѓСЋ С†РµР»СЊ</button>
+          <button class="btn secondary" type="button" onclick="closeGoalAchievedModal()">РџРѕР·Р¶Рµ</button>
         </div>
       </div>
     </section>
@@ -1235,21 +1236,21 @@
     <section id="profileShell" class="goal-modal-shell hidden">
       <div class="goal-modal profile-modal">
         <div class="focus-head" style="margin-bottom:0;">
-          <h3>Личный кабинет</h3>
-          <button class="btn secondary" type="button" onclick="closeProfileModal()">Закрыть</button>
+          <h3>Р›РёС‡РЅС‹Р№ РєР°Р±РёРЅРµС‚</h3>
+          <button class="btn secondary" type="button" onclick="closeProfileModal()">Р—Р°РєСЂС‹С‚СЊ</button>
         </div>
-        <div id="profileMainInfo" class="muted">Загрузка профиля...</div>
+        <div id="profileMainInfo" class="muted">Р—Р°РіСЂСѓР·РєР° РїСЂРѕС„РёР»СЏ...</div>
         <div class="profile-kpis">
-          <div class="profile-kpi"><span class="muted">Текущая серия</span><b id="profileCurrentStreak">—</b></div>
-          <div class="profile-kpi"><span class="muted">Максимальная серия</span><b id="profileMaxStreak">—</b></div>
-          <div class="profile-kpi"><span class="muted">Трезвых дней</span><b id="profileSoberDays">—</b></div>
-          <div class="profile-kpi"><span class="muted">Всего записей</span><b id="profileTotalEntries">—</b></div>
+          <div class="profile-kpi"><span class="muted">РўРµРєСѓС‰Р°СЏ СЃРµСЂРёСЏ</span><b id="profileCurrentStreak">вЂ”</b></div>
+          <div class="profile-kpi"><span class="muted">РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ СЃРµСЂРёСЏ</span><b id="profileMaxStreak">вЂ”</b></div>
+          <div class="profile-kpi"><span class="muted">РўСЂРµР·РІС‹С… РґРЅРµР№</span><b id="profileSoberDays">вЂ”</b></div>
+          <div class="profile-kpi"><span class="muted">Р’СЃРµРіРѕ Р·Р°РїРёСЃРµР№</span><b id="profileTotalEntries">вЂ”</b></div>
         </div>
         <div>
-          <h3 style="font-size:18px; margin: 0 0 8px;">Достижения</h3>
+          <h3 style="font-size:18px; margin: 0 0 8px;">Р”РѕСЃС‚РёР¶РµРЅРёСЏ</h3>
           <div id="profileAchievements" class="achievements-grid"></div>
         </div>
-        <button class="btn secondary" type="button" onclick="logoutUser()">Выйти из аккаунта</button>
+        <button class="btn secondary" type="button" onclick="logoutUser()">Р’С‹Р№С‚Рё РёР· Р°РєРєР°СѓРЅС‚Р°</button>
       </div>
     </section>
 
@@ -1262,7 +1263,9 @@
         return origin;
       })();
       const API = `${API_BASE}/api`;
+      const runtimeGoogleClientId = String(window.APP_CONFIG?.googleClientId ?? "").trim();
       let googleClientId =
+        runtimeGoogleClientId ||
         (window.GOOGLE_CLIENT_ID && String(window.GOOGLE_CLIENT_ID).trim()) ||
         localStorage.getItem("googleClientId") ||
         "";
@@ -1285,15 +1288,15 @@
       let gameScoreValue = 0;
       const protectedPaths = ["/goals", "/entries", "/onboarding"];
       const reasonTitleRu = {
-        stress: "Стресс",
-        conflict: "Конфликт",
-        loneliness: "Одиночество",
-        social: "Социальная ситуация",
-        celebration: "Праздник",
-        habit: "Привычка",
-        boredom: "Скука",
-        insomnia: "Бессонница",
-        other: "Другое"
+        stress: "РЎС‚СЂРµСЃСЃ",
+        conflict: "РљРѕРЅС„Р»РёРєС‚",
+        loneliness: "РћРґРёРЅРѕС‡РµСЃС‚РІРѕ",
+        social: "РЎРѕС†РёР°Р»СЊРЅР°СЏ СЃРёС‚СѓР°С†РёСЏ",
+        celebration: "РџСЂР°Р·РґРЅРёРє",
+        habit: "РџСЂРёРІС‹С‡РєР°",
+        boredom: "РЎРєСѓРєР°",
+        insomnia: "Р‘РµСЃСЃРѕРЅРЅРёС†Р°",
+        other: "Р”СЂСѓРіРѕРµ"
       };
 
       const today = new Date().toISOString().slice(0, 10);
@@ -1314,7 +1317,7 @@
         console.log(payload);
       };
 
-      function resetProgressState(note = "Заполните стартовый профиль, чтобы видеть мотивацию.") {
+      function resetProgressState(note = "Р—Р°РїРѕР»РЅРёС‚Рµ СЃС‚Р°СЂС‚РѕРІС‹Р№ РїСЂРѕС„РёР»СЊ, С‡С‚РѕР±С‹ РІРёРґРµС‚СЊ РјРѕС‚РёРІР°С†РёСЋ.") {
         currentStreakDays = 0;
         updateProgressWidget(null, null, 0, note);
       }
@@ -1322,7 +1325,7 @@
       function showAuth(errorText = "") {
         stopOnboardingAutoRefresh();
         closeCrisisFocus();
-        resetProgressState("Требуется вход в аккаунт.");
+        resetProgressState("РўСЂРµР±СѓРµС‚СЃСЏ РІС…РѕРґ РІ Р°РєРєР°СѓРЅС‚.");
         closeGoalAchievedModal();
         closeProfileModal();
         document.getElementById("authShell").classList.remove("hidden");
@@ -1349,7 +1352,7 @@
 
       function showOnboardingShell() {
         stopOnboardingAutoRefresh();
-        resetProgressState("Сначала завершите стартовый профиль.");
+        resetProgressState("РЎРЅР°С‡Р°Р»Р° Р·Р°РІРµСЂС€РёС‚Рµ СЃС‚Р°СЂС‚РѕРІС‹Р№ РїСЂРѕС„РёР»СЊ.");
         document.getElementById("authShell").classList.add("hidden");
         document.getElementById("appShell").classList.add("hidden");
         document.getElementById("onboardingShell").classList.remove("hidden");
@@ -1436,8 +1439,8 @@
         const safeTarget = Number.isFinite(Number(target)) ? Number(target) : null;
         const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
 
-        streakEl.textContent = safeStreak === null ? "—" : `${safeStreak}д`;
-        targetEl.textContent = safeTarget === null ? "—" : `${safeTarget}д`;
+        streakEl.textContent = safeStreak === null ? "вЂ”" : `${safeStreak}Рґ`;
+        targetEl.textContent = safeTarget === null ? "вЂ”" : `${safeTarget}Рґ`;
         percentEl.textContent = `${safePercent}%`;
         fillEl.style.width = `${safePercent}%`;
 
@@ -1445,9 +1448,9 @@
           noteEl.textContent = note;
         } else if (safeTarget !== null && safeStreak !== null) {
           const left = Math.max(0, safeTarget - safeStreak);
-          noteEl.textContent = left === 0 ? "Цель достигнута. Отличная работа!" : `До цели осталось ${left} дн.`;
+          noteEl.textContent = left === 0 ? "Р¦РµР»СЊ РґРѕСЃС‚РёРіРЅСѓС‚Р°. РћС‚Р»РёС‡РЅР°СЏ СЂР°Р±РѕС‚Р°!" : `Р”Рѕ С†РµР»Рё РѕСЃС‚Р°Р»РѕСЃСЊ ${left} РґРЅ.`;
         } else {
-          noteEl.textContent = "Заполните стартовый профиль, чтобы видеть мотивацию.";
+          noteEl.textContent = "Р—Р°РїРѕР»РЅРёС‚Рµ СЃС‚Р°СЂС‚РѕРІС‹Р№ РїСЂРѕС„РёР»СЊ, С‡С‚РѕР±С‹ РІРёРґРµС‚СЊ РјРѕС‚РёРІР°С†РёСЋ.";
         }
       }
 
@@ -1500,11 +1503,11 @@
       function goToGoalStep() {
         clearOnboardingError();
         if (!soberStartDateWizard.value) {
-          showOnboardingError("Выберите дату начала трезвости.");
+          showOnboardingError("Р’С‹Р±РµСЂРёС‚Рµ РґР°С‚Сѓ РЅР°С‡Р°Р»Р° С‚СЂРµР·РІРѕСЃС‚Рё.");
           return;
         }
         if (soberStartDateWizard.value > today) {
-          showOnboardingError("Дата начала трезвости не может быть в будущем.");
+          showOnboardingError("Р”Р°С‚Р° РЅР°С‡Р°Р»Р° С‚СЂРµР·РІРѕСЃС‚Рё РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РІ Р±СѓРґСѓС‰РµРј.");
           return;
         }
         refreshGoalConstraints();
@@ -1533,17 +1536,17 @@
       function refreshWizardDateHints() {
         const hint = document.getElementById("soberDateHint");
         if (selectedStartMode !== "already_sober") {
-          hint.textContent = "Дата начала трезвости не нужна для режима «бросаю сегодня».";
+          hint.textContent = "Р”Р°С‚Р° РЅР°С‡Р°Р»Р° С‚СЂРµР·РІРѕСЃС‚Рё РЅРµ РЅСѓР¶РЅР° РґР»СЏ СЂРµР¶РёРјР° В«Р±СЂРѕСЃР°СЋ СЃРµРіРѕРґРЅСЏВ».";
           return;
         }
 
         if (!soberStartDateWizard.value) {
-          hint.textContent = "Выберите дату в календаре. Будущее недоступно.";
+          hint.textContent = "Р’С‹Р±РµСЂРёС‚Рµ РґР°С‚Сѓ РІ РєР°Р»РµРЅРґР°СЂРµ. Р‘СѓРґСѓС‰РµРµ РЅРµРґРѕСЃС‚СѓРїРЅРѕ.";
           return;
         }
 
         const elapsed = daysBetweenDateOnly(soberStartDateWizard.value, today);
-        hint.textContent = `С выбранной даты прошло: ${elapsed} дн.`;
+        hint.textContent = `РЎ РІС‹Р±СЂР°РЅРЅРѕР№ РґР°С‚С‹ РїСЂРѕС€Р»Рѕ: ${elapsed} РґРЅ.`;
       }
 
       function refreshGoalConstraints() {
@@ -1553,9 +1556,9 @@
           goalDaysWizard.value = String(minGoal);
         }
         if (selectedStartMode === "already_sober") {
-          goalConstraintHint.textContent = `Цель должна быть больше текущей серии: минимум ${minGoal} дн.`;
+          goalConstraintHint.textContent = `Р¦РµР»СЊ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ С‚РµРєСѓС‰РµР№ СЃРµСЂРёРё: РјРёРЅРёРјСѓРј ${minGoal} РґРЅ.`;
         } else {
-          goalConstraintHint.textContent = "Для режима «бросаю сегодня» цель начинается с 2 дней.";
+          goalConstraintHint.textContent = "Р”Р»СЏ СЂРµР¶РёРјР° В«Р±СЂРѕСЃР°СЋ СЃРµРіРѕРґРЅСЏВ» С†РµР»СЊ РЅР°С‡РёРЅР°РµС‚СЃСЏ СЃ 2 РґРЅРµР№.";
         }
       }
 
@@ -1612,7 +1615,7 @@
             }
             if (e?.__status !== 404 && e?.error !== "Not Found") {
               print(e);
-              showAuth("Не удалось загрузить профиль. Проверьте API и повторите вход.");
+              showAuth("РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ РїСЂРѕС„РёР»СЊ. РџСЂРѕРІРµСЂСЊС‚Рµ API Рё РїРѕРІС‚РѕСЂРёС‚Рµ РІС…РѕРґ.");
               return;
             }
           }
@@ -1628,12 +1631,12 @@
       function invalidateSession(message) {
         token = "";
         localStorage.removeItem("token");
-        updateProgressWidget(null, null, 0, "Требуется вход в аккаунт.");
+        updateProgressWidget(null, null, 0, "РўСЂРµР±СѓРµС‚СЃСЏ РІС…РѕРґ РІ Р°РєРєР°СѓРЅС‚.");
         showAuth(message || "");
       }
 
       function logoutUser() {
-        invalidateSession("Вы вышли из аккаунта.");
+        invalidateSession("Р’С‹ РІС‹С€Р»Рё РёР· Р°РєРєР°СѓРЅС‚Р°.");
       }
 
       async function req(path, options = {}) {
@@ -1645,7 +1648,7 @@
           const retryAfter = Number(res.headers.get("retry-after") || 0);
           if (res.status === 401) {
             if (token && protectedPaths.some((p) => path.startsWith(p))) {
-              invalidateSession("Сессия истекла. Войдите снова.");
+              invalidateSession("РЎРµСЃСЃРёСЏ РёСЃС‚РµРєР»Р°. Р’РѕР№РґРёС‚Рµ СЃРЅРѕРІР°.");
             }
           } else if (
             token &&
@@ -1653,7 +1656,7 @@
             data?.error === "Internal server error" &&
             protectedPaths.some((p) => path.startsWith(p))
           ) {
-            invalidateSession("Токен устарел после перезапуска БД. Войдите заново.");
+            invalidateSession("РўРѕРєРµРЅ СѓСЃС‚Р°СЂРµР» РїРѕСЃР»Рµ РїРµСЂРµР·Р°РїСѓСЃРєР° Р‘Р”. Р’РѕР№РґРёС‚Рµ Р·Р°РЅРѕРІРѕ.");
           }
 
           throw { ...data, __status: res.status, __retryAfterSec: retryAfter > 0 ? retryAfter : undefined };
@@ -1683,7 +1686,7 @@
         clearAuthMessages();
         try {
           if (!regDisplayName.value.trim()) {
-            showAuthError("Введите имя для личного кабинета.");
+            showAuthError("Р’РІРµРґРёС‚Рµ РёРјСЏ РґР»СЏ Р»РёС‡РЅРѕРіРѕ РєР°Р±РёРЅРµС‚Р°.");
             return;
           }
           const payload = {
@@ -1694,7 +1697,7 @@
           };
           await req("/auth/register", { method: "POST", body: JSON.stringify(payload) });
           switchAuth("login");
-          showAuthInfo("Регистрация успешна. Теперь выполните вход.");
+          showAuthInfo("Р РµРіРёСЃС‚СЂР°С†РёСЏ СѓСЃРїРµС€РЅР°. РўРµРїРµСЂСЊ РІС‹РїРѕР»РЅРёС‚Рµ РІС…РѕРґ.");
           if (!login.value) {
             login.value = payload.login;
           }
@@ -1702,12 +1705,12 @@
           if (e?.__status === 429) {
             const sec = Number(e?.retryAfterSec ?? e?.__retryAfterSec ?? 0);
             if (sec > 0) {
-              showAuthError(`Слишком много попыток регистрации. Повторите через ${sec} сек.`);
+              showAuthError(`РЎР»РёС€РєРѕРј РјРЅРѕРіРѕ РїРѕРїС‹С‚РѕРє СЂРµРіРёСЃС‚СЂР°С†РёРё. РџРѕРІС‚РѕСЂРёС‚Рµ С‡РµСЂРµР· ${sec} СЃРµРє.`);
             } else {
-              showAuthError("Слишком много попыток регистрации. Попробуйте позже.");
+              showAuthError("РЎР»РёС€РєРѕРј РјРЅРѕРіРѕ РїРѕРїС‹С‚РѕРє СЂРµРіРёСЃС‚СЂР°С†РёРё. РџРѕРїСЂРѕР±СѓР№С‚Рµ РїРѕР·Р¶Рµ.");
             }
           } else {
-            showAuthError("Регистрация не выполнена. Проверьте поля и попробуйте снова.");
+            showAuthError("Р РµРіРёСЃС‚СЂР°С†РёСЏ РЅРµ РІС‹РїРѕР»РЅРµРЅР°. РџСЂРѕРІРµСЂСЊС‚Рµ РїРѕР»СЏ Рё РїРѕРїСЂРѕР±СѓР№С‚Рµ СЃРЅРѕРІР°.");
           }
           print(e);
         }
@@ -1716,7 +1719,7 @@
       async function handleGoogleAuthCredential(credential) {
         clearAuthMessages();
         if (!credential) {
-          showAuthError("Не удалось получить данные Google. Попробуйте ещё раз.");
+          showAuthError("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РґР°РЅРЅС‹Рµ Google. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.");
           return;
         }
 
@@ -1734,15 +1737,15 @@
           failedLoginAttempts = 0;
           updateForgotHintVisibility();
           toggleReset(false);
-          showAuthInfo("Вход через Google выполнен успешно.");
+          showAuthInfo("Р’С…РѕРґ С‡РµСЂРµР· Google РІС‹РїРѕР»РЅРµРЅ СѓСЃРїРµС€РЅРѕ.");
           await startOnboardingFlow(false);
         } catch (e) {
           if (e?.__status === 401) {
-            showAuthError("Google-авторизация не подтверждена. Попробуйте ещё раз.");
+            showAuthError("Google-Р°РІС‚РѕСЂРёР·Р°С†РёСЏ РЅРµ РїРѕРґС‚РІРµСЂР¶РґРµРЅР°. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.");
           } else if (e?.__status === 503) {
-            showAuthError("Google-вход пока не настроен на сервере.");
+            showAuthError("Google-РІС…РѕРґ РїРѕРєР° РЅРµ РЅР°СЃС‚СЂРѕРµРЅ РЅР° СЃРµСЂРІРµСЂРµ.");
           } else {
-            showAuthError("Не удалось войти через Google.");
+            showAuthError("РќРµ СѓРґР°Р»РѕСЃСЊ РІРѕР№С‚Рё С‡РµСЂРµР· Google.");
           }
           print(e);
         }
@@ -1770,14 +1773,14 @@
 
         if (!googleClientId) {
           wraps.forEach((wrap) => {
-            wrap.innerHTML = `<span class="muted">Google-вход временно недоступен.</span>`;
+            wrap.innerHTML = `<span class="muted">Google-РІС…РѕРґ РІСЂРµРјРµРЅРЅРѕ РЅРµРґРѕСЃС‚СѓРїРµРЅ.</span>`;
           });
           return;
         }
 
         if (!window.google?.accounts?.id) {
           wraps.forEach((wrap) => {
-            wrap.innerHTML = `<span class="muted">Загрузка Google-входа...</span>`;
+            wrap.innerHTML = `<span class="muted">Р—Р°РіСЂСѓР·РєР° Google-РІС…РѕРґР°...</span>`;
           });
           setTimeout(initGoogleAuthButton, 500);
           return;
@@ -1808,7 +1811,7 @@
 
       async function loginUser() {
         clearAuthMessages();
-        resetProgressState("Проверяем аккаунт...");
+        resetProgressState("РџСЂРѕРІРµСЂСЏРµРј Р°РєРєР°СѓРЅС‚...");
         try {
           const payload = { login: login.value.trim(), password: password.value };
           const data = await req("/auth/login", { method: "POST", body: JSON.stringify(payload) });
@@ -1828,13 +1831,13 @@
           if (e?.__status === 401 || e?.error === "Unauthorized" || e?.__status === 400) {
             failedLoginAttempts += 1;
             updateForgotHintVisibility();
-            showAuthError("Неверный логин или пароль. Можете попробовать сбросить пароль.");
+            showAuthError("РќРµРІРµСЂРЅС‹Р№ Р»РѕРіРёРЅ РёР»Рё РїР°СЂРѕР»СЊ. РњРѕР¶РµС‚Рµ РїРѕРїСЂРѕР±РѕРІР°С‚СЊ СЃР±СЂРѕСЃРёС‚СЊ РїР°СЂРѕР»СЊ.");
             if (login.value.includes("@") && !forgotEmail.value) {
               forgotEmail.value = login.value;
             }
             toggleReset(false);
           } else {
-            showAuthError("Ошибка входа. Попробуйте ещё раз.");
+            showAuthError("РћС€РёР±РєР° РІС…РѕРґР°. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.");
           }
           print(e);
         }
@@ -1848,10 +1851,10 @@
           if (data.resetToken) {
             resetToken.value = data.resetToken;
           }
-          showAuthInfo("Токен сброса получен. Введите новый пароль.");
+          showAuthInfo("РўРѕРєРµРЅ СЃР±СЂРѕСЃР° РїРѕР»СѓС‡РµРЅ. Р’РІРµРґРёС‚Рµ РЅРѕРІС‹Р№ РїР°СЂРѕР»СЊ.");
           print(data);
         } catch (e) {
-          showAuthError("Не удалось получить токен сброса.");
+          showAuthError("РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ С‚РѕРєРµРЅ СЃР±СЂРѕСЃР°.");
           print(e);
         }
       }
@@ -1861,12 +1864,12 @@
         try {
           const payload = { token: resetToken.value.trim(), newPassword: newPassword.value };
           await req("/auth/reset-password", { method: "POST", body: JSON.stringify(payload) });
-          showAuthInfo("Пароль обновлён. Теперь войдите с новым паролем.");
+          showAuthInfo("РџР°СЂРѕР»СЊ РѕР±РЅРѕРІР»С‘РЅ. РўРµРїРµСЂСЊ РІРѕР№РґРёС‚Рµ СЃ РЅРѕРІС‹Рј РїР°СЂРѕР»РµРј.");
           toggleReset(false);
           switchAuth("login");
           print({ ok: true });
         } catch (e) {
-          showAuthError("Сброс пароля не выполнен. Проверьте токен.");
+          showAuthError("РЎР±СЂРѕСЃ РїР°СЂРѕР»СЏ РЅРµ РІС‹РїРѕР»РЅРµРЅ. РџСЂРѕРІРµСЂСЊС‚Рµ С‚РѕРєРµРЅ.");
           print(e);
         }
       }
@@ -1878,14 +1881,14 @@
           currentProfile = profile ?? null;
           const summary = document.getElementById("onboardingSummary");
           if (!profile) {
-            summary.textContent = "Стартовый профиль ещё не заполнен.";
+            summary.textContent = "РЎС‚Р°СЂС‚РѕРІС‹Р№ РїСЂРѕС„РёР»СЊ РµС‰С‘ РЅРµ Р·Р°РїРѕР»РЅРµРЅ.";
             return;
           }
 
           const startedAt = profile.started_at ?? "-";
           const goal = profile.current_goal_days ?? "-";
-          const mode = profile.started_with_existing_streak ? "уже не пил ранее" : "старт сегодня";
-          summary.textContent = `Режим: ${mode}. Старт: ${startedAt}. Цель: ${goal} дн.`;
+          const mode = profile.started_with_existing_streak ? "СѓР¶Рµ РЅРµ РїРёР» СЂР°РЅРµРµ" : "СЃС‚Р°СЂС‚ СЃРµРіРѕРґРЅСЏ";
+          summary.textContent = `Р РµР¶РёРј: ${mode}. РЎС‚Р°СЂС‚: ${startedAt}. Р¦РµР»СЊ: ${goal} РґРЅ.`;
         } catch (e) {
           print(e);
         }
@@ -1910,37 +1913,37 @@
         const hintEl = document.getElementById("breathHint");
         if (value === "nhs") {
           breathProgram = [
-            { label: "Вдох", seconds: 5, scale: 1.14 },
-            { label: "Выдох", seconds: 5, scale: 0.86 }
+            { label: "Р’РґРѕС…", seconds: 5, scale: 1.14 },
+            { label: "Р’С‹РґРѕС…", seconds: 5, scale: 0.86 }
           ];
-          hintEl.textContent = "Спокойное дыхание: вдох 5с, выдох 5с, повторяйте минимум 5 минут.";
+          hintEl.textContent = "РЎРїРѕРєРѕР№РЅРѕРµ РґС‹С…Р°РЅРёРµ: РІРґРѕС… 5СЃ, РІС‹РґРѕС… 5СЃ, РїРѕРІС‚РѕСЂСЏР№С‚Рµ РјРёРЅРёРјСѓРј 5 РјРёРЅСѓС‚.";
           return;
         }
         if (value === "478") {
           breathProgram = [
-            { label: "Вдох", seconds: 4, scale: 1.15 },
-            { label: "Задержка", seconds: 7, scale: 1.15 },
-            { label: "Выдох", seconds: 8, scale: 0.84 }
+            { label: "Р’РґРѕС…", seconds: 4, scale: 1.15 },
+            { label: "Р—Р°РґРµСЂР¶РєР°", seconds: 7, scale: 1.15 },
+            { label: "Р’С‹РґРѕС…", seconds: 8, scale: 0.84 }
           ];
-          hintEl.textContent = "4-7-8: вдох 4с, задержка 7с, выдох 8с.";
+          hintEl.textContent = "4-7-8: РІРґРѕС… 4СЃ, Р·Р°РґРµСЂР¶РєР° 7СЃ, РІС‹РґРѕС… 8СЃ.";
           return;
         }
         if (value === "sigh") {
           breathProgram = [
-            { label: "Вдох", seconds: 3, scale: 1.08 },
-            { label: "Довдох", seconds: 1, scale: 1.16 },
-            { label: "Длинный выдох", seconds: 6, scale: 0.84 }
+            { label: "Р’РґРѕС…", seconds: 3, scale: 1.08 },
+            { label: "Р”РѕРІРґРѕС…", seconds: 1, scale: 1.16 },
+            { label: "Р”Р»РёРЅРЅС‹Р№ РІС‹РґРѕС…", seconds: 6, scale: 0.84 }
           ];
-          hintEl.textContent = "Двойной вдох и длинный выдох: два вдоха через нос, длинный выдох через рот.";
+          hintEl.textContent = "Р”РІРѕР№РЅРѕР№ РІРґРѕС… Рё РґР»РёРЅРЅС‹Р№ РІС‹РґРѕС…: РґРІР° РІРґРѕС…Р° С‡РµСЂРµР· РЅРѕСЃ, РґР»РёРЅРЅС‹Р№ РІС‹РґРѕС… С‡РµСЂРµР· СЂРѕС‚.";
           return;
         }
         breathProgram = [
-          { label: "Вдох", seconds: 4, scale: 1.12 },
-          { label: "Задержка", seconds: 4, scale: 1.12 },
-          { label: "Выдох", seconds: 4, scale: 0.88 },
-          { label: "Пауза", seconds: 4, scale: 0.88 }
+          { label: "Р’РґРѕС…", seconds: 4, scale: 1.12 },
+          { label: "Р—Р°РґРµСЂР¶РєР°", seconds: 4, scale: 1.12 },
+          { label: "Р’С‹РґРѕС…", seconds: 4, scale: 0.88 },
+          { label: "РџР°СѓР·Р°", seconds: 4, scale: 0.88 }
         ];
-        hintEl.textContent = "Ровное дыхание: 4с вдох, 4с задержка, 4с выдох, 4с пауза.";
+        hintEl.textContent = "Р РѕРІРЅРѕРµ РґС‹С…Р°РЅРёРµ: 4СЃ РІРґРѕС…, 4СЃ Р·Р°РґРµСЂР¶РєР°, 4СЃ РІС‹РґРѕС…, 4СЃ РїР°СѓР·Р°.";
       }
 
       function applyBreathPhase() {
@@ -1950,7 +1953,7 @@
         const phase = breathProgram[breathPhaseIndex];
         breathCircle.style.transition = `transform ${phase.seconds}s linear`;
         breathCircle.style.transform = `scale(${phase.scale})`;
-        breathPhase.textContent = `${phase.label}: ${breathPhaseSeconds}с`;
+        breathPhase.textContent = `${phase.label}: ${breathPhaseSeconds}СЃ`;
         breathTimer.textContent = formatMMSS(breathSecondsLeft);
       }
 
@@ -1977,7 +1980,7 @@
             breathPhaseSeconds = breathProgram[breathPhaseIndex].seconds;
             applyBreathPhase();
           } else {
-            breathPhase.textContent = `${breathProgram[breathPhaseIndex].label}: ${breathPhaseSeconds}с`;
+            breathPhase.textContent = `${breathProgram[breathPhaseIndex].label}: ${breathPhaseSeconds}СЃ`;
             breathTimer.textContent = formatMMSS(breathSecondsLeft);
           }
         }, 1000);
@@ -1990,11 +1993,11 @@
         }
         breathCircle.style.transition = "transform .2s ease";
         breathCircle.style.transform = "scale(1)";
-        breathPhase.textContent = finished ? "Цикл завершён" : "Готово к дыханию";
+        breathPhase.textContent = finished ? "Р¦РёРєР» Р·Р°РІРµСЂС€С‘РЅ" : "Р“РѕС‚РѕРІРѕ Рє РґС‹С…Р°РЅРёСЋ";
         breathTimer.textContent = formatMMSS(breathSecondsLeft);
       }
 
-      const gameItems = ["🌿", "💧", "🍊", "🌞", "🧩", "🍃"];
+      const gameItems = ["рџЊї", "рџ’§", "рџЌЉ", "рџЊћ", "рџ§©", "рџЌѓ"];
 
       function randomGameItem() {
         return gameItems[Math.floor(Math.random() * gameItems.length)];
@@ -2002,8 +2005,8 @@
 
       function newMatch3Game() {
         gameScoreValue = 0;
-        gameScore.textContent = "Очки: 0";
-        gameStatus.textContent = "Меняйте соседние фишки, чтобы собрать 3 в ряд.";
+        gameScore.textContent = "РћС‡РєРё: 0";
+        gameStatus.textContent = "РњРµРЅСЏР№С‚Рµ СЃРѕСЃРµРґРЅРёРµ С„РёС€РєРё, С‡С‚РѕР±С‹ СЃРѕР±СЂР°С‚СЊ 3 РІ СЂСЏРґ.";
         gameSelected = null;
         gameBoard = Array.from({ length: 6 }, () => Array.from({ length: 6 }, () => randomGameItem()));
         resolveMatchesLoop();
@@ -2088,7 +2091,7 @@
           gameScoreValue += matched.size;
           collapseBoard();
         }
-        gameScore.textContent = `Очки: ${gameScoreValue}`;
+        gameScore.textContent = `РћС‡РєРё: ${gameScoreValue}`;
       }
 
       async function animateGameSwap(a, b) {
@@ -2129,10 +2132,10 @@
         if (!matched.size) {
           await animateGameSwap(cur, gameSelected);
           swapCells(gameSelected, cur);
-          gameStatus.textContent = "Совпадений нет. Попробуйте другой ход.";
+          gameStatus.textContent = "РЎРѕРІРїР°РґРµРЅРёР№ РЅРµС‚. РџРѕРїСЂРѕР±СѓР№С‚Рµ РґСЂСѓРіРѕР№ С…РѕРґ.";
         } else {
           resolveMatchesLoop();
-          gameStatus.textContent = "Отлично! Совпадение собрано.";
+          gameStatus.textContent = "РћС‚Р»РёС‡РЅРѕ! РЎРѕРІРїР°РґРµРЅРёРµ СЃРѕР±СЂР°РЅРѕ.";
         }
         gameSelected = null;
         renderMatch3();
@@ -2153,7 +2156,7 @@
           const goalDays = Number(goalDaysWizard.value);
           const minGoal = getWizardMinGoal();
           if (!Number.isFinite(goalDays) || goalDays < minGoal || goalDays > 3650) {
-            showOnboardingError(`Цель должна быть числом от ${minGoal} до 3650.`);
+            showOnboardingError(`Р¦РµР»СЊ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ С‡РёСЃР»РѕРј РѕС‚ ${minGoal} РґРѕ 3650.`);
             return;
           }
 
@@ -2163,11 +2166,11 @@
           };
           if (selectedStartMode === "already_sober") {
             if (!soberStartDateWizard.value) {
-              showOnboardingError("Выберите дату начала трезвости в календаре.");
+              showOnboardingError("Р’С‹Р±РµСЂРёС‚Рµ РґР°С‚Сѓ РЅР°С‡Р°Р»Р° С‚СЂРµР·РІРѕСЃС‚Рё РІ РєР°Р»РµРЅРґР°СЂРµ.");
               return;
             }
             if (soberStartDateWizard.value > today) {
-              showOnboardingError("Дата начала трезвости не может быть в будущем.");
+              showOnboardingError("Р”Р°С‚Р° РЅР°С‡Р°Р»Р° С‚СЂРµР·РІРѕСЃС‚Рё РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РІ Р±СѓРґСѓС‰РµРј.");
               return;
             }
             payload.soberStartDate = soberStartDateWizard.value;
@@ -2183,9 +2186,9 @@
           if (e?.currentStreak !== undefined) {
             currentStreakDays = Math.max(0, Number(e.currentStreak));
             refreshGoalConstraints();
-            showOnboardingError(`Цель должна быть больше текущей серии: минимум ${currentStreakDays + 1} дн.`);
+            showOnboardingError(`Р¦РµР»СЊ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ С‚РµРєСѓС‰РµР№ СЃРµСЂРёРё: РјРёРЅРёРјСѓРј ${currentStreakDays + 1} РґРЅ.`);
           } else {
-            showOnboardingError("Не удалось сохранить стартовый профиль.");
+            showOnboardingError("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ СЃС‚Р°СЂС‚РѕРІС‹Р№ РїСЂРѕС„РёР»СЊ.");
           }
           print(e);
         }
@@ -2200,19 +2203,19 @@
           if (!data?.activeGoal) {
             currentStreakDays = 0;
             closeGoalAchievedModal();
-            updateProgressWidget(null, null, 0, "Создайте или обновите цель в стартовом профиле.");
+            updateProgressWidget(null, null, 0, "РЎРѕР·РґР°Р№С‚Рµ РёР»Рё РѕР±РЅРѕРІРёС‚Рµ С†РµР»СЊ РІ СЃС‚Р°СЂС‚РѕРІРѕРј РїСЂРѕС„РёР»Рµ.");
           } else if (!progress) {
             currentStreakDays = 0;
             closeGoalAchievedModal();
             const target = Number(data.activeGoal.target_days ?? 0);
-            updateProgressWidget(0, target, 0, "Добавьте первую запись дня, чтобы запустить прогресс.");
+            updateProgressWidget(0, target, 0, "Р”РѕР±Р°РІСЊС‚Рµ РїРµСЂРІСѓСЋ Р·Р°РїРёСЃСЊ РґРЅСЏ, С‡С‚РѕР±С‹ Р·Р°РїСѓСЃС‚РёС‚СЊ РїСЂРѕРіСЂРµСЃСЃ.");
           } else {
             const streak = progress.streakDays ?? 0;
             currentStreakDays = Math.max(0, Number(streak));
             const target = progress.targetDays ?? data.activeGoal.target_days ?? "-";
             const percent = progress.percent ?? 0;
             const remaining = progress.remainingDays ?? Math.max(0, Number(target) - streak);
-            const note = remaining === 0 ? "Цель достигнута. Можно выбрать новую, более амбициозную!" : `До цели осталось ${remaining} дн. Держитесь курса.`;
+            const note = remaining === 0 ? "Р¦РµР»СЊ РґРѕСЃС‚РёРіРЅСѓС‚Р°. РњРѕР¶РЅРѕ РІС‹Р±СЂР°С‚СЊ РЅРѕРІСѓСЋ, Р±РѕР»РµРµ Р°РјР±РёС†РёРѕР·РЅСѓСЋ!" : `Р”Рѕ С†РµР»Рё РѕСЃС‚Р°Р»РѕСЃСЊ ${remaining} РґРЅ. Р”РµСЂР¶РёС‚РµСЃСЊ РєСѓСЂСЃР°.`;
             updateProgressWidget(streak, target, percent, note);
             maybeOpenGoalAchievedModal(data.activeGoal, progress);
           }
@@ -2287,7 +2290,7 @@
         quickPanel.classList.toggle("hidden", shouldOpen);
         quickHeader.classList.toggle("hidden", shouldOpen);
         quickIntro.classList.toggle("hidden", shouldOpen);
-        btn.textContent = shouldOpen ? "Открыть быструю отметку" : "Открыть подробную запись";
+        btn.textContent = shouldOpen ? "РћС‚РєСЂС‹С‚СЊ Р±С‹СЃС‚СЂСѓСЋ РѕС‚РјРµС‚РєСѓ" : "РћС‚РєСЂС‹С‚СЊ РїРѕРґСЂРѕР±РЅСѓСЋ Р·Р°РїРёСЃСЊ";
 
         if (shouldOpen) {
           entryDate.value = quickDate.value;
@@ -2319,8 +2322,8 @@
             mood: quickMood.value,
             stressLevel: stress,
             cravingLevel: craving,
-            daySummary: selectedDrank ? "Быстрая отметка: был алкоголь." : "Быстрая отметка: день без алкоголя.",
-            comment: "Быстрый режим",
+            daySummary: selectedDrank ? "Р‘С‹СЃС‚СЂР°СЏ РѕС‚РјРµС‚РєР°: Р±С‹Р» Р°Р»РєРѕРіРѕР»СЊ." : "Р‘С‹СЃС‚СЂР°СЏ РѕС‚РјРµС‚РєР°: РґРµРЅСЊ Р±РµР· Р°Р»РєРѕРіРѕР»СЏ.",
+            comment: "Р‘С‹СЃС‚СЂС‹Р№ СЂРµР¶РёРј",
             reasonCodes: selectedDrank ? selectedQuickReasonCodes() : []
           };
           print(await req("/entries", { method: "POST", body: JSON.stringify(payload) }));
@@ -2389,11 +2392,11 @@
       };
 
       const moodToLabelRu = {
-        awful: "ужасно",
-        bad: "плохо",
-        neutral: "нормально",
-        good: "хорошо",
-        great: "отлично"
+        awful: "СѓР¶Р°СЃРЅРѕ",
+        bad: "РїР»РѕС…Рѕ",
+        neutral: "РЅРѕСЂРјР°Р»СЊРЅРѕ",
+        good: "С…РѕСЂРѕС€Рѕ",
+        great: "РѕС‚Р»РёС‡РЅРѕ"
       };
 
       function normalizeDateOnly(value) {
@@ -2421,7 +2424,7 @@
         const chart = document.getElementById("entriesLineChart");
         if (!chart) return;
         if (!entries.length) {
-          chart.innerHTML = `<text x="24" y="30" fill="#5f7472" font-size="14">Нет данных за период</text>`;
+          chart.innerHTML = `<text x="24" y="30" fill="#5f7472" font-size="14">РќРµС‚ РґР°РЅРЅС‹С… Р·Р° РїРµСЂРёРѕРґ</text>`;
           return;
         }
 
@@ -2490,23 +2493,23 @@
         const dates = (useSparseMode ? entryDates : allDates).slice(-90);
 
         if (!dates.length) {
-          ribbon.innerHTML = `<span class="muted">Пустой диапазон дат.</span>`;
+          ribbon.innerHTML = `<span class="muted">РџСѓСЃС‚РѕР№ РґРёР°РїР°Р·РѕРЅ РґР°С‚.</span>`;
           return;
         }
 
         const sparseHint = useSparseMode
-          ? `<span class="muted" style="display:block; margin-bottom:6px;">РџРµСЂРёРѕРґ Р±РѕР»СЊС€РѕР№, РїРѕРєР°Р·Р°РЅС‹ С‚РѕР»СЊРєРѕ РґРЅРё СЃ Р·Р°РїРёСЃСЏРјРё.</span>`
+          ? `<span class="muted" style="display:block; margin-bottom:6px;">Р СџР ВµРЎР‚Р С‘Р С•Р Т‘ Р В±Р С•Р В»РЎРЉРЎв‚¬Р С•Р в„–, Р С—Р С•Р С”Р В°Р В·Р В°Р Р…РЎвЂ№ РЎвЂљР С•Р В»РЎРЉР С”Р С• Р Т‘Р Р…Р С‘ РЎРѓ Р В·Р В°Р С—Р С‘РЎРѓРЎРЏР СР С‘.</span>`
           : "";
 
         ribbon.innerHTML = sparseHint + dates.map((d) => {
           const item = byDate.get(d);
           if (!item) {
-            return `<div class="day-pill empty" title="${d}: записи нет"><div>${formatShortDate(d)}</div><span class="m">—</span></div>`;
+            return `<div class="day-pill empty" title="${d}: Р·Р°РїРёСЃРё РЅРµС‚"><div>${formatShortDate(d)}</div><span class="m">вЂ”</span></div>`;
           }
           const cls = item.drank ? "drank" : "sober";
           const moodLabel = moodToLabelRu[item.mood] ?? item.mood ?? "-";
-          const drankLabel = item.drank ? "пил" : "не пил";
-          return `<div class="day-pill ${cls}" title="${d}: ${drankLabel}, настроение: ${moodLabel}"><div>${formatShortDate(d)}</div><span class="m">${moodLabel}</span></div>`;
+          const drankLabel = item.drank ? "РїРёР»" : "РЅРµ РїРёР»";
+          return `<div class="day-pill ${cls}" title="${d}: ${drankLabel}, РЅР°СЃС‚СЂРѕРµРЅРёРµ: ${moodLabel}"><div>${formatShortDate(d)}</div><span class="m">${moodLabel}</span></div>`;
         }).join("");
       }
 
@@ -2523,7 +2526,7 @@
         const el = document.getElementById("triggerInsights");
         if (!el) return;
         if (!entries.length) {
-          el.innerHTML = `<div class="insight-note">Нет данных за выбранный период.</div>`;
+          el.innerHTML = `<div class="insight-note">РќРµС‚ РґР°РЅРЅС‹С… Р·Р° РІС‹Р±СЂР°РЅРЅС‹Р№ РїРµСЂРёРѕРґ.</div>`;
           return;
         }
 
@@ -2557,7 +2560,7 @@
 
         const reasonsHtml = topReasons.length
           ? topReasons.map(([code, count]) => `<span class="pill">${reasonTitleRu[code] ?? code}: ${count}</span>`).join("")
-          : `<span class="insight-note">Пока нет зафиксированных причин в днях с алкоголем.</span>`;
+          : `<span class="insight-note">РџРѕРєР° РЅРµС‚ Р·Р°С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹С… РїСЂРёС‡РёРЅ РІ РґРЅСЏС… СЃ Р°Р»РєРѕРіРѕР»РµРј.</span>`;
 
         const moodHtml = moodRows
           .map((row) => `
@@ -2570,11 +2573,11 @@
           .join("");
 
         el.innerHTML = `
-          <div class="insight-note">Всего дней с алкоголем за период: <strong>${drankEntries.length}</strong>.</div>
-          <div class="insight-note">Доля дней с алкоголем: <strong>${drankPct}%</strong>.</div>
-          <div class="insight-note">Топ причин в днях с алкоголем:</div>
+          <div class="insight-note">Р’СЃРµРіРѕ РґРЅРµР№ СЃ Р°Р»РєРѕРіРѕР»РµРј Р·Р° РїРµСЂРёРѕРґ: <strong>${drankEntries.length}</strong>.</div>
+          <div class="insight-note">Р”РѕР»СЏ РґРЅРµР№ СЃ Р°Р»РєРѕРіРѕР»РµРј: <strong>${drankPct}%</strong>.</div>
+          <div class="insight-note">РўРѕРї РїСЂРёС‡РёРЅ РІ РґРЅСЏС… СЃ Р°Р»РєРѕРіРѕР»РµРј:</div>
           <div>${reasonsHtml}</div>
-          <div class="insight-note" style="margin-top:4px;">Риск по настроению (доля дней с алкоголем):</div>
+          <div class="insight-note" style="margin-top:4px;">Р РёСЃРє РїРѕ РЅР°СЃС‚СЂРѕРµРЅРёСЋ (РґРѕР»СЏ РґРЅРµР№ СЃ Р°Р»РєРѕРіРѕР»РµРј):</div>
           <div>${moodHtml}</div>
         `;
       }
@@ -2582,7 +2585,7 @@
       function setEntriesToggleLabel(showing) {
         const btn = document.getElementById("entriesToggleBtn");
         if (!btn) return;
-        btn.textContent = showing ? "Скрыть записи" : "Показать записи";
+        btn.textContent = showing ? "РЎРєСЂС‹С‚СЊ Р·Р°РїРёСЃРё" : "РџРѕРєР°Р·Р°С‚СЊ Р·Р°РїРёСЃРё";
       }
 
       async function toggleEntriesView() {
@@ -2652,8 +2655,8 @@
         const minGoal = Math.max(2, Number(streakDays ?? currentStreakDays) + 1);
         input.min = String(minGoal);
         input.value = String(Math.min(3650, minGoal + 7));
-        text.textContent = `Поздравляем! Вы достигли цели ${targetDays} дн. Серия: ${streakDays} дн.`;
-        hint.textContent = `Новая цель должна быть больше текущей серии: минимум ${minGoal} дн.`;
+        text.textContent = `РџРѕР·РґСЂР°РІР»СЏРµРј! Р’С‹ РґРѕСЃС‚РёРіР»Рё С†РµР»Рё ${targetDays} РґРЅ. РЎРµСЂРёСЏ: ${streakDays} РґРЅ.`;
+        hint.textContent = `РќРѕРІР°СЏ С†РµР»СЊ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ С‚РµРєСѓС‰РµР№ СЃРµСЂРёРё: РјРёРЅРёРјСѓРј ${minGoal} РґРЅ.`;
         shell.classList.remove("hidden");
       }
 
@@ -2669,7 +2672,7 @@
           const value = Number(input?.value);
           const minGoal = Math.max(2, currentStreakDays + 1);
           if (!Number.isFinite(value) || value < minGoal || value > 3650) {
-            throw new Error(`Новая цель должна быть от ${minGoal} до 3650 дней.`);
+            throw new Error(`РќРѕРІР°СЏ С†РµР»СЊ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РѕС‚ ${minGoal} РґРѕ 3650 РґРЅРµР№.`);
           }
 
           let profile = currentProfile;
@@ -2678,7 +2681,7 @@
             profile = data?.profile ?? null;
           }
           if (!profile) {
-            throw new Error("Не найден стартовый профиль. Сначала заполните старт и цель.");
+            throw new Error("РќРµ РЅР°Р№РґРµРЅ СЃС‚Р°СЂС‚РѕРІС‹Р№ РїСЂРѕС„РёР»СЊ. РЎРЅР°С‡Р°Р»Р° Р·Р°РїРѕР»РЅРёС‚Рµ СЃС‚Р°СЂС‚ Рё С†РµР»СЊ.");
           }
 
           const startMode = profile.started_with_existing_streak ? "already_sober" : "now";
@@ -2694,7 +2697,7 @@
           await loadGoals();
         } catch (e) {
           print(e);
-          alert(e?.message || "Не удалось обновить цель.");
+          alert(e?.message || "РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ С†РµР»СЊ.");
         }
       }
 
@@ -2715,17 +2718,17 @@
         const box = document.getElementById("profileAchievements");
         if (!box) return;
         if (!Array.isArray(items) || items.length === 0) {
-          box.innerHTML = `<div class="muted">Достижения пока недоступны.</div>`;
+          box.innerHTML = `<div class="muted">Р”РѕСЃС‚РёР¶РµРЅРёСЏ РїРѕРєР° РЅРµРґРѕСЃС‚СѓРїРЅС‹.</div>`;
           return;
         }
 
         box.innerHTML = items
           .map((a) => {
             const locked = a.unlocked ? "" : "locked";
-            const mark = a.unlocked ? "Открыто" : "В процессе";
+            const mark = a.unlocked ? "РћС‚РєСЂС‹С‚Рѕ" : "Р’ РїСЂРѕС†РµСЃСЃРµ";
             return `
               <div class="achievement-item ${locked}">
-                <div class="achievement-title">${a.title} · ${mark}</div>
+                <div class="achievement-title">${a.title} В· ${mark}</div>
                 <div class="achievement-desc">${a.description}</div>
               </div>
             `;
@@ -2739,8 +2742,8 @@
           const p = data?.profile || {};
           const main = document.getElementById("profileMainInfo");
           if (main) {
-            const goal = p.activeGoalDays ? `${p.activeGoalDays} дн.` : "не задана";
-            main.textContent = `${p.displayName ?? p.login ?? "Пользователь"} · ${p.email ?? ""} · Активная цель: ${goal}`;
+            const goal = p.activeGoalDays ? `${p.activeGoalDays} РґРЅ.` : "РЅРµ Р·Р°РґР°РЅР°";
+            main.textContent = `${p.displayName ?? p.login ?? "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ"} В· ${p.email ?? ""} В· РђРєС‚РёРІРЅР°СЏ С†РµР»СЊ: ${goal}`;
           }
 
           document.getElementById("profileCurrentStreak").textContent = `${p.currentStreak ?? 0}`;
@@ -2752,7 +2755,7 @@
         } catch (e) {
           print(e);
           const main = document.getElementById("profileMainInfo");
-          if (main) main.textContent = "Не удалось загрузить личный кабинет.";
+          if (main) main.textContent = "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ Р»РёС‡РЅС‹Р№ РєР°Р±РёРЅРµС‚.";
         }
       }
 

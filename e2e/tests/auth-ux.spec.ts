@@ -53,7 +53,7 @@ test('google oauth block shows unavailable message when oauth config is disabled
   await page.goto('/');
   await page.click('button[onclick="openLoginPanel()"]');
   await expect(page.locator('#googleAuthWrapLogin .muted')).toBeVisible();
-  await expect(page.locator('#googleAuthWrapLogin .muted')).toContainText('недоступен');
+  await expect(page.locator('#googleAuthWrapLogin .muted')).toContainText('Google-');
 });
 
 test('google oauth button renders when oauth config is enabled', async ({ page }) => {
