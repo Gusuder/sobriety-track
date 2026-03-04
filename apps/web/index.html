@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
@@ -1587,7 +1587,9 @@
         if (!res.ok) {
           const retryAfter = Number(res.headers.get("retry-after") || 0);
           if (res.status === 401) {
-            invalidateSession("Сессия истекла. Войдите снова.");
+            if (token && protectedPaths.some((p) => path.startsWith(p))) {
+              invalidateSession("Сессия истекла. Войдите снова.");
+            }
           } else if (
             token &&
             res.status === 500 &&
