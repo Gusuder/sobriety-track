@@ -253,3 +253,81 @@ test('GET /api/auth/google/config returns oauth config state', async () => {
 
   await app.close();
 });
+
+test('POST /api/auth/google creates new user with google provider when email is missing', async () => {
+  const originalGoogleClientId = process.env.GOOGLE_CLIENT_ID;
+  process.env.GOOGLE_CLIENT_ID = 'test-google-client-id';
+  __setGoogleVerifierForTests(async () => ({
+    email: 'fresh_google_user@example.com',
+    displayName: 'Fresh Google User'
+  }));
+
+  const originalQuery = pool.query;
+  let insertSql = '';
+  (pool as any).query = async (sql: string) => {
+    if (sql.includes('FROM users WHERE email')) {
+      return { rows: [], rowCount: 0 };
+    }
+    if (sql.includes('INSERT INTO users')) {
+      insertSql = sql;
+      return {
+        rows: [
+          {
+            id: 202,
+            login: 'fresh_google_user',
+            email: 'fresh_google_user@example.com',
+            display_name: 'Fresh Google User',
+            auth_provider: 'google'
+          }
+        ],
+        rowCount: 1
+      };
+    }
+    return { rows: [], rowCount: 0 };
+  };
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/google',
+    payload: { idToken: 'x'.repeat(24) },
+    remoteAddress: '10.10.1.3'
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.ok(insertSql.includes("auth_provider"));
+  assert.ok(typeof res.json().accessToken === 'string');
+
+  await app.close();
+  (pool as any).query = originalQuery;
+  __setGoogleVerifierForTests(null);
+  process.env.GOOGLE_CLIENT_ID = originalGoogleClientId;
+});
+
+test('POST /api/auth/forgot-password for google provider does not return reset token', async () => {
+  const originalQuery = pool.query;
+  (pool as any).query = async (sql: string) => {
+    if (sql.includes('FROM users WHERE email')) {
+      return { rows: [{ id: 303, auth_provider: 'google' }], rowCount: 1 };
+    }
+    if (sql.includes('INSERT INTO password_reset_tokens')) {
+      throw new Error('reset token insert should not be called for google provider');
+    }
+    return { rows: [], rowCount: 0 };
+  };
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/forgot-password',
+    payload: { email: 'fresh_google_user@example.com' },
+    remoteAddress: '10.10.1.4'
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.json().ok, true);
+  assert.equal(res.json().resetToken, undefined);
+
+  await app.close();
+  (pool as any).query = originalQuery;
+});

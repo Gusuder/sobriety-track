@@ -171,8 +171,8 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     try {
       const result = await pool.query(
-        `INSERT INTO users (login, email, display_name, password_hash)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO users (login, email, display_name, password_hash, auth_provider)
+         VALUES ($1, $2, $3, $4, 'password')
          RETURNING id, login, email, display_name, created_at`,
         [login, email, displayName, passwordHash]
       );
@@ -238,7 +238,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     try {
       let userResult = await pool.query(
-        'SELECT id, login, email, display_name FROM users WHERE email = $1 LIMIT 1',
+        'SELECT id, login, email, display_name, auth_provider FROM users WHERE email = $1 LIMIT 1',
         [profile.email]
       );
 
@@ -252,9 +252,9 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
           const login = `${loginBase}${suffix}`.slice(0, 100);
           try {
             userResult = await pool.query(
-              `INSERT INTO users (login, email, display_name, password_hash)
-               VALUES ($1, $2, $3, $4)
-               RETURNING id, login, email, display_name`,
+              `INSERT INTO users (login, email, display_name, password_hash, auth_provider)
+               VALUES ($1, $2, $3, $4, 'google')
+               RETURNING id, login, email, display_name, auth_provider`,
               [login, profile.email, profile.displayName, passwordHash]
             );
             created = true;
@@ -267,7 +267,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
         if (!created) {
           userResult = await pool.query(
-            'SELECT id, login, email, display_name FROM users WHERE email = $1 LIMIT 1',
+            'SELECT id, login, email, display_name, auth_provider FROM users WHERE email = $1 LIMIT 1',
             [profile.email]
           );
         }
@@ -300,10 +300,13 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const { email } = parsed.data;
-    const userResult = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
-    const user = userResult.rows[0] as { id: number } | undefined;
+    const userResult = await pool.query('SELECT id, auth_provider FROM users WHERE email = $1', [email]);
+    const user = userResult.rows[0] as { id: number; auth_provider?: string } | undefined;
 
     if (!user) {
+      return reply.send({ ok: true, message: 'If email exists, reset instructions were sent.' });
+    }
+    if (user.auth_provider === 'google') {
       return reply.send({ ok: true, message: 'If email exists, reset instructions were sent.' });
     }
 

@@ -7,11 +7,15 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) UNIQUE NOT NULL,
   display_name VARCHAR(120),
   password_hash TEXT NOT NULL,
+  auth_provider TEXT NOT NULL DEFAULT 'password',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 ALTER TABLE users
 ADD COLUMN IF NOT EXISTS display_name VARCHAR(120);
+
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS auth_provider TEXT NOT NULL DEFAULT 'password';
 
 DO $$
 BEGIN
