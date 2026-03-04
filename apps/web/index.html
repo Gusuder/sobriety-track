@@ -864,6 +864,9 @@
             <button class="btn" type="submit">Войти</button>
             <button class="btn secondary" type="button" onclick="showAuthHome()">Назад</button>
           </div>
+          <div class="oauth-divider">или</div>
+          <p class="oauth-hint">Войти через Google</p>
+          <div id="googleAuthWrapLogin" class="oauth-google-wrap"></div>
         </form>
 
         <form id="registerForm" class="hidden" onsubmit="event.preventDefault(); registerUser()">
@@ -884,12 +887,12 @@
             <input id="regPassword" type="password" placeholder="Минимум 8 символов" autocomplete="new-password" />
           </div>
           <div class="stack">
-            <button class="btn" type="submit">Создать аккаунт</button>
+            <button class="btn" type="submit">Зарегистрироваться</button>
             <button class="btn secondary" type="button" onclick="showAuthHome()">Назад</button>
           </div>
           <div class="oauth-divider">или</div>
-          <p class="oauth-hint">Уже зарегистрированы через Google? Войдите с помощью Google.</p>
-          <div id="googleAuthWrap" class="oauth-google-wrap"></div>
+          <p class="oauth-hint">Войти через Google</p>
+          <div id="googleAuthWrapRegister" class="oauth-google-wrap"></div>
         </form>
 
         <div id="authError" class="auth-note error hidden"></div>
@@ -1384,6 +1387,7 @@
         document.getElementById("loginForm").classList.remove("hidden");
         document.getElementById("registerForm").classList.add("hidden");
         updateForgotHintVisibility();
+        initGoogleAuthButton();
       }
 
       function openRegisterPanel() {
@@ -1744,16 +1748,20 @@
       }
 
       function initGoogleAuthButton() {
-        const wrap = document.getElementById("googleAuthWrap");
-        if (!wrap) return;
+        const wraps = Array.from(document.querySelectorAll(".oauth-google-wrap"));
+        if (!wraps.length) return;
 
         if (!GOOGLE_CLIENT_ID) {
-          wrap.innerHTML = `<span class="muted">Google-вход временно недоступен.</span>`;
+          wraps.forEach((wrap) => {
+            wrap.innerHTML = `<span class="muted">Google-вход временно недоступен.</span>`;
+          });
           return;
         }
 
         if (!window.google?.accounts?.id) {
-          wrap.innerHTML = `<span class="muted">Загрузка Google-входа...</span>`;
+          wraps.forEach((wrap) => {
+            wrap.innerHTML = `<span class="muted">Загрузка Google-входа...</span>`;
+          });
           setTimeout(initGoogleAuthButton, 500);
           return;
         }
@@ -1768,14 +1776,16 @@
           googleAuthRendered = true;
         }
 
-        wrap.innerHTML = "";
-        window.google.accounts.id.renderButton(wrap, {
-          theme: "outline",
-          size: "large",
-          type: "standard",
-          shape: "pill",
-          width: 300,
-          text: "signin_with"
+        wraps.forEach((wrap) => {
+          wrap.innerHTML = "";
+          window.google.accounts.id.renderButton(wrap, {
+            theme: "outline",
+            size: "large",
+            type: "standard",
+            shape: "pill",
+            width: 300,
+            text: "signin_with"
+          });
         });
       }
 
