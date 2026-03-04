@@ -19,6 +19,19 @@ ADD COLUMN IF NOT EXISTS auth_provider TEXT NOT NULL DEFAULT 'password';
 
 DO $$
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'users_auth_provider_check'
+  ) THEN
+    ALTER TABLE users
+    ADD CONSTRAINT users_auth_provider_check
+    CHECK (auth_provider IN ('password', 'google'));
+  END IF;
+END$$;
+
+DO $$
+BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'mood_level') THEN
     CREATE TYPE mood_level AS ENUM ('awful','bad','neutral','good','great');
   END IF;
