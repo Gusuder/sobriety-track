@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Stop"
 
 # Ensure readable UTF-8 output in Windows terminals
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
@@ -1096,7 +1096,7 @@ declare module 'fastify' {
 
       <div class="card">
         <h3>5) Цели / Серия</h3>
-        <p class="muted">РџРѕСЃР»Рµ Р»РѕРіРёРЅР° РЅР°Р¶РјРёС‚Рµ <b>Загрузить цели/прогресс</b>. Р•СЃР»Рё С†РµР»РµР№ РµС‰С‘ РЅРµС‚, СЃРЅР°С‡Р°Р»Р° СЃРѕР·РґР°Р№С‚Рµ Goal.</p>
+        <p class="muted">После логина нажмите <b>Загрузить цели/прогресс</b>. Если целей ещё нет, сначала создайте Goal.</p>
         <div class="row">
           <input id="targetDays" type="number" min="1" max="3650" value="30" placeholder="дней в цели" />
           <input id="streakView" type="text" value="серия: неизвестно" readonly />
