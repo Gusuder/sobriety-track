@@ -8,7 +8,12 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(8),
   DATABASE_URL: z.string().min(1),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  CORS_ORIGINS: z.string().optional()
+  CORS_ORIGINS: z.string().optional(),
+  REDIS_URL: z.string().optional(),
+  TRUST_PROXY: z.preprocess(
+    (value) => value === '1' || value === 'true' || value === true,
+    z.boolean().default(false)
+  )
 });
 
 const parsed = envSchema.parse(process.env);

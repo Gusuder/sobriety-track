@@ -15,7 +15,7 @@ if (env.NODE_ENV === 'production' && insecureProductionSecrets.has(env.JWT_SECRE
   throw new Error('Unsafe JWT_SECRET for production environment');
 }
 
-const app = Fastify({ logger: true });
+const app = Fastify({ logger: true, trustProxy: env.TRUST_PROXY });
 const startedAt = Date.now();
 const latencySamplesMs: number[] = [];
 const maxLatencySamples = 500;

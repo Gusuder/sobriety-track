@@ -10,6 +10,8 @@
 - `JWT_SECRET` is strong and unique for environment
 - `NODE_ENV=production` in production deployments
 - `CORS_ORIGINS` explicitly configured for production
+- `REDIS_URL` configured and reachable from API
+- `TRUST_PROXY=true` configured when running behind proxy/load balancer
 - Auth rate limits verified (`/api/auth/register`, `/api/auth/login`, `/api/auth/forgot-password`, `/api/auth/reset-password`)
 
 ## 3. Runtime Readiness

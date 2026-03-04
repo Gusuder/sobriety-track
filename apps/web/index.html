@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
@@ -1444,6 +1444,7 @@
         const res = await fetch(API + path, { ...options, headers });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
+          const retryAfter = Number(res.headers.get("retry-after") || 0);
           if (res.status === 401) {
             invalidateSession("Сессия истекла. Войдите снова.");
           } else if (
@@ -1455,7 +1456,7 @@
             invalidateSession("Токен устарел после перезапуска БД. Войдите заново.");
           }
 
-          throw { ...data, __status: res.status };
+          throw { ...data, __status: res.status, __retryAfterSec: retryAfter > 0 ? retryAfter : undefined };
         }
         return data;
       }
@@ -1498,7 +1499,16 @@
             login.value = payload.login;
           }
         } catch (e) {
-          showAuthError("Регистрация не выполнена. Проверьте поля и попробуйте снова.");
+          if (e?.__status === 429) {
+            const sec = Number(e?.retryAfterSec ?? e?.__retryAfterSec ?? 0);
+            if (sec > 0) {
+              showAuthError(`Слишком много попыток регистрации. Повторите через ${sec} сек.`);
+            } else {
+              showAuthError("Слишком много попыток регистрации. Попробуйте позже.");
+            }
+          } else {
+            showAuthError("Регистрация не выполнена. Проверьте поля и попробуйте снова.");
+          }
           print(e);
         }
       }

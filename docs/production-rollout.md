@@ -6,6 +6,8 @@
 3. Set `NODE_ENV=production`.
 4. Set explicit `CORS_ORIGINS` list (comma-separated origins).
 5. Set production `DATABASE_URL`.
+6. Set shared `REDIS_URL` for distributed auth rate limits.
+7. Set `TRUST_PROXY=true` if API is behind reverse proxy / load balancer.
 
 ## 2. Pre-deploy validation (local)
 1. `cd apps/api && npm test`
