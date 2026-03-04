@@ -1,6 +1,7 @@
 param(
   [switch]$SkipSmoke,
-  [switch]$SkipWebE2E
+  [switch]$SkipWebE2E,
+  [switch]$RequireGoogleOAuth
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,7 +32,14 @@ try {
 
 if (-not $SkipSmoke) {
   Step "Smoke E2E"
-  powershell -ExecutionPolicy Bypass -File (Join-Path $repoRoot "scripts/smoke-e2e.ps1")
+  $smokeArgs = @(
+    "-ExecutionPolicy", "Bypass",
+    "-File", (Join-Path $repoRoot "scripts/smoke-e2e.ps1")
+  )
+  if ($RequireGoogleOAuth) {
+    $smokeArgs += "-RequireGoogleOAuth"
+  }
+  powershell @smokeArgs
   Assert-ExitCode "Smoke E2E"
 }
 

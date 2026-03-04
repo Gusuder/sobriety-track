@@ -15,6 +15,7 @@ docker compose up --build
 - `make web-e2e` - run Playwright web regression tests
 - `make ci-local` - run all checks required before merge
 - `powershell -ExecutionPolicy Bypass -File .\scripts\ci-local.ps1` - same local CI gate for Windows (without `make`)
+- `powershell -ExecutionPolicy Bypass -File .\scripts\ci-local.ps1 -RequireGoogleOAuth` - same checks + strict Google OAuth readiness
 
 ## Как проверить MVP локально
 
