@@ -8,6 +8,7 @@
 5. Set production `DATABASE_URL`.
 6. Set shared `REDIS_URL` for distributed auth rate limits.
 7. Set `TRUST_PROXY=true` if API is behind reverse proxy / load balancer.
+8. If using Google sign-in, set `GOOGLE_CLIENT_ID`.
 
 ## 2. Pre-deploy validation (local)
 1. `cd apps/api && npm test`

@@ -22,7 +22,7 @@ docker compose up --build
    ```bash
    cp apps/api/.env.example apps/api/.env
    ```
-   Для production обязательно задайте сильный `JWT_SECRET`, список `CORS_ORIGINS`, `REDIS_URL` и `TRUST_PROXY=true` (если API за прокси).
+   Для production обязательно задайте сильный `JWT_SECRET`, список `CORS_ORIGINS`, `REDIS_URL`, `GOOGLE_CLIENT_ID` (если включен Google OAuth) и `TRUST_PROXY=true` (если API за прокси).
 2. Запустить проект:
    ```bash
    docker compose up --build
@@ -50,6 +50,12 @@ docker compose up --build
 - API health: http://localhost:4000/health
 - API readiness: http://localhost:4000/ready
 - API metrics: http://localhost:4000/metrics
+
+## Google OAuth (optional)
+- Backend requires `GOOGLE_CLIENT_ID` in API environment.
+- Web UI reads Google client id from `window.GOOGLE_CLIENT_ID` or `localStorage.googleClientId`.
+- Local quick setup example in browser console:
+  - `localStorage.setItem('googleClientId', '<your-google-client-id>')`
 
 ## Production
 - Use [apps/api/.env.production.example](apps/api/.env.production.example) as the production env template.

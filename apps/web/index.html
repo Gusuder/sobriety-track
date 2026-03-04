@@ -1,9 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Трекер трезвости</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       :root {
         --bg-0: #eef6f4;
@@ -47,6 +48,36 @@
         display: grid;
         place-items: center;
         padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .auth-shell::before,
+      .auth-shell::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+        opacity: 0.9;
+      }
+
+      .auth-shell::before {
+        width: 380px;
+        height: 380px;
+        right: -70px;
+        top: -80px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23d4efe5'/%3E%3Cstop offset='1' stop-color='%23b4ddd0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23g)' d='M35 114c6-43 41-84 86-87 47-3 88 36 93 83 5 49-31 94-79 104-49 11-106-39-100-100z'/%3E%3Cpath fill='none' stroke='%237fb9a4' stroke-width='4' d='M62 111c18 18 44 23 69 15M73 140c22 13 50 15 74 5'/%3E%3C/svg%3E");
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+
+      .auth-shell::after {
+        width: 340px;
+        height: 340px;
+        left: -60px;
+        bottom: -80px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cpath fill='%23c8e9df' d='M35 176c-20-35-17-85 11-117C75 26 123 21 159 44c42 27 56 82 32 125-22 39-62 61-106 52-21-4-38-18-50-45z'/%3E%3Cpath fill='none' stroke='%2385bca8' stroke-width='4' d='M61 162c20-24 44-36 72-38M76 89c24 5 42 15 58 33'/%3E%3Ccircle cx='132' cy='79' r='9' fill='%2395ccb8'/%3E%3C/svg%3E");
+        background-size: contain;
+        background-repeat: no-repeat;
       }
 
       .auth-card {
@@ -57,6 +88,8 @@
         border-radius: 24px;
         box-shadow: var(--shadow);
         padding: 20px;
+        position: relative;
+        z-index: 1;
       }
 
       .brand {
@@ -71,6 +104,33 @@
       .brand p {
         margin: 8px 0 0;
         color: var(--muted);
+      }
+
+      .welcome-actions {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .intro-hero {
+        position: relative;
+        border: 1px solid #cde5de;
+        background: linear-gradient(130deg, #f5fffb 0%, #e6f7f1 100%);
+        border-radius: 16px;
+        padding: 12px;
+        margin-top: 12px;
+      }
+
+      .intro-hero p {
+        margin: 0;
+        color: #3d665c;
+        font-size: 14px;
+      }
+
+      .intro-hero svg {
+        margin-top: 10px;
+        width: 100%;
+        height: auto;
       }
 
       .tabs {
@@ -142,6 +202,36 @@
       }
 
       .stack { display: grid; gap: 8px; margin-top: 12px; }
+
+      .oauth-divider {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 10px;
+        margin: 12px 0 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .oauth-divider::before,
+      .oauth-divider::after {
+        content: "";
+        height: 1px;
+        background: #cfe2de;
+      }
+
+      .oauth-hint {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .oauth-google-wrap {
+        margin-top: 8px;
+        min-height: 44px;
+        display: flex;
+        justify-content: center;
+      }
 
       .auth-note {
         margin-top: 12px;
@@ -708,7 +798,6 @@
       @media (max-width: 640px) {
         .auth-shell { padding: 14px; }
         .auth-card { padding: 16px; border-radius: 18px; }
-        .tabs { grid-template-columns: 1fr; }
         .page { padding: 14px 12px 24px; }
         .topbar { padding: 14px; border-radius: 14px; }
         .progress-widget { min-width: 0; width: 100%; }
@@ -725,15 +814,40 @@
       <div class="auth-card">
         <div class="brand">
           <h1>Трезвый трекер</h1>
-          <p>Войдите в аккаунт, чтобы продолжить. Если аккаунта нет, зарегистрируйтесь.</p>
+          <p>Спокойный старт без перегруза. Отметьте точку начала и двигайтесь шаг за шагом.</p>
         </div>
 
-        <div class="tabs">
-          <button id="tabLogin" class="tab active" type="button" onclick="switchAuth('login')">Вход</button>
-          <button id="tabRegister" class="tab" type="button" onclick="switchAuth('register')">Регистрация</button>
+        <div id="authLandingPanel">
+          <div class="intro-hero">
+            <p>Первые 3 минуты: задайте стартовую дату, создайте аккаунт и получите личный план.</p>
+            <svg viewBox="0 0 360 120" role="img" aria-label="Иллюстрация спокойного старта">
+              <rect x="0" y="0" width="360" height="120" rx="14" fill="#e8f7f2"></rect>
+              <path d="M20 88c34-30 65-25 96 3s69 31 105-3 76-38 119-4" fill="none" stroke="#88bca9" stroke-width="6" stroke-linecap="round"></path>
+              <circle cx="58" cy="45" r="14" fill="#9ed2bf"></circle>
+              <circle cx="176" cy="34" r="10" fill="#7db79f"></circle>
+              <circle cx="288" cy="48" r="13" fill="#94cbb7"></circle>
+            </svg>
+          </div>
+          <div class="welcome-actions">
+            <button class="btn" type="button" onclick="openStartPanel()">Начать</button>
+            <p class="muted" style="margin: 2px 0 -2px; text-align:center;">Уже есть аккаунт? Войдите в систему.</p>
+            <button class="btn secondary" type="button" onclick="openLoginPanel()">Войти в систему</button>
+          </div>
         </div>
 
-        <form id="loginForm" onsubmit="event.preventDefault(); loginUser()">
+        <div id="startPanel" class="hidden">
+          <div class="field">
+            <label for="startDateIntro">Дата начала трезвости</label>
+            <input id="startDateIntro" type="date" />
+            <p class="muted" style="margin: 8px 0 0;">Вы можете изменить дату позже в профиле старта.</p>
+          </div>
+          <div class="stack">
+            <button class="btn" type="button" onclick="continueStartFlow()">Продолжить</button>
+            <button class="btn secondary" type="button" onclick="showAuthHome()">Назад</button>
+          </div>
+        </div>
+
+        <form id="loginForm" class="hidden" onsubmit="event.preventDefault(); loginUser()">
           <div class="field">
             <label for="login">Логин</label>
             <input id="login" placeholder="Введите логин" autocomplete="username" />
@@ -742,14 +856,18 @@
             <label for="password">Пароль</label>
             <input id="password" type="password" placeholder="Введите пароль" autocomplete="current-password" />
           </div>
+          <div id="forgotHintWrap" class="hidden" style="margin-top: 10px;">
+            <button class="btn secondary" type="button" onclick="toggleReset(true)">Забыли пароль?</button>
+          </div>
+
           <div class="stack">
             <button class="btn" type="submit">Войти</button>
+            <button class="btn secondary" type="button" onclick="showAuthHome()">Назад</button>
           </div>
+          <div class="oauth-divider">или</div>
+          <p class="oauth-hint">Войти через Google</p>
+          <div id="googleAuthWrapLogin" class="oauth-google-wrap"></div>
         </form>
-
-        <div id="forgotHintWrap" class="hidden" style="margin-top: 10px;">
-          <button class="btn secondary" type="button" onclick="toggleReset(true)">Забыли пароль?</button>
-        </div>
 
         <form id="registerForm" class="hidden" onsubmit="event.preventDefault(); registerUser()">
           <div class="field">
@@ -769,8 +887,12 @@
             <input id="regPassword" type="password" placeholder="Минимум 8 символов" autocomplete="new-password" />
           </div>
           <div class="stack">
-            <button class="btn" type="submit">Создать аккаунт</button>
+            <button class="btn" type="submit">Зарегистрироваться</button>
+            <button class="btn secondary" type="button" onclick="showAuthHome()">Назад</button>
           </div>
+          <div class="oauth-divider">или</div>
+          <p class="oauth-hint">Войти через Google</p>
+          <div id="googleAuthWrapRegister" class="oauth-google-wrap"></div>
         </form>
 
         <div id="authError" class="auth-note error hidden"></div>
@@ -806,21 +928,12 @@
     <section id="onboardingShell" class="auth-shell hidden">
       <div class="auth-card">
         <div class="brand">
-          <h1>Старт трекера</h1>
-          <p>Шаг 1 из 2: выберите текущий статус.</p>
+          <h1>Старт трезвости</h1>
+          <p>Шаг 1 из 2: выберите дату начала.</p>
         </div>
 
         <div id="onboardingStep1">
-          <div class="choice-grid">
-            <button id="startNowBtn" class="choice-btn" type="button" onclick="selectStartMode('now')">
-              Бросаю сегодня
-            </button>
-            <button id="startSoberBtn" class="choice-btn" type="button" onclick="selectStartMode('already_sober')">
-              Уже не пью некоторое время
-            </button>
-          </div>
-
-          <div id="soberPeriodWrap" class="field hidden">
+          <div id="soberPeriodWrap" class="field">
             <label for="soberStartDateWizard">Дата начала трезвости</label>
             <input id="soberStartDateWizard" type="date" onchange="refreshWizardDateHints()" />
             <p id="soberDateHint" class="muted" style="margin-top:6px;">Выберите дату в календаре. Будущее недоступно.</p>
@@ -1149,11 +1262,18 @@
         return origin;
       })();
       const API = `${API_BASE}/api`;
+      let googleClientId =
+        (window.GOOGLE_CLIENT_ID && String(window.GOOGLE_CLIENT_ID).trim()) ||
+        localStorage.getItem("googleClientId") ||
+        "";
+      let googleConfigLoaded = false;
       let token = localStorage.getItem("token") || "";
       let currentStreakDays = 0;
       let currentProfile = null;
       let currentActiveGoal = null;
       let failedLoginAttempts = 0;
+      let googleAuthRendered = false;
+      const forgotHintThreshold = 2;
       let onboardingRefreshTimer = null;
       let breathInterval = null;
       let breathSecondsLeft = 120;
@@ -1177,6 +1297,7 @@
       };
 
       const today = new Date().toISOString().slice(0, 10);
+      const onboardingDraftDateKey = "onboardingDraftStartDate";
       document.getElementById("entryDate").value = today;
       document.getElementById("quickDate").value = today;
       document.getElementById("from").value = today.slice(0, 8) + "01";
@@ -1184,6 +1305,9 @@
       document.getElementById("soberStartDateWizard").value = today;
       document.getElementById("soberStartDateWizard").min = "2000-01-01";
       document.getElementById("soberStartDateWizard").max = today;
+      document.getElementById("startDateIntro").value = today;
+      document.getElementById("startDateIntro").min = "2000-01-01";
+      document.getElementById("startDateIntro").max = today;
 
       const print = (data) => {
         const payload = typeof data === "string" ? data : JSON.stringify(data, null, 2);
@@ -1204,6 +1328,7 @@
         document.getElementById("authShell").classList.remove("hidden");
         document.getElementById("onboardingShell").classList.add("hidden");
         document.getElementById("appShell").classList.add("hidden");
+        showAuthHome();
         if (errorText) {
           showAuthError(errorText);
         }
@@ -1230,27 +1355,69 @@
         document.getElementById("onboardingShell").classList.remove("hidden");
       }
 
-      function switchAuth(mode) {
-        const loginTab = document.getElementById("tabLogin");
-        const registerTab = document.getElementById("tabRegister");
-        const loginForm = document.getElementById("loginForm");
-        const registerForm = document.getElementById("registerForm");
+      function showAuthHome() {
         clearAuthMessages();
+        toggleReset(false);
+        document.getElementById("authLandingPanel").classList.remove("hidden");
+        document.getElementById("startPanel").classList.add("hidden");
+        document.getElementById("loginForm").classList.add("hidden");
+        document.getElementById("registerForm").classList.add("hidden");
+        document.getElementById("forgotHintWrap").classList.add("hidden");
+      }
 
-        if (mode === "register") {
-          loginTab.classList.remove("active");
-          registerTab.classList.add("active");
-          loginForm.classList.add("hidden");
-          registerForm.classList.remove("hidden");
-          document.getElementById("forgotHintWrap").classList.add("hidden");
-          toggleReset(false);
+      function openStartPanel() {
+        clearAuthMessages();
+        toggleReset(false);
+        const draftStartDate = localStorage.getItem(onboardingDraftDateKey);
+        if (draftStartDate && draftStartDate <= today) {
+          document.getElementById("startDateIntro").value = draftStartDate;
         } else {
-          registerTab.classList.remove("active");
-          loginTab.classList.add("active");
-          registerForm.classList.add("hidden");
-          loginForm.classList.remove("hidden");
-          updateForgotHintVisibility();
+          document.getElementById("startDateIntro").value = today;
         }
+        document.getElementById("authLandingPanel").classList.add("hidden");
+        document.getElementById("startPanel").classList.remove("hidden");
+        document.getElementById("loginForm").classList.add("hidden");
+        document.getElementById("registerForm").classList.add("hidden");
+      }
+
+      function openLoginPanel() {
+        clearAuthMessages();
+        toggleReset(false);
+        document.getElementById("authLandingPanel").classList.add("hidden");
+        document.getElementById("startPanel").classList.add("hidden");
+        document.getElementById("loginForm").classList.remove("hidden");
+        document.getElementById("registerForm").classList.add("hidden");
+        updateForgotHintVisibility();
+        void initGoogleAuthButton();
+      }
+
+      function openRegisterPanel() {
+        clearAuthMessages();
+        toggleReset(false);
+        document.getElementById("authLandingPanel").classList.add("hidden");
+        document.getElementById("startPanel").classList.add("hidden");
+        document.getElementById("loginForm").classList.add("hidden");
+        document.getElementById("registerForm").classList.remove("hidden");
+        document.getElementById("forgotHintWrap").classList.add("hidden");
+        void initGoogleAuthButton();
+      }
+
+      function continueStartFlow() {
+        const pickedDate = document.getElementById("startDateIntro").value || today;
+        localStorage.setItem(onboardingDraftDateKey, pickedDate);
+        openRegisterPanel();
+      }
+
+      function switchAuth(mode) {
+        if (mode === "register") {
+          openRegisterPanel();
+          return;
+        }
+        if (mode === "login") {
+          openLoginPanel();
+          return;
+        }
+        showAuthHome();
       }
 
       function clearAuthMessages() {
@@ -1287,7 +1454,7 @@
       function updateForgotHintVisibility() {
         const hint = document.getElementById("forgotHintWrap");
         if (!hint) return;
-        hint.classList.toggle("hidden", failedLoginAttempts < 3);
+        hint.classList.toggle("hidden", failedLoginAttempts < forgotHintThreshold);
       }
 
       function showAuthError(text) {
@@ -1304,20 +1471,42 @@
 
       function toggleReset(show) {
         document.getElementById("resetPanel").classList.toggle("hidden", !show);
+        const loginForm = document.getElementById("loginForm");
+        const registerForm = document.getElementById("registerForm");
+        const authLanding = document.getElementById("authLandingPanel");
+        if (show) {
+          loginForm.classList.add("hidden");
+          return;
+        }
+        if (authLanding.classList.contains("hidden") && registerForm.classList.contains("hidden")) {
+          loginForm.classList.remove("hidden");
+        }
       }
 
-      let selectedStartMode = "now";
+      let selectedStartMode = "already_sober";
 
       function selectStartMode(mode) {
         selectedStartMode = mode;
-        document.getElementById("startNowBtn").classList.toggle("active", mode === "now");
-        document.getElementById("startSoberBtn").classList.toggle("active", mode === "already_sober");
-        document.getElementById("soberPeriodWrap").classList.toggle("hidden", mode !== "already_sober");
+        const startNowBtn = document.getElementById("startNowBtn");
+        const startSoberBtn = document.getElementById("startSoberBtn");
+        const soberWrap = document.getElementById("soberPeriodWrap");
+        if (startNowBtn) startNowBtn.classList.toggle("active", mode === "now");
+        if (startSoberBtn) startSoberBtn.classList.toggle("active", mode === "already_sober");
+        if (soberWrap) soberWrap.classList.toggle("hidden", mode !== "already_sober");
         refreshWizardDateHints();
         refreshGoalConstraints();
       }
 
       function goToGoalStep() {
+        clearOnboardingError();
+        if (!soberStartDateWizard.value) {
+          showOnboardingError("Выберите дату начала трезвости.");
+          return;
+        }
+        if (soberStartDateWizard.value > today) {
+          showOnboardingError("Дата начала трезвости не может быть в будущем.");
+          return;
+        }
         refreshGoalConstraints();
         showOnboardingStep(2);
       }
@@ -1391,6 +1580,13 @@
         refreshGoalConstraints();
       }
 
+      function applyDraftStartDate() {
+        const draftStartDate = localStorage.getItem(onboardingDraftDateKey);
+        if (draftStartDate && draftStartDate <= today) {
+          soberStartDateWizard.value = draftStartDate;
+        }
+      }
+
       async function startOnboardingFlow(force = false) {
         await syncCurrentStreakForConstraints();
         if (!force) {
@@ -1403,7 +1599,8 @@
               return;
             }
             if (data && Object.prototype.hasOwnProperty.call(data, "profile") && data.profile === null) {
-              selectStartMode("now");
+              selectStartMode("already_sober");
+              applyDraftStartDate();
               refreshWizardDateHints();
               showOnboardingStep(1);
               showOnboardingShell();
@@ -1421,7 +1618,8 @@
           }
         }
 
-        selectStartMode("now");
+        selectStartMode("already_sober");
+        applyDraftStartDate();
         refreshWizardDateHints();
         showOnboardingStep(1);
         showOnboardingShell();
@@ -1446,7 +1644,9 @@
         if (!res.ok) {
           const retryAfter = Number(res.headers.get("retry-after") || 0);
           if (res.status === 401) {
-            invalidateSession("Сессия истекла. Войдите снова.");
+            if (token && protectedPaths.some((p) => path.startsWith(p))) {
+              invalidateSession("Сессия истекла. Войдите снова.");
+            }
           } else if (
             token &&
             res.status === 500 &&
@@ -1513,6 +1713,99 @@
         }
       }
 
+      async function handleGoogleAuthCredential(credential) {
+        clearAuthMessages();
+        if (!credential) {
+          showAuthError("Не удалось получить данные Google. Попробуйте ещё раз.");
+          return;
+        }
+
+        try {
+          const data = await req("/auth/google", {
+            method: "POST",
+            body: JSON.stringify({ idToken: credential })
+          });
+          if (!data?.accessToken || typeof data.accessToken !== "string") {
+            throw { error: "Invalid auth response" };
+          }
+
+          token = data.accessToken;
+          localStorage.setItem("token", token);
+          failedLoginAttempts = 0;
+          updateForgotHintVisibility();
+          toggleReset(false);
+          showAuthInfo("Вход через Google выполнен успешно.");
+          await startOnboardingFlow(false);
+        } catch (e) {
+          if (e?.__status === 401) {
+            showAuthError("Google-авторизация не подтверждена. Попробуйте ещё раз.");
+          } else if (e?.__status === 503) {
+            showAuthError("Google-вход пока не настроен на сервере.");
+          } else {
+            showAuthError("Не удалось войти через Google.");
+          }
+          print(e);
+        }
+      }
+
+      async function loadGoogleAuthConfig() {
+        if (googleConfigLoaded) return;
+        googleConfigLoaded = true;
+        try {
+          const res = await fetch(`${API}/auth/google/config`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data?.enabled && typeof data.clientId === "string" && data.clientId.trim()) {
+            googleClientId = data.clientId.trim();
+          }
+        } catch {
+          // Keep fallback sources if config endpoint is not reachable.
+        }
+      }
+
+      async function initGoogleAuthButton() {
+        await loadGoogleAuthConfig();
+        const wraps = Array.from(document.querySelectorAll(".oauth-google-wrap"));
+        if (!wraps.length) return;
+
+        if (!googleClientId) {
+          wraps.forEach((wrap) => {
+            wrap.innerHTML = `<span class="muted">Google-вход временно недоступен.</span>`;
+          });
+          return;
+        }
+
+        if (!window.google?.accounts?.id) {
+          wraps.forEach((wrap) => {
+            wrap.innerHTML = `<span class="muted">Загрузка Google-входа...</span>`;
+          });
+          setTimeout(initGoogleAuthButton, 500);
+          return;
+        }
+
+        if (!googleAuthRendered) {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: (response) => {
+              handleGoogleAuthCredential(response?.credential);
+            }
+          });
+          googleAuthRendered = true;
+        }
+
+        wraps.forEach((wrap) => {
+          wrap.innerHTML = "";
+          window.google.accounts.id.renderButton(wrap, {
+            theme: "outline",
+            size: "large",
+            type: "standard",
+            shape: "pill",
+            width: 300,
+            text: "signin_with"
+          });
+        });
+      }
+
       async function loginUser() {
         clearAuthMessages();
         resetProgressState("Проверяем аккаунт...");
@@ -1530,7 +1823,9 @@
           print({ ok: true });
           await startOnboardingFlow(false);
         } catch (e) {
-          if (e?.__status === 401 || e?.error === "Unauthorized") {
+          const forgotHint = document.getElementById("forgotHintWrap");
+          if (forgotHint) forgotHint.classList.remove("hidden");
+          if (e?.__status === 401 || e?.error === "Unauthorized" || e?.__status === 400) {
             failedLoginAttempts += 1;
             updateForgotHintVisibility();
             showAuthError("Неверный логин или пароль. Можете попробовать сбросить пароль.");
@@ -1880,6 +2175,7 @@
 
           const data = await req("/onboarding", { method: "POST", body: JSON.stringify(payload) });
           print(data);
+          localStorage.removeItem(onboardingDraftDateKey);
           showApp();
           await loadOnboardingSummary();
           await loadGoals();
@@ -2482,5 +2778,3 @@
     </script>
   </body>
 </html>
-
-

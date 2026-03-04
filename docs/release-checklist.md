@@ -12,6 +12,7 @@
 - `CORS_ORIGINS` explicitly configured for production
 - `REDIS_URL` configured and reachable from API
 - `TRUST_PROXY=true` configured when running behind proxy/load balancer
+- `GOOGLE_CLIENT_ID` configured if Google OAuth is enabled
 - Auth rate limits verified (`/api/auth/register`, `/api/auth/login`, `/api/auth/forgot-password`, `/api/auth/reset-password`)
 
 ## 3. Runtime Readiness
