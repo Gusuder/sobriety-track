@@ -26,8 +26,19 @@ const metrics = {
   status4xx: 0,
   status5xx: 0,
   authFailures: 0,
+  authFailuresByEndpointStatus: {} as Record<string, number>,
   serverErrors: 0
 };
+
+function authEndpointFromUrl(url: string) {
+  const path = url.split('?')[0];
+  if (!path.startsWith('/api/auth/')) {
+    return '';
+  }
+
+  const endpoint = path.slice('/api/auth/'.length).trim().toLowerCase();
+  return endpoint || 'unknown';
+}
 
 function addLatencySample(ms: number) {
   latencySamplesMs.push(ms);
@@ -86,6 +97,9 @@ app.addHook('onResponse', async (request, reply) => {
 
   if ((statusCode === 401 || statusCode === 429) && request.url.startsWith('/api/auth/')) {
     metrics.authFailures += 1;
+    const endpoint = authEndpointFromUrl(request.url);
+    const key = `${endpoint}:${statusCode}`;
+    metrics.authFailuresByEndpointStatus[key] = (metrics.authFailuresByEndpointStatus[key] ?? 0) + 1;
   }
 
   if (request.requestStartHrTime) {
@@ -133,6 +147,7 @@ app.get('/metrics', async () => {
     },
     errors: {
       authFailures: metrics.authFailures,
+      authFailuresByEndpointStatus: metrics.authFailuresByEndpointStatus,
       serverErrors: metrics.serverErrors
     },
     latencyMs: {
