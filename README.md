@@ -23,7 +23,7 @@ docker compose up --build
    ```bash
    cp apps/api/.env.example apps/api/.env
    ```
-   Для production обязательно задайте сильный `JWT_SECRET`, список `CORS_ORIGINS`, `REDIS_URL`, `GOOGLE_CLIENT_ID` (если включен Google OAuth) и `TRUST_PROXY=true` (если API за прокси).
+   Для production обязательно задайте сильный `JWT_SECRET`, `METRICS_TOKEN`, список `CORS_ORIGINS`, `REDIS_URL`, `GOOGLE_CLIENT_ID` (если включен Google OAuth), `RATE_LIMIT_STRICT=true`; `TRUST_PROXY=true` только если API действительно стоит за доверенным прокси.
 2. Запустить проект:
    ```bash
    docker compose up --build
@@ -51,6 +51,7 @@ docker compose up --build
 - API health: http://localhost:4000/health
 - API readiness: http://localhost:4000/ready
 - API metrics: http://localhost:4000/metrics
+  - In `production`, pass header `x-metrics-token: <METRICS_TOKEN>`
 
 ## Google OAuth (optional)
 - Backend requires `GOOGLE_CLIENT_ID` in API environment.
@@ -93,7 +94,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
 ## API endpoints
 - `POST /api/auth/register`
 - `POST /api/auth/login`
-- `POST /api/auth/forgot-password` (returns reset token in MVP dev mode)
+- `POST /api/auth/logout`
+- `POST /api/auth/forgot-password` (does not return reset token; dev-only return can be enabled via `ALLOW_DEV_RESET_TOKEN=true`)
 - `POST /api/auth/reset-password`
 - `GET /api/entries/reasons`
 - `POST /api/entries`
@@ -105,9 +107,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1
 
 ## What to test in Web UI
 1. Register
-2. Login (token saved in localStorage)
+2. Login (session cookies are set by API)
 3. Save/Get onboarding
 4. Create goal and load progress
 5. Create daily entry
 6. List entries by period
+
+## Auth session model
+- API sets `access_token` (`HttpOnly`) + `csrf_token` cookies on login.
+- Web sends cookies with `credentials: include` and `x-csrf-token` for mutating requests.
 

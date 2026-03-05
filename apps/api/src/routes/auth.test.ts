@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import { __setGoogleVerifierForTests, authRoutes } from './auth.js';
 import { pool } from '../db/pool.js';
+import { hashPassword } from '../utils/hash.js';
 
 async function buildApp() {
   const app = Fastify();
@@ -208,7 +209,7 @@ test('POST /api/auth/google signs in existing user by verified google email', as
   });
 
   assert.equal(res.statusCode, 200);
-  assert.ok(typeof res.json().accessToken === 'string');
+  assert.equal(res.json().ok, true);
   assert.equal(selectCalls >= 1, true);
 
   await app.close();
@@ -254,6 +255,39 @@ test('GET /api/auth/google/config returns oauth config state', async () => {
   await app.close();
 });
 
+test('POST /api/auth/login sets auth cookies and csrf token on success', async () => {
+  const originalQuery = pool.query;
+  const password = 'StrongPass123!';
+  const passwordHash = await hashPassword(password);
+
+  (pool as any).query = async (sql: string) => {
+    if (sql.includes('SELECT id, login, password_hash FROM users WHERE login = $1')) {
+      return { rows: [{ id: 901, login: 'demo-user', password_hash: passwordHash }], rowCount: 1 };
+    }
+    return { rows: [], rowCount: 0 };
+  };
+
+  const app = await buildApp();
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/auth/login',
+    payload: { login: 'demo-user', password },
+    remoteAddress: '10.10.0.9'
+  });
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.json().ok, true);
+  assert.ok(typeof res.json().csrfToken === 'string');
+
+  const setCookie = res.headers['set-cookie'];
+  const cookies = Array.isArray(setCookie) ? setCookie : [String(setCookie ?? '')];
+  assert.ok(cookies.some((c) => c.includes('access_token=')));
+  assert.ok(cookies.some((c) => c.includes('csrf_token=')));
+
+  await app.close();
+  (pool as any).query = originalQuery;
+});
+
 test('POST /api/auth/google creates new user with google provider when email is missing', async () => {
   const originalGoogleClientId = process.env.GOOGLE_CLIENT_ID;
   process.env.GOOGLE_CLIENT_ID = 'test-google-client-id';
@@ -296,7 +330,7 @@ test('POST /api/auth/google creates new user with google provider when email is 
 
   assert.equal(res.statusCode, 200);
   assert.ok(insertSql.includes("auth_provider"));
-  assert.ok(typeof res.json().accessToken === 'string');
+  assert.equal(res.json().ok, true);
 
   await app.close();
   (pool as any).query = originalQuery;

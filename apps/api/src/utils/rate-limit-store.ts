@@ -61,7 +61,7 @@ return { current, ttl }
 
 let singletonStorePromise: Promise<RateLimitStore> | undefined;
 
-async function buildStore(redisUrl?: string): Promise<RateLimitStore> {
+async function buildStore(redisUrl?: string, strictMode = false): Promise<RateLimitStore> {
   if (!redisUrl) {
     return new InMemoryRateLimitStore();
   }
@@ -75,15 +75,18 @@ async function buildStore(redisUrl?: string): Promise<RateLimitStore> {
     await client.connect();
     return new RedisRateLimitStore(client);
   } catch (error) {
+    if (strictMode) {
+      throw new Error(`Redis rate-limit store unavailable in strict mode: ${(error as Error)?.message ?? error}`);
+    }
     // Fallback keeps auth endpoints operational if redis is unavailable.
     console.warn('Redis rate-limit store unavailable, using in-memory fallback', error);
     return new InMemoryRateLimitStore();
   }
 }
 
-export async function getRateLimitStore(redisUrl?: string): Promise<RateLimitStore> {
+export async function getRateLimitStore(redisUrl?: string, strictMode = false): Promise<RateLimitStore> {
   if (!singletonStorePromise) {
-    singletonStorePromise = buildStore(redisUrl);
+    singletonStorePromise = buildStore(redisUrl, strictMode);
   }
   return singletonStorePromise;
 }
