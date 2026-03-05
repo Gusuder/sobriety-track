@@ -29,6 +29,18 @@ const metrics = {
   authFailuresByEndpointStatus: {} as Record<string, number>,
   serverErrors: 0
 };
+const csrfSafeMethods = new Set(['GET', 'HEAD', 'OPTIONS']);
+
+function parseCookies(headerValue?: string) {
+  const cookies: Record<string, string> = {};
+  if (!headerValue) return cookies;
+  for (const chunk of headerValue.split(';')) {
+    const [name, ...rest] = chunk.trim().split('=');
+    if (!name || rest.length === 0) continue;
+    cookies[name] = decodeURIComponent(rest.join('='));
+  }
+  return cookies;
+}
 
 function authEndpointFromUrl(url: string) {
   const path = url.split('?')[0];
@@ -72,12 +84,23 @@ app.register(cors, {
       return;
     }
     cb(null, allowedOrigins.has(origin));
-  }
+  },
+  credentials: true
 });
 app.register(fastifyJwt, { secret: env.JWT_SECRET });
 
 app.addHook('onRequest', async (request) => {
   request.requestStartHrTime = process.hrtime.bigint();
+});
+
+app.addHook('onSend', async (_request, reply) => {
+  reply.header('X-Content-Type-Options', 'nosniff');
+  reply.header('X-Frame-Options', 'DENY');
+  reply.header('Referrer-Policy', 'no-referrer');
+  reply.header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  if (env.NODE_ENV === 'production') {
+    reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
 });
 
 app.addHook('onResponse', async (request, reply) => {
@@ -108,9 +131,36 @@ app.addHook('onResponse', async (request, reply) => {
   }
 });
 
+app.addHook('preHandler', async (request, reply) => {
+  if (csrfSafeMethods.has(request.method)) {
+    return;
+  }
+  const path = request.url.split('?')[0];
+  if (!path.startsWith('/api/')) {
+    return;
+  }
+
+  const cookies = parseCookies(request.headers.cookie);
+  const accessTokenCookie = cookies.access_token;
+  if (!accessTokenCookie) {
+    return;
+  }
+  const csrfCookie = cookies.csrf_token;
+  const csrfHeader = String(request.headers['x-csrf-token'] ?? '');
+  if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+    return reply.status(403).send({ error: 'CSRF token mismatch' });
+  }
+});
+
 app.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply) {
   try {
-    await request.jwtVerify();
+    const cookies = parseCookies(request.headers.cookie);
+    const token = cookies.access_token;
+    if (!token) {
+      return reply.status(401).send({ error: 'Unauthorized' });
+    }
+    const payload = app.jwt.verify<{ userId: number; login: string }>(token);
+    (request as any).user = { userId: payload.userId, login: payload.login };
   } catch {
     return reply.status(401).send({ error: 'Unauthorized' });
   }
@@ -126,7 +176,16 @@ app.get('/ready', async (_request, reply) => {
     return reply.status(503).send({ status: 'not_ready' });
   }
 });
-app.get('/metrics', async () => {
+app.get('/metrics', async (request, reply) => {
+  if (env.NODE_ENV === 'production') {
+    if (!env.METRICS_TOKEN || env.METRICS_TOKEN.trim().length < 16) {
+      return reply.status(503).send({ error: 'Metrics endpoint disabled: METRICS_TOKEN is not configured' });
+    }
+    const providedToken = String(request.headers['x-metrics-token'] ?? '');
+    if (providedToken !== env.METRICS_TOKEN) {
+      return reply.status(401).send({ error: 'Unauthorized' });
+    }
+  }
   const sampleCount = latencySamplesMs.length;
   const avgLatencyMs =
     sampleCount === 0 ? 0 : latencySamplesMs.reduce((sum, value) => sum + value, 0) / sampleCount;

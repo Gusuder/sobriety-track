@@ -8,14 +8,14 @@ import { hashPassword, verifyPassword } from '../utils/hash.js';
 import { getRateLimitStore } from '../utils/rate-limit-store.js';
 
 const registerSchema = z.object({
-  login: z.string().min(3).max(100),
-  email: z.string().email(),
-  displayName: z.string().min(2).max(120),
+  login: z.string().trim().min(3).max(100),
+  email: z.string().trim().email(),
+  displayName: z.string().trim().min(2).max(120),
   password: z.string().min(8)
 });
 
 const loginSchema = z.object({
-  login: z.string().min(3),
+  login: z.string().trim().min(3),
   password: z.string().min(8)
 });
 
@@ -24,7 +24,7 @@ const googleAuthSchema = z.object({
 });
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email()
+  email: z.string().trim().email()
 });
 
 const resetPasswordSchema = z.object({
@@ -41,7 +41,13 @@ const authRateLimits = {
   forgotPassword: { maxRequests: 5, windowMs: 15 * 60 * 1000 },
   resetPassword: { maxRequests: 10, windowMs: 15 * 60 * 1000 }
 } as const;
-const rateLimitStorePromise = getRateLimitStore(env.REDIS_URL);
+let rateLimitStorePromise: ReturnType<typeof getRateLimitStore> | undefined;
+function getAuthRateLimitStore() {
+  if (!rateLimitStorePromise) {
+    rateLimitStorePromise = getRateLimitStore(env.REDIS_URL, env.RATE_LIMIT_STRICT);
+  }
+  return rateLimitStorePromise;
+}
 const googleClient = new OAuth2Client();
 
 type GoogleProfile = {
@@ -104,6 +110,32 @@ function registerIdentityKey(login: string, email: string) {
   return createHash('sha256').update(normalized).digest('hex');
 }
 
+function normalizeLogin(login: string) {
+  return login.trim().toLowerCase();
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function setAuthCookies(reply: FastifyReply, accessToken: string, csrfToken: string) {
+  const secure = env.NODE_ENV === 'production';
+  const common = [`Path=/`, `SameSite=Lax`, secure ? 'Secure' : ''].filter(Boolean).join('; ');
+  reply.header('Set-Cookie', [
+    `access_token=${encodeURIComponent(accessToken)}; ${common}; HttpOnly`,
+    `csrf_token=${encodeURIComponent(csrfToken)}; ${common}`
+  ]);
+}
+
+function clearAuthCookies(reply: FastifyReply) {
+  const secure = env.NODE_ENV === 'production';
+  const common = [`Path=/`, `SameSite=Lax`, secure ? 'Secure' : ''].filter(Boolean).join('; ');
+  reply.header('Set-Cookie', [
+    `access_token=; ${common}; HttpOnly; Max-Age=0`,
+    `csrf_token=; ${common}; Max-Age=0`
+  ]);
+}
+
 function makeLoginCandidateFromEmail(email: string) {
   const local = email
     .split('@')[0]
@@ -124,7 +156,7 @@ async function applyAuthRateLimit(
   key: string,
   config: { maxRequests: number; windowMs: number }
 ) {
-  const store = await rateLimitStorePromise;
+  const store = await getAuthRateLimitStore();
   const result = await store.increment(`auth:rate:${key}`, config.windowMs);
 
   if (result.count > config.maxRequests) {
@@ -159,7 +191,10 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return;
     }
 
-    const { login, email, displayName, password } = parsed.data;
+    const login = normalizeLogin(parsed.data.login);
+    const email = normalizeEmail(parsed.data.email);
+    const displayName = parsed.data.displayName.trim();
+    const { password } = parsed.data;
     const identityKey = registerIdentityKey(login, email);
     if (
       await applyAuthRateLimit(reply, `register-identity:${identityKey}`, authRateLimits.registerPerIdentity)
@@ -197,7 +232,8 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.flatten() });
     }
 
-    const { login, password } = parsed.data;
+    const login = normalizeLogin(parsed.data.login);
+    const { password } = parsed.data;
 
     const result = await pool.query('SELECT id, login, password_hash FROM users WHERE login = $1', [login]);
     const user = result.rows[0];
@@ -211,8 +247,10 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(401).send({ error: 'Invalid credentials' });
     }
 
-    const token = app.jwt.sign({ userId: user.id, login: user.login });
-    return reply.send({ accessToken: token });
+    const token = app.jwt.sign({ userId: user.id, login: user.login }, { expiresIn: env.ACCESS_TOKEN_TTL });
+    const csrfToken = randomBytes(16).toString('hex');
+    setAuthCookies(reply, token, csrfToken);
+    return reply.send({ ok: true, csrfToken });
   });
 
   app.post('/auth/google', async (request, reply) => {
@@ -282,8 +320,10 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
         await pool.query('UPDATE users SET display_name = $1 WHERE id = $2', [profile.displayName, user.id]);
       }
 
-      const token = app.jwt.sign({ userId: user.id, login: user.login });
-      return reply.send({ accessToken: token, user });
+      const token = app.jwt.sign({ userId: user.id, login: user.login }, { expiresIn: env.ACCESS_TOKEN_TTL });
+      const csrfToken = randomBytes(16).toString('hex');
+      setAuthCookies(reply, token, csrfToken);
+      return reply.send({ ok: true, csrfToken, user });
     } catch (error) {
       request.log.error(error);
       return reply.status(500).send({ error: 'Internal server error' });
@@ -299,7 +339,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(400).send({ error: 'Invalid payload', details: parsed.error.flatten() });
     }
 
-    const { email } = parsed.data;
+    const email = normalizeEmail(parsed.data.email);
     const userResult = await pool.query('SELECT id, auth_provider FROM users WHERE email = $1', [email]);
     const user = userResult.rows[0] as { id: number; auth_provider?: string } | undefined;
 
@@ -319,11 +359,15 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       [user.id, tokenHash]
     );
 
-    return reply.send({
-      ok: true,
-      message: 'Reset token created (MVP dev mode).',
-      resetToken
-    });
+    if (env.ALLOW_DEV_RESET_TOKEN) {
+      return reply.send({
+        ok: true,
+        message: 'Reset token created (DEV ONLY).',
+        resetToken
+      });
+    }
+
+    return reply.send({ ok: true, message: 'If email exists, reset instructions were sent.' });
   });
 
   app.post('/auth/reset-password', async (request, reply) => {
@@ -358,5 +402,10 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     await pool.query('UPDATE password_reset_tokens SET used_at = now() WHERE id = $1', [resetRow.id]);
 
     return reply.send({ ok: true, message: 'Password updated successfully' });
+  });
+
+  app.post('/auth/logout', async (_request, reply) => {
+    clearAuthCookies(reply);
+    return reply.send({ ok: true });
   });
 };
