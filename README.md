@@ -68,6 +68,7 @@ docker compose up --build
 - Linux-native checks:
   - `bash ./scripts/preflight-prod.sh --env-file ./apps/api/.env --public-domain <your-domain>`
   - `bash ./scripts/post-deploy-check.sh --public-domain <your-domain>`
+- Security backlog (issue-ready P0/P1/P2): [docs/security-backlog.md](docs/security-backlog.md)
 - Monitoring baseline and alert thresholds: [docs/observability.md](docs/observability.md).
 - DB backup/restore scripts:
   - `powershell -ExecutionPolicy Bypass -File .\scripts\db-backup.ps1`
