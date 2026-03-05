@@ -178,6 +178,9 @@ app.get('/ready', async (_request, reply) => {
 });
 app.get('/metrics', async (request, reply) => {
   if (env.NODE_ENV === 'production') {
+    if (!env.METRICS_TOKEN || env.METRICS_TOKEN.trim().length < 16) {
+      return reply.status(503).send({ error: 'Metrics endpoint disabled: METRICS_TOKEN is not configured' });
+    }
     const providedToken = String(request.headers['x-metrics-token'] ?? '');
     if (providedToken !== env.METRICS_TOKEN) {
       return reply.status(401).send({ error: 'Unauthorized' });

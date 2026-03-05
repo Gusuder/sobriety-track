@@ -41,7 +41,13 @@ const authRateLimits = {
   forgotPassword: { maxRequests: 5, windowMs: 15 * 60 * 1000 },
   resetPassword: { maxRequests: 10, windowMs: 15 * 60 * 1000 }
 } as const;
-const rateLimitStorePromise = getRateLimitStore(env.REDIS_URL, env.NODE_ENV === 'production' || env.RATE_LIMIT_STRICT);
+let rateLimitStorePromise: ReturnType<typeof getRateLimitStore> | undefined;
+function getAuthRateLimitStore() {
+  if (!rateLimitStorePromise) {
+    rateLimitStorePromise = getRateLimitStore(env.REDIS_URL, env.RATE_LIMIT_STRICT);
+  }
+  return rateLimitStorePromise;
+}
 const googleClient = new OAuth2Client();
 
 type GoogleProfile = {
@@ -150,7 +156,7 @@ async function applyAuthRateLimit(
   key: string,
   config: { maxRequests: number; windowMs: number }
 ) {
-  const store = await rateLimitStorePromise;
+  const store = await getAuthRateLimitStore();
   const result = await store.increment(`auth:rate:${key}`, config.windowMs);
 
   if (result.count > config.maxRequests) {

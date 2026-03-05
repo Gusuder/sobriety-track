@@ -36,9 +36,6 @@ if (parsed.NODE_ENV === 'production') {
   if (parsed.JWT_SECRET.length < 32) {
     throw new Error('JWT_SECRET must be at least 32 characters in production');
   }
-  if (!parsed.METRICS_TOKEN || parsed.METRICS_TOKEN.trim().length < 16) {
-    throw new Error('METRICS_TOKEN is required in production and must be at least 16 characters');
-  }
 }
 
 export const env = parsed;

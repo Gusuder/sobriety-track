@@ -23,7 +23,7 @@ docker compose up --build
    ```bash
    cp apps/api/.env.example apps/api/.env
    ```
-   Для production обязательно задайте сильный `JWT_SECRET`, `METRICS_TOKEN`, список `CORS_ORIGINS`, `REDIS_URL`, `GOOGLE_CLIENT_ID` (если включен Google OAuth), `RATE_LIMIT_STRICT=true`; `TRUST_PROXY=true` только если API действительно стоит за доверенным прокси.
+   Для production обязательно задайте сильный `JWT_SECRET`, список `CORS_ORIGINS`, `REDIS_URL`, `GOOGLE_CLIENT_ID` (если включен Google OAuth); `TRUST_PROXY=true` только если API действительно стоит за доверенным прокси. Для защищенного `/metrics` задайте `METRICS_TOKEN`.
 2. Запустить проект:
    ```bash
    docker compose up --build
@@ -51,7 +51,7 @@ docker compose up --build
 - API health: http://localhost:4000/health
 - API readiness: http://localhost:4000/ready
 - API metrics: http://localhost:4000/metrics
-  - In `production`, pass header `x-metrics-token: <METRICS_TOKEN>`
+  - In `production`, pass header `x-metrics-token: <METRICS_TOKEN>`; без токена endpoint возвращает `503` (disabled)
 
 ## Google OAuth (optional)
 - Backend requires `GOOGLE_CLIENT_ID` in API environment.
