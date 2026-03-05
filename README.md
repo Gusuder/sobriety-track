@@ -14,6 +14,8 @@ docker compose up --build
 - `make smoke` - run API/web smoke checks
 - `make web-e2e` - run Playwright web regression tests
 - `make ci-local` - run all checks required before merge
+- `make preflight-prod` - linux preflight checks before production deploy
+- `make postdeploy-linux` - linux post-deploy checks
 - `powershell -ExecutionPolicy Bypass -File .\scripts\ci-local.ps1` - same local CI gate for Windows (without `make`)
 - `powershell -ExecutionPolicy Bypass -File .\scripts\ci-local.ps1 -RequireGoogleOAuth` - same checks + strict Google OAuth readiness
 
@@ -63,6 +65,9 @@ docker compose up --build
 - Use [apps/api/.env.production.example](apps/api/.env.production.example) as the production env template.
 - Follow [docs/production-rollout.md](docs/production-rollout.md) for pre-deploy, rollout, and rollback checks.
 - For staging validation use [docs/staging-dry-run.md](docs/staging-dry-run.md) and `scripts/post-deploy-check.ps1`.
+- Linux-native checks:
+  - `bash ./scripts/preflight-prod.sh --env-file ./apps/api/.env --public-domain <your-domain>`
+  - `bash ./scripts/post-deploy-check.sh --public-domain <your-domain>`
 - Monitoring baseline and alert thresholds: [docs/observability.md](docs/observability.md).
 - DB backup/restore scripts:
   - `powershell -ExecutionPolicy Bypass -File .\scripts\db-backup.ps1`

@@ -14,6 +14,8 @@
 1. `cd apps/api && npm test`
 2. `powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1`
 3. `cd e2e && npm test`
+4. Linux-native preflight (recommended before deploy):
+   - `bash ./scripts/preflight-prod.sh --env-file ./apps/api/.env --public-domain <your-domain>`
 
 ## 3. Deploy
 Run your normal deployment pipeline for `main`.
@@ -30,6 +32,14 @@ Run your normal deployment pipeline for `main`.
 4. Run post-deploy script:
    - default: `powershell -ExecutionPolicy Bypass -File .\scripts\post-deploy-check.ps1`
    - require Google OAuth: `powershell -ExecutionPolicy Bypass -File .\scripts\post-deploy-check.ps1 -RequireGoogleOAuth`
+5. Linux-native post-deploy checks (recommended for production hosts):
+   - default local checks: `bash ./scripts/post-deploy-check.sh`
+   - strict external domain checks: `bash ./scripts/post-deploy-check.sh --public-domain <your-domain>`
+   - with metrics token: `bash ./scripts/post-deploy-check.sh --public-domain <your-domain> --metrics-token <METRICS_TOKEN>`
+
+GO/NO-GO rule for external checks:
+- Canonical criterion is HTTPS by domain (`https://<domain>/health|ready|metrics` all `200`).
+- HTTP endpoint may return redirect (`301/302/307/308`) to HTTPS and this is expected.
 
 ## 5. Rollback
 Follow [docs/rollback-runbook.md](rollback-runbook.md).

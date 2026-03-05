@@ -1,4 +1,4 @@
-.PHONY: up down reset logs smoke api-test web-e2e ci-local
+.PHONY: up down reset logs smoke api-test web-e2e ci-local preflight-prod postdeploy-linux
 
 up:
 	docker compose up --build
@@ -22,3 +22,9 @@ web-e2e:
 	cd e2e && npm test
 
 ci-local: api-test smoke web-e2e
+
+preflight-prod:
+	bash ./scripts/preflight-prod.sh
+
+postdeploy-linux:
+	bash ./scripts/post-deploy-check.sh
