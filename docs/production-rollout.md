@@ -14,11 +14,12 @@
 1. `cd apps/api && npm test`
 2. `powershell -ExecutionPolicy Bypass -File .\scripts\smoke-e2e.ps1`
 3. `cd e2e && npm test`
-4. Linux-native preflight (recommended before deploy):
+4. Linux-native preflight (mandatory before deploy):
    - `bash ./scripts/preflight-prod.sh --env-file ./apps/api/.env --public-domain <your-domain>`
 
 ## 3. Deploy
-Run your normal deployment pipeline for `main`.
+Run deployment only after successful preflight.  
+If preflight fails, deploy is blocked (NO-GO).
 
 ## 4. Post-deploy checks
 1. `GET /health` returns `{"status":"ok"}`
