@@ -1,25 +1,25 @@
 # Security Backlog (P0/P1/P2)
 
-Ниже подготовлены готовые формулировки для GitHub Issues.
-Рекомендуемые labels: `security`, `priority:P0|P1|P2`, `type:hardening`, `ops` (где применимо).
+Issue-ready backlog items with clear scope, acceptance criteria, and verification.
+Recommended labels: `security`, `priority:P0|P1|P2`, `type:hardening`, `ops`.
 
 ## P0-1: Make preflight a hard deploy gate
 **Title:** `security(P0): enforce preflight-prod as mandatory deploy gate`
 
 **Problem**
-- Сейчас preflight можно обойти, из-за чего риск попасть в инцидент startup/config mismatch.
+- Preflight can be bypassed, allowing startup/config mismatches into deploy.
 
 **Scope**
-- Включить `scripts/preflight-prod.sh` как обязательный шаг до `docker compose up -d --build`.
-- Возврат не-нулевого кода должен блокировать деплой.
+- Make `scripts/preflight-prod.sh` mandatory before `docker compose up -d --build`.
+- Non-zero preflight exit code must block deploy.
 
 **Acceptance Criteria**
-- Деплой pipeline/ручной SOP останавливается при любой красной preflight проверке.
-- В docs указано, что preflight обязательный.
+- Deploy process stops on any preflight failure.
+- SOP/docs explicitly state preflight is mandatory.
 
 **Verification**
-- Негативный тест: убрать обязательный env (`CORS_ORIGINS`) -> preflight fail, деплой не стартует.
-- Позитивный тест: при валидном env preflight проходит, деплой продолжается.
+- Negative test: remove required env (`CORS_ORIGINS`) -> preflight fails, deploy does not start.
+- Positive test: valid env -> preflight passes and deploy continues.
 
 ---
 
@@ -27,19 +27,19 @@
 **Title:** `security(P0): codify external GO rule by HTTPS domain only`
 
 **Problem**
-- Проверка по IP с follow-redirect дает ложный NO-GO из-за TLS mismatch.
+- IP-based follow-redirect checks can produce false NO-GO due to TLS mismatch.
 
 **Scope**
-- Зафиксировать правило: внешние GO-check только по `https://<domain>/health|ready|metrics`.
-- HTTP endpoint оценивается только как redirect-policy (`301/302/307/308` -> HTTPS).
+- Define external GO rule using only `https://<domain>/health|ready|metrics`.
+- Evaluate `http://` only as redirect policy (`301/302/307/308` to HTTPS).
 
 **Acceptance Criteria**
-- В SOP и post-deploy скриптах одинаковое правило GO/NO-GO.
-- Нет rollback из-за check по IP при зеленом HTTPS домене.
+- SOP and post-deploy scripts use the same GO/NO-GO rule.
+- No rollback caused by IP TLS mismatch when HTTPS domain is green.
 
 **Verification**
-- `http://<domain>/health` -> redirect (не fail).
-- `https://<domain>/health|ready|metrics` -> `200` обязателен для GO.
+- `http://<domain>/health` -> redirect.
+- `https://<domain>/health|ready|metrics` -> `200` required for GO.
 
 ---
 
@@ -47,20 +47,20 @@
 **Title:** `security(P0): add CI security gate (audit + config checks)`
 
 **Problem**
-- Нет явного security quality gate в CI.
+- No explicit security quality gate in CI.
 
 **Scope**
-- Добавить отдельный job в CI:
-  - `npm audit --audit-level=high` (или эквивалент policy).
-  - Проверка базовых security invariants (cookie flags, headers, env policy).
+- Add dedicated CI security job:
+  - `npm audit` policy (high/critical threshold).
+  - Checks for core security invariants (headers/cookie flags/env policy).
 
 **Acceptance Criteria**
-- Merge блокируется при high/critical уязвимостях (по согласованной политике).
-- Merge блокируется при поломке security invariants.
+- Merge is blocked when policy violations are detected.
+- Merge is blocked when security invariants are broken.
 
 **Verification**
-- Искусственно сломать invariant (например, убрать header) -> CI fail.
-- Восстановить -> CI pass.
+- Intentionally break an invariant -> CI fails.
+- Restore it -> CI passes.
 
 ---
 
@@ -68,21 +68,21 @@
 **Title:** `security(P1): add slow-spam protection beyond burst limits`
 
 **Problem**
-- Текущий rate-limit хорошо режет burst, но не всегда ловит последовательный спам.
+- Current rate limits handle bursts better than low-rate sequential abuse.
 
 **Scope**
-- Ввести лимиты по комбинациям:
+- Add limits by:
   - `route + ip`,
   - `route + normalized login/email hash`,
-  - опционально `route + userId` (для авторизованных).
-- Добавить long-window counters (например, 1h/24h).
+  - optional `route + userId` (authenticated paths).
+- Add long-window counters (for example 1h/24h).
 
 **Acceptance Criteria**
-- Медленный спам (низкая частота, но долго) стабильно блокируется.
-- Легитимный трафик не деградирует.
+- Slow-spam scenarios are blocked.
+- Legitimate traffic impact remains acceptable.
 
 **Verification**
-- Набор e2e/API тестов на slow-spam сценарии.
+- API tests for slow-spam scenarios pass.
 
 ---
 
@@ -90,18 +90,18 @@
 **Title:** `security(P1): implement progressive cooldown for repeated abuse`
 
 **Problem**
-- Одинаковый `retry-after` позволяет предсказуемо обходить защиту повторными попытками.
+- Flat `retry-after` allows predictable repeated attempts.
 
 **Scope**
-- Exponential backoff / step-up cooldown для повторных нарушений.
-- Сброс penalty после безопасного окна.
+- Add progressive cooldown (step-up/exponential) for repeated violations.
+- Reset penalty after safe window.
 
 **Acceptance Criteria**
-- При повторных нарушениях `retry-after` растет.
-- После safe window penalty сбрасывается.
+- `retry-after` grows for repeated violations.
+- Penalty resets after safe interval.
 
 **Verification**
-- Тест с N последовательных нарушений: проверка роста `retry-after`.
+- Test sequence confirms growth and reset behavior.
 
 ---
 
@@ -109,22 +109,22 @@
 **Title:** `security(P1): add structured audit events for auth and abuse`
 
 **Problem**
-- Сложно расследовать инциденты без стандартизированных security-событий.
+- Incident investigation is harder without normalized security event logs.
 
 **Scope**
-- Логировать события:
+- Log structured events:
   - `auth.login_failed`,
   - `auth.rate_limit_hit`,
   - `auth.csrf_mismatch`,
   - `auth.reset_requested`,
   - `auth.reset_completed`.
-- Добавить `request_id/correlation_id`, исключить секреты из логов.
+- Include `request_id/correlation_id`, never log secrets.
 
 **Acceptance Criteria**
-- Все ключевые security-события пишутся в единообразном JSON формате.
+- Security events are consistently present in logs.
 
 **Verification**
-- Smoke сценарий генерирует события, которые находятся в логах по ключам.
+- Smoke scenarios generate searchable events for each key action.
 
 ---
 
@@ -132,21 +132,21 @@
 **Title:** `security(P2): enforce periodic rotation for JWT/METRICS/DB/Redis secrets`
 
 **Problem**
-- Без регламента ротации растет риск долгоживущей компрометации.
+- Missing rotation policy increases long-lived compromise risk.
 
 **Scope**
-- Описать и внедрить ротацию:
+- Define and implement rotation for:
   - `JWT_SECRET`,
   - `METRICS_TOKEN`,
   - DB/Redis credentials.
-- Добавить runbook безопасной ротации без downtime.
+- Add no-downtime rotation runbook.
 
 **Acceptance Criteria**
-- Есть документированный график ротации и ответственный.
-- Есть проверенный playbook ротации.
+- Rotation schedule and ownership are documented.
+- Rotation playbook tested in staging.
 
 **Verification**
-- Тестовый прогон ротации в staging с восстановлением сервиса.
+- Staging rotation drill succeeds without service degradation.
 
 ---
 
@@ -154,18 +154,18 @@
 **Title:** `security(P2): encrypt backups and run scheduled restore drills`
 
 **Problem**
-- Backup без шифрования/регулярного restore-test повышает риск утечки и невосстановления.
+- Unencrypted backups and untested restore procedures increase risk.
 
 **Scope**
-- Шифрование backup на хранении.
-- Плановый restore drill (например, ежемесячно).
+- Encrypt backups at rest.
+- Run scheduled restore drills (for example monthly).
 
 **Acceptance Criteria**
-- Все новые backup шифруются.
-- Есть регулярный отчет о restore drill.
+- New backups are encrypted.
+- Restore drill reports are produced on schedule.
 
 **Verification**
-- Восстановление из последнего backup на тестовом окружении успешно.
+- Latest backup restores successfully in test environment.
 
 ---
 
@@ -173,17 +173,17 @@
 **Title:** `security(P2): run monthly tabletop for auth/infra security incidents`
 
 **Problem**
-- Без тренировок команда медленнее реагирует на реальные инциденты.
+- Response quality degrades without regular drills.
 
 **Scope**
-- Ежемесячно 1 tabletop по одному сценарию:
-  - утечка токена,
+- Run monthly tabletop for scenarios:
+  - token leak,
   - Redis down,
   - TLS/domain failure.
 
 **Acceptance Criteria**
-- После каждого tabletop есть action items и owner'ы.
-- MTTR/decision time улучшаются по сравнению с предыдущим прогоном.
+- Each tabletop yields action items with owners.
+- MTTR/decision time trends improve over time.
 
 **Verification**
-- Протокол tabletop + закрытие action items в трекере.
+- Keep tabletop notes and track closure of follow-up actions.
